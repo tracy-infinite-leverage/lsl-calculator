@@ -1,0 +1,27 @@
+# Dependencies
+website/node_modules/
+
+# Build output
+website/.next/
+website/out/
+
+# Secrets
+.env
+.env.local
+.env.*.local
+website/.env
+website/.env.local
+
+# Scratch space
+working_files/
+
+# Claude local
+.claude/settings.local.json
+.claude/worktrees/
+
+# System
+.DS_Store
+*.psd
+*.ai
+*.mov
+*.mp4

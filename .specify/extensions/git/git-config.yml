@@ -1,0 +1,15 @@
+# spec-kit git extension config
+# All auto-commits are DISABLED by default.
+# This respects global-engineering.md: never commit without explicit instruction.
+# To enable auto-commit for a specific command, set enabled: true for that event.
+auto_commit:
+  default: false
+  after_specify:
+    enabled: false
+    message: "[spec-kit] Add specification"
+  after_plan:
+    enabled: false
+    message: "[spec-kit] Add implementation plan"
+  after_tasks:
+    enabled: false
+    message: "[spec-kit] Add task list"
