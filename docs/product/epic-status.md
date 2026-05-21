@@ -16,7 +16,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 
 | Epic | Status | % done (est) | Pipeline | Open bugs | Closed bugs | Notes |
 |------|--------|--------------|----------|-----------|-------------|-------|
-| E1 · NSW Calculator | 🔄 in flight | 20% | ●●○○○ | 0 | 0 | Spec v0.4.1 PM-signed-off on branch `001-nsw-calculator`. LLM vendor = Anthropic Claude API. Dev agent dispatched for impl-plan + tasks. |
+| E1 · NSW Calculator | 🔄 in flight | 25% | ●●○○○ | 0 | 0 | Spec v0.4.1 PM-signed-off. impl-plan + tasks (68 tasks/6 phases) + test-cases.md draft (60 cases, 8 TBDs) on branch `001-nsw-calculator`. Awaiting PM sign-off on test-cases.md to unlock Phase 1. |
 | E2 · All-State Coverage | ☐ planned | 0% | ○○○○○ | 0 | 0 | Blocked on E1 proving the rules-engine pattern on NSW. |
 | E3 · Audit Upload and Variance Report | ☐ planned | 0% | ○○○○○ | 0 | 0 | Moved ahead of API integrations on PM direction (2026-05-21). CSV-only ingest. |
 | E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. Depends on E2 having ≥2-3 states encoded. |
