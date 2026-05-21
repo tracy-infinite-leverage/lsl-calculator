@@ -1,7 +1,7 @@
 # Spec: NSW Long Service Leave Calculator (E1)
 
-**Version**: 0.4.1
-**Status**: PM-signed-off; ready for `dev-planning`
+**Version**: 0.5.0
+**Status**: PM-signed-off (Phase 0 + scope clarifications); ready for Phase 1
 **Date**: 2026-05-21
 **Owner**: Tracy (PM)
 **Branch**: `001-nsw-calculator`
@@ -13,6 +13,31 @@
 - Long Service Leave Act 1955 (NSW)
 
 > Prior spec versions (v0.1.0 → v0.3.0) are preserved in git history. The v0.4.0 reset below replaces them — read this version end-to-end. Earlier Clarification Summaries are no longer load-bearing.
+
+---
+
+## Clarification Summary (v0.5.0)
+
+**Date**: 2026-05-21
+**Source**: PM sign-off on Phase 0 test-cases + cascading scope clarifications.
+
+**PM resolutions of the 8 Phase-0 TBDs**:
+
+1. **`as_at` snapshot semantics for sub-10-year employees** — `as_at` mode IS an accrual report. It MUST report the accrued LSL value regardless of the 10-year milestone (i.e., a 6.99-year employee shows their accrued ~$7,492.50, not $0). The UI MUST clearly label the result as **"accrued, not currently payable"** when payout conditions are not met (i.e., < 10 years of service AND no qualifying termination reason per s.4(2)(iii)). Affects F11, AC for `as_at`, TC-NSW-006.
+2. **System-formula comparison (F21 / AC12 / AC14) stays.** The comparison formula is `current_weekly_gross × entitlement_weeks` (weeks-based, as F21 already states). The dev-agent's hours-based formula in TC-NSW-007 is rejected — LSL is always calculated in weeks, never hours. Payroll systems pay by hours (which is wrong); our calculator pays by weeks (which is correct); the comparison surfaces the variance.
+3. **TC-NSW-009 (Rinaldo)** — full entitlement is the encoded default; spec change not required.
+4. **TC-NSW-020 (Kate) bonus path** — when wage history notes contain "bonus", "incentive", "back-pay", or similar tokens, the system MUST surface a warning that bonus inclusion is out of v1 scope and the user should adjust the gross figure if needed. The calculation still runs on the user-provided gross. (Affects F2 input-validation rules.)
+5. **`Employee` schema is unchanged** — single `employmentType` field is fine; the classifier resolves the pay-pattern from wage-history characteristics (gross variability + period count). Hours-per-week and hourly-rate inputs are NOT required (and not collected). Average weekly pay is what matters; hours worked is irrelevant. Affects F8 Category B math (drops `hourly × hours` and falls through to weekly-averages-only).
+6. **Termination at 10+ years for any reason pays out** — per literal reading of NSW LSA s.4(2)(iii). Includes serious misconduct. F11 confirmed as written.
+7. **"Within 2 months" boundary is inclusive (≤ 60 days)** for the employer-initiated re-hire continuity test. Affects F9 / TC-NSW-044.
+8. **TC-BULK-003 is a performance-only fixture.** Per-row correctness is covered by the 60 enumerated single-mode cases.
+
+**Cascading scope changes** (from #2 and #5):
+
+- **F8 Category B formula**: `greater of (12-month avg weekly gross, 5-year avg weekly gross)` — same as Category C. The categories remain distinct only in their citations (s.4(5)(c) vs s.4(5)(d)) and in the pay-pattern classification path.
+- **F2 inputs**: no `current_hourly_rate` or `current_ordinary_hours_per_week` fields. Single "current gross weekly pay" stays. Wage history rows are `{period_start, period_end, gross_pay, optional_notes}` — no hours columns.
+- **Classifier (F7)**: decides A vs. B vs. C from `employment_type + wage-history period count + gross variance` only. No hours signals.
+- **F11 `as_at` mode**: numeric output unchanged (accrued value); presentation MUST include a "accrued, not currently payable" indicator when payout conditions are not met.
 
 ---
 
@@ -183,10 +208,10 @@ The result is that LSL is a chronic payroll-data-quality risk for every Australi
 
 - **F8.** For each category, the system MUST compute the "value of a week" as the **greater of** the two formulas defined in NSW LSA s.4(5) for that category, operating on the gross values provided:
   - **Category A**: greater of (current_weekly_gross) or (5-year average weekly gross)
-  - **Category B**: greater of (current_hourly_rate × average_ordinary_hours_12mo) or (5-year average weekly gross)
+  - **Category B**: greater of (12-month average weekly gross) or (5-year average weekly gross). *Note: PDF p.20 worked example computes the 12-mo figure as `hourly_rate × (annual_hours / 365) × 7` — the v1 calculator does NOT collect hourly rate or hours; it computes the same 12-month average weekly gross directly from `sum(weekly_gross)/52` on the 12-month window. Both methods yield the same result when the inputs reconcile.*
   - **Category C**: greater of (12-month average weekly gross) or (5-year average weekly gross)
 
-  The lookback denominator MUST be in days, less "days not counted" (per research brief §1.2). The lookback windows are anchored at the prescribed date (F11). For Category B, when the user has not provided hourly rate + hours separately (e.g., they uploaded gross-only), the system MUST treat the period as a fall-through to Category C math (whichever is greater of 12-month or 5-year averages on gross weekly).
+  Categories B and C share the same formula in v1 (per v0.5.0 Clarification Summary #5 — hours data is not collected). The classifier still distinguishes B from C for citation purposes (s.4(5)(c) vs s.4(5)(d)). The lookback denominator MUST be in days, less "days not counted" (per research brief §1.2). The lookback windows are anchored at the prescribed date (F11).
 
 - **F9.** The system MUST compute continuous service per s.4(11). Specifically:
   - Paid annual leave, paid LSL, paid sick/personal leave, Workers Comp absence (per Workers Comp Act 1987 s.49), paid parental leave, and Christmas closedown paid leave MUST count as service.
@@ -203,7 +228,7 @@ The result is that LSL is a chronic payroll-data-quality risk for every Australi
     - < 5 years: $0
     - 5 to < 10 years: pro-rata only if termination reason is (a) employer-initiated termination other than serious misconduct (incl. redundancy), (b) illness/incapacity, (c) domestic or pressing necessity, (d) death
     - 10+ years: pro-rata for any reason
-  - **As-at (snapshot) mode**: accrued LSL is computed as `accrual_weeks_at_as_at_date × value_of_week_at_as_at_date`. The pro-rata thresholds do NOT apply in as-at mode — the snapshot reports current accrued value regardless of whether the employee would actually be paid out today.
+  - **As-at (snapshot) mode**: accrued LSL is computed as `accrual_weeks_at_as_at_date × value_of_week_at_as_at_date`. The pro-rata thresholds do NOT apply in as-at mode — the snapshot reports current accrued value regardless of whether the employee would actually be paid out today. **Presentation**: when as-at conditions for current payout are not met (i.e., service < 10 years AND no qualifying termination reason per s.4(2)(iii)), the result display MUST include an "accrued, not currently payable" indicator alongside the numeric value, so the user does not mistake an accrual snapshot for a payable amount.
 
 - **F12.** The system MUST return three numeric outputs per employee:
   - **Value of a week** (AUD)
@@ -227,7 +252,7 @@ The result is that LSL is a chronic payroll-data-quality risk for every Australi
 
 ### Functional — SHOULD
 
-- **F18.** The system SHOULD provide an input-validation pass before running any calculation: missing or contradictory dates, wage history gaps, employment-type vs. pay-pattern mismatches.
+- **F18.** The system SHOULD provide an input-validation pass before running any calculation: missing or contradictory dates, wage history gaps, employment-type vs. pay-pattern mismatches. When any wage-history `optional_notes` field contains tokens such as "bonus", "incentive", "back-pay", or "retrospective", the system MUST surface a warning that bonus inclusion / retrospective adjustments are out of v1 scope; the calculation still runs on the user-provided gross figure (per v0.5.0 Clarification #4).
 - **F19.** The system SHOULD allow the user to download a single-employee PDF report (single mode) or a multi-employee PDF report (bulk mode) suitable for attaching to a payslip, audit file, or finance workpaper.
 - **F20.** The system SHOULD persist the most recent single-mode calculation in browser-local state so the user can refresh without losing inputs. Bulk-mode results MAY be persisted similarly (size-permitting) with an auto-clear after 7 days.
 - **F21.** The system SHOULD surface a "what the system formula would have given" comparison value alongside the legislated value — to make the variance visible and reinforce the wedge. System formula = `current_weekly_gross × entitlement_weeks`.
