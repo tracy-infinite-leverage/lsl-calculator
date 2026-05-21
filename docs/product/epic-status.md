@@ -16,7 +16,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 
 | Epic | Status | % done (est) | Pipeline | Open bugs | Closed bugs | Notes |
 |------|--------|--------------|----------|-----------|-------------|-------|
-| E1 · NSW Calculator | 🔄 in flight | 15% | ●○○○○ | 0 | 0 | Spec v0.4.0 on branch `001-nsw-calculator`: bulk-employee mode added, gross-only inputs (no pay-component decomposition). Awaiting PM sign-off on PM-A (mobile scope) + PM-B (bulk trigger semantics) + OQ-B (LLM vendor). Dev-findings.md updated. |
+| E1 · NSW Calculator | 🔄 in flight | 20% | ●●○○○ | 0 | 0 | Spec v0.4.1 PM-signed-off on branch `001-nsw-calculator`. LLM vendor = Anthropic Claude API. Dev agent dispatched for impl-plan + tasks. |
 | E2 · All-State Coverage | ☐ planned | 0% | ○○○○○ | 0 | 0 | Blocked on E1 proving the rules-engine pattern on NSW. |
 | E3 · Audit Upload and Variance Report | ☐ planned | 0% | ○○○○○ | 0 | 0 | Moved ahead of API integrations on PM direction (2026-05-21). CSV-only ingest. |
 | E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. Depends on E2 having ≥2-3 states encoded. |
@@ -25,22 +25,19 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 
 ### E1 · NSW Calculator
 - **Phase**: Phase 1
-- **Pipeline**: ●○○○○ (Stage 1 · Specified — partial; awaiting PM sign-off on PM-A + PM-B + OQ-B)
+- **Pipeline**: ●●○○○ (Stage 1 · Specified — complete; Stage 2 · In flight — dev-planning underway)
 - **Branch**: `001-nsw-calculator`
-- **Spec**: `.specify/features/001-nsw-calculator/spec.md` v0.4.0
+- **Spec**: `.specify/features/001-nsw-calculator/spec.md` v0.4.1 (PM-signed-off)
 - **Dev findings**: `.specify/features/001-nsw-calculator/dev-findings.md` (22 findings + 1 carried OQ — 0 HIGH, 11 MEDIUM, 11 LOW)
-- **Scope (v0.4.0)**:
+- **Scope (v0.4.1)**:
   - Two modes: single employee (form) + bulk upload (CSV or PDF) of any payroll report
   - Gross-only inputs; no pay-component decomposition; no bonus high-income threshold test in v1
   - NSW only; cross-jurisdiction detection blocks per-employee until governing state nominated
-- **PM items awaiting sign-off**:
-  - **PM-A**: mobile-browser scope (v0.4.0 defaults to "responsive, best-effort, desktop-optimised")
-  - **PM-B**: bulk-mode trigger semantics (v0.4.0 defaults to `as_at` snapshot with optional per-row override)
-  - **OQ-B**: LLM vendor for PDF extraction (v0.4.0 defaults to Anthropic Claude no-retention tier)
+- **PM sign-offs (2026-05-21)**: PM-A mobile = responsive best-effort; PM-B bulk trigger = `as_at` default; OQ-B LLM = Anthropic Claude API no-retention.
 - **Pre-flight blockers** (still open from product.md §14):
   - APA portal hosting + auth model (working default: standalone + deep-link)
-  - Quality-gate sign-off process for the gold-standard test suite
-- **Next action**: PM resolves PM-A, PM-B, OQ-B; developer agent invokes `dev-planning` with the spec path to produce `impl-plan.md` and `tasks.md`
+  - Quality-gate sign-off process for the gold-standard test suite (PM signs `test-cases.md` before rules-engine dev starts)
+- **Next action**: developer agent invokes `dev-planning` against `spec.md v0.4.1` to produce `impl-plan.md` and `tasks.md`. After that, PM signs off `test-cases.md` and rules-engine work starts.
 
 ### E2 · All-State Coverage
 - **Phase**: Phase 1

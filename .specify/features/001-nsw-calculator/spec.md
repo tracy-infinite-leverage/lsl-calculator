@@ -1,7 +1,7 @@
 # Spec: NSW Long Service Leave Calculator (E1)
 
-**Version**: 0.4.0
-**Status**: Draft — PM-directed scope simplification; bulk-employee mode added
+**Version**: 0.4.1
+**Status**: PM-signed-off; ready for `dev-planning`
 **Date**: 2026-05-21
 **Owner**: Tracy (PM)
 **Branch**: `001-nsw-calculator`
@@ -45,10 +45,11 @@
 - LLM vendor: default = Anthropic Claude API, no-retention enterprise tier. PM signs off vendor + data-handling policy before E1 ships.
 - Gold-standard test suite: enumerated in a separate artifact (`.specify/features/001-nsw-calculator/test-cases.md`), PM-signed-off before development.
 
-**Open for PM (only the genuinely-undecided items)**:
+**PM sign-off (v0.4.1, 2026-05-21)**:
 
-- **PM-A** — Mobile scope: v0.4.0 keeps v0.3.0's default of "responsive, best-effort, desktop-optimised". Confirm, or make mobile an explicit non-goal in `product.md` §7.
-- **PM-B** — Bulk-mode trigger semantics: v0.4.0 defaults to **"as-at"** snapshot mode (compute current accrued LSL value for each employee at a user-supplied date, default = today). The user MAY override per row to "taking leave" or "termination" if their input includes a per-employee trigger column. Confirm, or change the default to something else (e.g., always require the user to choose).
+- **PM-A — Mobile scope**: ✅ **Confirmed** as "responsive, best-effort, desktop-optimised" per F22.
+- **PM-B — Bulk-mode trigger semantics**: ✅ **Confirmed** as `as_at` snapshot default with optional per-row override per F6 / AC18.
+- **OQ-B — LLM vendor for PDF extraction**: ✅ **Confirmed** as **Anthropic Claude API, no-retention enterprise tier**. Data residency tradeoff acknowledged (Anthropic has no Australian inference region today; requests transit US infrastructure under the no-retention contract). Data-handling policy doc to be drafted by dev as part of impl-plan before any production traffic.
 
 ---
 
@@ -395,11 +396,11 @@ The result is that LSL is a chronic payroll-data-quality risk for every Australi
 
 ## Open Questions
 
-- **PM-A** — Mobile scope: default = responsive, best-effort, desktop-optimised (F22). PM may override to make mobile a stated non-goal in `product.md` §7.
-- **PM-B** — Bulk-mode trigger semantics: default = `as_at` snapshot with optional per-row override. PM may change the default (e.g., require explicit user choice on every bulk upload).
-- **OQ-A** — High-income threshold verification: now out of v1 scope (no HIT test). Re-opens if a future epic re-introduces pay-component decomposition.
-- **OQ-B** — LLM vendor + data-handling policy: default = Anthropic Claude API no-retention tier; PM signs off vendor + policy doc before E1 ships.
-- **OQ-C** — Test-suite enumeration: `.specify/features/001-nsw-calculator/test-cases.md` to be written before development starts, PM-signed-off. Routes to PM (signer) + dev (encoder).
+All PM items resolved in v0.4.1 sign-off (see Clarification Summary at top).
+
+Remaining items routed to dev:
+- **OQ-C** — Test-suite enumeration: `.specify/features/001-nsw-calculator/test-cases.md` to be written before development starts, PM-signed-off. Routes to dev (encoder) + PM (signer of the artifact).
+- **Data-handling policy doc**: dev produces a short policy doc capturing exactly what employee data is sent to Anthropic, what the no-retention contract covers, what telemetry the calculator itself logs. PM signs off before production traffic.
 
 Dev-layer items are tracked in `dev-findings.md`.
 
