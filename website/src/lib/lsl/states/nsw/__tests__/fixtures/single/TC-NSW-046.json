@@ -1,0 +1,35 @@
+{
+  "name": "TC-NSW-046",
+  "title": "JobKeeper counts as service, excluded from lookback denom",
+  "source": "PDF p.15 + research brief §5.11",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-046",
+      "legalName": "JobKeeperFixture",
+      "startDate": "2018-03-15",
+      "employmentType": "casual",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1330.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-22", "periodEnd": "2026-05-21", "grossPay": "69160.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2021-05-22", "periodEnd": "2025-05-21", "grossPay": "276640.00", "frequency": "other", "periodDays": 1461 }
+      ],
+      "serviceEvents": [
+        {
+          "type": "jobkeeper_or_covid_standdown",
+          "startDate": "2020-04-01",
+          "endDate": "2020-09-27"
+        }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "B",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.jobkeeper-counts" }
+    ]
+  }
+}

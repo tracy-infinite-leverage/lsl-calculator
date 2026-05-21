@@ -1,0 +1,34 @@
+{
+  "name": "TC-NSW-010",
+  "title": "Walid — apprentice → tradesperson within 12 months",
+  "source": "PDF p.14 (Walid); F9 / research brief §5.10",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-010",
+      "legalName": "Walid",
+      "startDate": "2018-07-01",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2024-10-01", "periodEnd": "2026-05-21", "grossPay": "157500.00", "frequency": "other", "periodDays": 598 }
+      ],
+      "serviceEvents": [
+        {
+          "type": "apprentice_to_tradesperson_transition",
+          "startDate": "2024-06-30",
+          "endDate": "2024-10-01"
+        }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.apprentice-to-trade-within-12mo" }
+    ]
+  }
+}

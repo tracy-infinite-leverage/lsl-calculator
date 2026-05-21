@@ -1,0 +1,23 @@
+{
+  "name": "TC-NSW-052",
+  "title": "Single NSW state — no block (control)",
+  "source": "F10 control",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-052",
+      "startDate": "2014-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "391286.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A"
+  }
+}

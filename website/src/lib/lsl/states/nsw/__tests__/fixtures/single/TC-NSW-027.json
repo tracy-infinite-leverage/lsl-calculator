@@ -1,0 +1,25 @@
+{
+  "name": "TC-NSW-027",
+  "title": "AC4 — weekly $5,200 → $5,200/wk",
+  "source": "spec AC4",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-027",
+      "startDate": "2014-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "5200.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "1356400.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "5200.00"
+  }
+}

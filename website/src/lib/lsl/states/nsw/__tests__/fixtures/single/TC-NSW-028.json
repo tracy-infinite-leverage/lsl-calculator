@@ -1,0 +1,25 @@
+{
+  "name": "TC-NSW-028",
+  "title": "AC4 — 'other' 28-day period $20,800 → $5,200/wk",
+  "source": "spec F3a 'other' branch",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-028",
+      "startDate": "2014-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "5200.00",
+      "wageHistory": [
+        { "periodStart": "2026-04-23", "periodEnd": "2026-05-20", "grossPay": "20800.00", "frequency": "other", "periodDays": 28 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "5200.00"
+  }
+}

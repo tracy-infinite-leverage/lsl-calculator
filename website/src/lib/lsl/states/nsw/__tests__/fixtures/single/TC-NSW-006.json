@@ -1,0 +1,38 @@
+{
+  "name": "TC-NSW-006",
+  "title": "Michelle — PT 22.8 h/wk fixed-rate, 52 wks UPL in Yr 3",
+  "source": "PDF p.20 'Fixed Rate No Varied Hours' (Michelle)",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-006",
+      "legalName": "Michelle",
+      "startDate": "2018-05-21",
+      "employmentType": "part_time",
+      "categoryOverride": "A",
+      "categoryOverrideConfirmed": true,
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1235.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-22", "periodEnd": "2026-05-21", "grossPay": "63600.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2024-05-22", "periodEnd": "2025-05-21", "grossPay": "62800.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2023-05-22", "periodEnd": "2024-05-21", "grossPay": "0.00",     "frequency": "other", "periodDays": 366 },
+        { "periodStart": "2022-05-22", "periodEnd": "2023-05-21", "grossPay": "61950.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2021-05-22", "periodEnd": "2022-05-21", "grossPay": "61040.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [
+        { "type": "unpaid_parental_leave", "startDate": "2023-05-22", "endDate": "2024-05-21" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(5)(b)", "rule": "value-of-week.A.current" },
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.upl-excluded" }
+    ],
+    "payableIndicator": "accrued_not_currently_payable"
+  }
+}

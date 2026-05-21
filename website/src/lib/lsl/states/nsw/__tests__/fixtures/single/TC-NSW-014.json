@@ -1,0 +1,37 @@
+{
+  "name": "TC-NSW-014",
+  "title": "Renuka — redundancy + 3-mo gap → service NOT preserved (>2mo)",
+  "source": "PDF p.16 Ex 3; F9 / PM Clarification #7",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-014",
+      "legalName": "Renuka",
+      "startDate": "2014-07-15",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1900.00",
+      "wageHistory": [
+        { "periodStart": "2026-02-22", "periodEnd": "2026-05-21", "grossPay": "24700.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        {
+          "type": "employer_initiated_termination_and_rehire",
+          "startDate": "2025-11-22",
+          "endDate": "2026-02-22"
+        }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1900.00",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.gap-exceeds-2mo-breaks-service" }
+    ],
+    "warnings": ["gap_exceeds_2mo", "accrued_not_currently_payable"],
+    "payableIndicator": "accrued_not_currently_payable"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "TC-NSW-005",
+  "title": "Yamala — 12-yr casual, 2 wks Workers Comp absence",
+  "source": "PDF p.16 Example 2; AC10 / research brief §5.5",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-005",
+      "legalName": "Yamala",
+      "startDate": "2014-05-21",
+      "employmentType": "casual",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1200.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "311105.14", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2026-03-01", "endDate": "2026-03-14" }
+      ]
+    },
+    "trigger": {
+      "kind": "as_at",
+      "asAtDate": "2026-05-21"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "B",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.workers-comp-counts" },
+      { "section": "NSW LSA s.4(5)(c)", "rule": "value-of-week.B.12mo-greater-of" },
+      { "section": "NSW LSA s.4(5)", "rule": "lookback.days-not-counted" }
+    ]
+  }
+}

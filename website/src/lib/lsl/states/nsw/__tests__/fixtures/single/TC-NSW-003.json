@@ -1,0 +1,34 @@
+{
+  "name": "TC-NSW-003",
+  "title": "Natal — 10-yr FT, paid annual leave counts as service",
+  "source": "PDF p.14 'Counting as Service'; F9 / AC10 contrast",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-003",
+      "legalName": "Natal",
+      "startDate": "2016-05-22",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-22", "periodEnd": "2026-05-21", "grossPay": "781200.00", "frequency": "other", "periodDays": 3652 }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2026-01-05", "endDate": "2026-01-23" }
+      ]
+    },
+    "trigger": {
+      "kind": "as_at",
+      "asAtDate": "2026-05-21"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(5)(b)", "rule": "value-of-week.A.current" }
+    ]
+  }
+}

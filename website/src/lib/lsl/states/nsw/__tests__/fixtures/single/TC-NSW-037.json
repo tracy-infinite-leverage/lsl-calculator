@@ -1,0 +1,30 @@
+{
+  "name": "TC-NSW-037",
+  "title": "as_at snapshot at 6 yrs — accrued, not currently payable",
+  "source": "F11 + D20 — snapshot bypasses s.4(2)(iii) thresholds",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-037",
+      "startDate": "2020-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "391286.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["accrued_not_currently_payable"],
+    "expected_citations": [
+      { "section": "NSW LSA s.4(2)", "rule": "accrual.snapshot.no-pro-rata-threshold" }
+    ]
+  }
+}

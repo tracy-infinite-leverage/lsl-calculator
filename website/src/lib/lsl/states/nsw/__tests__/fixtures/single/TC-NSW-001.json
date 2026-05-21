@@ -1,0 +1,40 @@
+{
+  "name": "TC-NSW-001",
+  "title": "Alicia — 5.75-yr FT redundancy, pro-rata at $1,500/wk",
+  "source": "PDF p.13 Example 1; NSW LSA s.4(2)(iii)(a)",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-001",
+      "legalName": "Alicia",
+      "startDate": "2020-08-21",
+      "endDate": "2026-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2020-08-21", "periodEnd": "2026-05-21", "grossPay": "450000.00", "frequency": "other", "periodDays": 2100 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-21",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "yearsOfContinuousService": "5.7495",
+    "valueOfWeek": "1500.00",
+    "valueOfDay": "300.00",
+    "totalEntitlementWeeks": "4.9829",
+    "totalEntitlementDollars": "7474.36",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(2)(iii)(a)", "rule": "accrual.pro-rata.5-to-10.redundancy" },
+      { "section": "NSW LSA s.4(5)(b)", "rule": "value-of-week.A.current" },
+      { "section": "NSW LSA s.4(5)(a)", "rule": "trigger.termination.forthwith" }
+    ]
+  }
+}

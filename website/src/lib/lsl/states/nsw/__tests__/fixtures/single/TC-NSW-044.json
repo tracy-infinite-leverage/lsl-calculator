@@ -1,0 +1,35 @@
+{
+  "name": "TC-NSW-044",
+  "title": "Rehire gap exactly 60 days = at boundary (preserved, warning)",
+  "source": "PM Clarification #7 — inclusive ≤ 60 days",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-044",
+      "startDate": "2015-04-01",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "428000.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": [
+        {
+          "type": "employer_initiated_termination_and_rehire",
+          "startDate": "2026-03-15",
+          "endDate": "2026-05-13"
+        }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1700.00",
+    "warnings": ["rehire_gap_at_threshold"],
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.employer-init-rehire-within-2mo" }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "TC-NSW-038",
+  "title": "as_at snapshot at 3 yrs — reports accrued (no 5-yr floor)",
+  "source": "F11 + D20",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-038",
+      "startDate": "2023-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-22", "periodEnd": "2026-05-21", "grossPay": "78000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["accrued_not_currently_payable"],
+    "expected_citations": [
+      { "section": "NSW LSA s.4(2)", "rule": "accrual.snapshot.no-pro-rata-threshold" }
+    ]
+  }
+}

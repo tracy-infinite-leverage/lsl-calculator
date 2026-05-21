@@ -1,0 +1,25 @@
+{
+  "name": "TC-NSW-053",
+  "title": "NSW nominated as governing for NSW+VIC service → computes as NSW",
+  "source": "F10 + AC23",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-053",
+      "startDate": "2014-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW", "VIC"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "391286.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "warnings": ["cross_jurisdiction_pending"]
+  }
+}

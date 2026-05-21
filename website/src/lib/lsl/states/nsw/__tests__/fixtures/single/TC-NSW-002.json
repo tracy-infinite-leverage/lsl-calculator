@@ -1,0 +1,38 @@
+{
+  "name": "TC-NSW-002",
+  "title": "Will — 11-yr FT voluntary resignation, 3 wks prior LSL taken",
+  "source": "PDF p.13 Example 2; NSW LSA s.4(2)",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-002",
+      "legalName": "Will",
+      "startDate": "2015-05-21",
+      "endDate": "2026-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1800.00",
+      "priorLeaveTakenWeeks": "3",
+      "wageHistory": [
+        { "periodStart": "2015-05-21", "periodEnd": "2026-05-21", "grossPay": "1029600.00", "frequency": "other", "periodDays": 4018 }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2024-01-08", "endDate": "2024-01-26", "note": "3 wks paid LSL previously taken" }
+      ]
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-21",
+      "reason": "voluntary_resignation"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1800.00",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(2)(iii)", "rule": "accrual.10yr-plus.any-reason" },
+      { "section": "NSW LSA s.4(5)(b)", "rule": "value-of-week.A.current" }
+    ]
+  }
+}

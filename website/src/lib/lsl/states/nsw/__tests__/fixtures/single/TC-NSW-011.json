@@ -1,0 +1,36 @@
+{
+  "name": "TC-NSW-011",
+  "title": "Candice — casual NA'd for 1 week — excluded from both ledgers",
+  "source": "PDF p.15 Example 1",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-011",
+      "legalName": "Candice",
+      "startDate": "2016-05-22",
+      "employmentType": "casual",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1064.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-22", "periodEnd": "2026-05-21", "grossPay": "54416.00", "frequency": "other", "periodDays": 358 },
+        { "periodStart": "2021-05-22", "periodEnd": "2025-05-21", "grossPay": "215000.00", "frequency": "other", "periodDays": 1461 }
+      ],
+      "serviceEvents": [
+        {
+          "type": "leave_without_pay",
+          "startDate": "2026-05-01",
+          "endDate": "2026-05-07",
+          "note": "Worker self-declared NA'd"
+        }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "B",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.lwop-excluded" }
+    ]
+  }
+}

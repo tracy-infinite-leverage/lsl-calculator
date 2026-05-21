@@ -1,0 +1,31 @@
+{
+  "name": "TC-NSW-019",
+  "title": "Slackness stand-down — doesn't count, doesn't break",
+  "source": "PDF p.14 / p.31 matrix",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-019",
+      "legalName": "SlacknessFixture",
+      "startDate": "2014-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1600.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "400000.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": [
+        { "type": "employer_stand_down", "startDate": "2024-03-01", "endDate": "2024-05-01" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1600.00",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.slackness-no-service-no-break" }
+    ]
+  }
+}
