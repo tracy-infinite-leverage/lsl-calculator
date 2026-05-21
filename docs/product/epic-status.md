@@ -1,4 +1,4 @@
-# LSL Calculator · Epic Status · Last updated: 2026-05-21 · Phase in flight: Phase 1
+# LSL Calculator · Epic Status · Last updated: 2026-05-21 · Phase in flight: Phase 1 · E1 Spec written
 
 ## Pipeline stages
 
@@ -16,7 +16,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 
 | Epic | Status | % done (est) | Pipeline | Open bugs | Closed bugs | Notes |
 |------|--------|--------------|----------|-----------|-------------|-------|
-| E1 · NSW Calculator | ☐ planned | 0% | ○○○○○ | 0 | 0 | NSW locked as first state (2026-05-21). Hosting model = standalone + deep-link (working default). Spec to be written. |
+| E1 · NSW Calculator | 🔄 in flight | 10% | ●○○○○ | 0 | 0 | Spec v0.3.0 written on branch `001-nsw-calculator`. Awaiting PM sign-off on PM-1 (mobile scope) + PM-2 (LLM vendor). Dev-findings.md routed to developer agent. |
 | E2 · All-State Coverage | ☐ planned | 0% | ○○○○○ | 0 | 0 | Blocked on E1 proving the rules-engine pattern on NSW. |
 | E3 · Audit Upload and Variance Report | ☐ planned | 0% | ○○○○○ | 0 | 0 | Moved ahead of API integrations on PM direction (2026-05-21). CSV-only ingest. |
 | E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. Depends on E2 having ≥2-3 states encoded. |
@@ -25,8 +25,17 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 
 ### E1 · NSW Calculator
 - **Phase**: Phase 1
-- **Pre-flight blockers**: APA portal hosting + auth model (working default: standalone + deep-link); quality-gate sign-off process (see Open Decisions in product.md)
-- **Next action**: run `pm-epic-writing` full workflow (speckit-specify → clarify → analyze → epic) on E1 to produce `.specify/features/001-nsw-calculator/spec.md`
+- **Pipeline**: ●○○○○ (Stage 1 · Specified — partial; awaiting PM sign-off on PM-1 + PM-2)
+- **Branch**: `001-nsw-calculator`
+- **Spec**: `.specify/features/001-nsw-calculator/spec.md` v0.3.0
+- **Dev findings**: `.specify/features/001-nsw-calculator/dev-findings.md` (17 findings — 0 HIGH, 8 MEDIUM, 9 LOW)
+- **PM items awaiting sign-off**:
+  - **PM-1**: mobile-browser scope (v0.3.0 defaults to "responsive, best-effort")
+  - **PM-2**: LLM vendor for PDF extraction (v0.3.0 defaults to Anthropic Claude no-retention tier)
+- **Pre-flight blockers** (still open from product.md §14):
+  - APA portal hosting + auth model (working default: standalone + deep-link)
+  - Quality-gate sign-off process for the gold-standard test suite
+- **Next action**: PM resolves PM-1 and PM-2; developer agent invokes `dev-planning` with the spec path to produce `impl-plan.md` and `tasks.md`
 
 ### E2 · All-State Coverage
 - **Phase**: Phase 1
