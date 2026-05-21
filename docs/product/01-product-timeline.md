@@ -6,27 +6,30 @@
 
 | Milestone | Target date | Owner | Status |
 |-----------|-------------|-------|--------|
-| State choice locked (E1) | 2026-05-28 | Tracy | ☐ |
-| APA portal hosting + auth model decided | 2026-06-04 | Tracy + APA tech | ☐ |
-| E1 spec written (speckit + pm-epic-writing) | 2026-06-11 | PM agent | ☐ |
-| E1 rules engine + UI for one state in APA staging | 2026-07-23 | Developer agent | ☐ |
-| E1 ≥99% accuracy on 100-case gold-standard suite | 2026-08-07 | QA agent | ☐ |
+| First state locked: **NSW** | 2026-05-21 | Tracy | ✅ |
+| Build sequence locked: E1 NSW → E3 Audit → E2 All-state → E4 API | 2026-05-21 | Tracy | ✅ |
+| APA portal hosting + auth model confirmed (default: standalone + deep-link) | 2026-06-04 | Tracy + APA tech | ☐ |
+| Quality-gate process defined (who signs off gold-standard suite, release approval) | 2026-06-04 | Tracy + QA | ☐ |
+| E1 spec written (speckit-specify → pm-epic-writing) | 2026-06-11 | PM agent | ☐ |
+| E1 NSW rules engine + UI in staging | 2026-07-23 | Developer agent | ☐ |
+| E1 100% accuracy on NSW gold-standard test suite | 2026-08-07 | QA agent | ☐ |
 | E1 live in APA member portal | 2026-08-21 | Web publisher | ☐ |
-| All 8 states encoded as rules (E2 data milestone, UI may lag) | 2026-08-21 | Developer agent | ☐ |
-| Audit replay prototype on E1 state (CSV → variance report) | 2026-08-21 | Developer agent | ☐ |
+| E3 audit replay (CSV) prototype on NSW | 2026-08-21 | Developer agent | ☐ |
 
 ## Phase 2 · Coverage and ingest (target: 2026-08-22 → 2026-11-21)
 
 | Milestone | Target date | Owner | Status |
 |-----------|-------------|-------|--------|
+| All 8 states encoded as rules (E2 data milestone) | 2026-09-15 | Developer agent | ☐ |
 | E2 UI exposes all 8 states | 2026-10-01 | Developer agent | ☐ |
+| E3 audit replay productionised + auditor workspace | 2026-10-15 | Developer agent | ☐ |
 | Non-member licence pricing + checkout flow | 2026-10-15 | Tracy + APA board | ☐ |
-| First payroll-vendor API integration scoped (E3 discovery) | 2026-11-01 | PM agent | ☐ |
-| E3 vs. E4 sequencing decision finalised | 2026-11-15 | Tracy | ☐ |
+| First payroll-vendor selected for E4 | 2026-11-01 | Tracy | ☐ |
+| E4 first integration scoped (spec written) | 2026-11-15 | PM agent | ☐ |
 
 ## Phase 3 · Scale (target: 2026-11-22 → 2027-02-21)
 
-To be detailed once Phase 2 closes. Likely bundles: first payroll-vendor API integration shipped (E3) **or** auditor workspace + variance report shipped (E4), depending on the sequencing decision in Phase 2.
+To be detailed once Phase 2 closes. Likely bundles: first payroll-vendor API integration shipped (E4), legislation-update SLA operationalised, and cross-state UI polish based on multi-state employer feedback.
 
 ---
 

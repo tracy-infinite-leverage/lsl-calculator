@@ -2,86 +2,120 @@
 
 These are thematic bundles of work. Each epic makes a bet on user behavior — a specific problem that, if solved, unlocks a meaningful outcome. Epics are not a sprint backlog.
 
-> **Status**: skeleton entries written from the client interview on 2026-05-21. Specs under `.specify/features/{slug}/spec.md` will be written by `pm-epic-writing` (full speckit workflow) when an epic enters discovery.
+> **Sources**: APA *Long Service Leave Masterclass* (January 2026, 158pp, in `docs/features/LSL-training.pdf`) + each state's LSL legislation as primary source. Citations in the form `(NSW LSA s.4(2); PDF p.13)` refer to the relevant Act section and PDF page.
+>
+> **Sequence**: build order is E1 → (E3 NSW slice) → E2 → (E3 expansion) → E4. Epic numbers are identities, not strict build order; see the Sequence Argument at the end.
 
 ---
 
-## E1 · One-State Calculator
+## E1 · NSW Calculator
 
-**The problem:** A payroll manager needs to calculate LSL for one Australian state and currently does it by hand from legislation PDFs, knowing she will probably get it wrong by an amount no-one will ever audit.
-**The mechanism:** Encode one state's LSL rules as a deterministic rules engine with a citation block, expose them through a single-calc UI inside the APA portal, and the manager opens the tool instead of her spreadsheet.
+**The problem:** Australian payroll managers calculating LSL for an NSW employee currently work from the *Long Service Leave Act 1955* (NSW) by hand. The Act defines three distinct pay-pattern categories (fixed-rate-fixed-hours, fixed-rate-varied-hours, varied-rate), each with its own "greater of" comparison between current rate, 12-month average, and 5-year average — and a separate inclusion test for bonuses against the $183,100 high-income threshold. APA's own training shows that mainstream payroll systems, which compute `hours × hourly rate`, produce errors of 3–34% against the correct figure: in one worked example, a 12-year casual-to-FT transition is **underpaid $3,316.64 on a correct $9,880.04 payout** (PDF pp.139–141).
+
+**The mechanism:** Encode the NSW LSA as a deterministic rules engine that selects the correct pay-pattern category, runs both the 12-month and 5-year lookbacks, applies the right inclusion rules for each pay component, and returns the legislated "value of a week" with a citation block linking each computed value to the section of the Act that produced it. Expose it through a single-calculation UI inside the APA portal (working default: standalone + deep-link).
+
 **What it bundles:**
-- Rules engine for one state (legislation → named rules → tested code path)
-- Single-calc UI: state selector, employee inputs, take-leave vs. termination toggle
-- Citation block under every output: the rule that fired and the section of legislation
-- Test harness with ≥100 gold-standard cases for the chosen state
-- Deployment into the APA member portal (auth + hosting model — see Open Decisions in product.md)
+- **Pay-pattern classifier**: identifies which of the three NSW categories applies (fixed rate + fixed hours / fixed rate + varied hours / varied rate) (NSW LSA s.4(5); PDF pp.18–23)
+- **NSW rules engine**: lookback comparisons (current rate × normal hours / 12-month average / 5-year average); accrual table (10 yrs → 8.6667 wks, +4.3333 wks per 5 yrs); pro-rata thresholds (5 yrs limited grounds, 10 yrs any reason) (NSW LSA s.4(2); PDF pp.13, 25)
+- **Pay-component inclusion engine**: base, casual loading, skill allowances, board-and-lodging, commission, piece rate INCLUDED; overtime and penalty rates EXCLUDED; bonuses INCLUDED only below $183,100 threshold (NSW LSA s.3(2); PDF p.18)
+- **Continuous-service rules**: paid leave + Workers Comp + transmission-of-business count; unpaid parental leave + industrial action + employer-initiated re-hire gap >2 months do not (NSW LSA s.4(11), s.4(6); Workers Comp Act 1987 s.49; PDF pp.14–16)
+- **Single-calc UI**: NSW state selector, employee inputs (start date, current and historical rates, pay components, leave taken history), trigger toggle (taking leave vs. termination), output: value of a week + value of a day + total entitlement, with citation block
+- **Citation block**: every numeric output traces to the rule that fired, the LSA section, and the PDF page (so a payroll manager can defend the number to an auditor without leaving the UI)
+- **NSW gold-standard test suite**: 100+ cases covering each pay-pattern category, the edge cases the APA training calls out (bonus crossing the threshold, casual with varying hours, Workers Comp absence, transfer of business, employer-initiated re-hire), and the worked examples from PDF pp.20–28 used as canonical inputs/outputs
+- **Deployment**: standalone Next.js app, deep-linked from the APA member portal, with the single-calc flow accessible without per-calc auth friction
 
-**What success looks like:** A payroll manager in the chosen first state can produce a defensible LSL number in ≤30 seconds, with ≥99% accuracy against the gold-standard test suite, by 2026-08-21 (90 days).
-**Why it goes first:** It is the smallest end-to-end slice that proves the wedge (deterministic rules engine + citation block). Until one state works end-to-end inside the APA portal, no other epic has a foundation.
+**What success looks like:** A payroll manager handling an NSW LSL event opens the calculator, completes a defensible calculation in ≤30 seconds, and the result matches the relevant section of the NSW LSA for every case in the gold-standard test suite. **100% accuracy on the suite is the launch gate; a single failing case blocks deployment.** Specifically: the APA training's worked example for the 12-year casual-to-FT transition (PDF p.141) must return $9,880.04 ± $0.01, not $6,563.40.
 
-_Spec: `.specify/features/001-one-state-calculator/spec.md` (not yet written)_
+**Why it goes first:** It is the smallest end-to-end slice that proves the wedge. The NSW LSA contains every structural element that recurs across the other seven states (lookback comparison, pay-pattern categories, pay-component inclusion, pro-rata thresholds), so a working NSW engine is the architectural template for E2. Until NSW works end-to-end with citations, the wedge ("deterministic, defensible, legislation-traceable") is a claim, not a product.
+
+_Spec: `.specify/features/001-nsw-calculator/spec.md` (not yet written)_
+
+---
+
+## E3 · Audit Upload and Variance Report
+
+**The problem:** Once a payroll manager has confidence in the calculation for a single employee, the more valuable use-case is replaying the calculation across a year or more of historical LSL payments — to find out whether the company has been over- or under-paying. APA's training material frames LSL as a *chronic* payroll-data-quality problem (Health Check, PDF p.137), with system-driven errors that compound over many employees. The auditor persona (internal audit, external audit, APA-engaged consultants) buys differently from the payroll-manager persona, and the audit deliverable — a variance report by employee — is the primary artefact they need.
+
+**The mechanism:** Ingest a CSV of historical LSL payments + a CSV of wage history (with the schema derived from NSW LSA s.8 record-keeping requirements). For each historical payment, run the rules engine forward from the relevant prescribed date and compare to the amount actually paid. Produce a variance report (PDF for human reading, CSV for downstream ingestion) listing every payment with: employee, period, calculated correct amount, actual amount paid, variance ± $, the rule(s) that fired, and the LSA section(s).
+
+**What it bundles:**
+- **CSV import schema**: aligned to NSW LSA s.8 records (employer + ABN, employee, start/end dates, classification, leave taken with dates and gross payments, entitlement records at 10y and every 5y, bonuses included, termination payments) (NSW LSA s.8; PDF p.26)
+- **Wage history schema**: per-pay-period gross + pay-component breakdown granular enough to reconstruct 12-month and 5-year averages with day-precision (denominators 365/366/1825/1826/1827, less "days not counted")
+- **Import validation**: typed parsing, schema validation, fuzzy column-name matching for common payroll-export formats, ambiguity report before any calc runs
+- **Replay engine**: for each historical LSL payment, recompute through the NSW rules engine at the prescribed date; surface any disagreement
+- **Variance report (PDF)**: human-readable, one row per historical payment with verdict (correct / under by $X / over by $Y / cannot verify), grouped by employee, with a top-level summary
+- **Variance report (CSV)**: same content, machine-readable for downstream audit workpapers
+- **Citation block per row**: the rule that fired and the LSA section that drove the result, so the auditor can defend each finding
+- **Auditor workspace**: separate landing page from the single-calc UI, designed for batch uploads and downloadable reports, not interactive calculation
+- **NSW-first scope**: E3 v1 audits NSW only; cross-state audit waits on E2
+
+**What success looks like:** An APA member or APA-engaged auditor uploads a year of NSW LSL payments + the corresponding wage history, and within minutes receives a variance report with one row per payment, citation-backed, that they can hand to a CFO or external auditor without further rework. The known APA worked example (PDF p.141 — 12-year casual-to-FT employee) when fed through E3 returns variance = +$3,316.64 (underpaid) against the correct $9,880.04.
+
+**Why it goes second in build order (third in numbering):** The audit use-case sits on the same rules engine as E1. Once NSW calculation is correct, the marginal cost of audit replay on NSW is a CSV importer + a variance report generator. Shipping audit on NSW before expanding to all states proves the second buyer (the auditor) is reachable within Phase 1, and it does so at a fraction of the cost of expanding the calc UI to seven more states first.
+
+_Spec: `.specify/features/003-audit-upload-variance-report/spec.md` (not yet written)_
 
 ---
 
 ## E2 · All-State Coverage
 
-**The problem:** Most Australian employers operate across multiple states, and a single-state tool is a partial answer. Expanding state-by-state is also the slowest, riskiest way to reach a defensible product.
-**The mechanism:** Replicate the E1 rules-engine pattern for each of the remaining seven states/territories, with per-state gold-standard test cases. Each new state is a content/data milestone, not a UI rewrite.
-**What it bundles:**
-- Rules sets for VIC, NSW, QLD, WA, SA, TAS, ACT, NT (excluding whichever is chosen in E1)
-- Per-state gold-standard test suites
-- UI state selector extended to all 8 states
-- Regression test pipeline that runs every state's suite on every change
+**The problem:** Most Australian employers operate across multiple states. A NSW-only calculator + audit is a credible Phase-1 wedge but an incomplete product. Each remaining state has its own legislation with structural differences from NSW — including some that are dangerous to mis-encode (VIC criminalises cashing out; ACT counts overtime hours for part-time/casual ordinary-pay calc, *inverting* NSW's rule; WA has dual continuous-service regimes either side of 20 June 2022).
 
-**What success looks like:** All 8 states encoded with ≥99% accuracy on each state's gold-standard suite; UI single-calc available for every state.
-**Why it goes second:** Cross-state employer support is the obvious customer expansion path from E1. The rules engine is already proven; this epic is incremental risk only.
+**The mechanism:** Replicate the E1 NSW rules-engine pattern for each of the remaining seven jurisdictions (VIC, QLD, WA, SA, TAS, ACT, NT), with per-state gold-standard test suites derived from each state's LSA + the worked examples in the APA training. Each new state is a content/data milestone, not a UI rewrite. The UI gains a state selector; the citation block updates to reference the relevant state's Act.
+
+**What it bundles:**
+- **VIC** rules: 7-year qualifying period, 12-week break tolerance, cashing-out as criminal offence (s.67), pre/post Nov-2018 continuous-service regimes (LSL Act 2018 (Vic); PDF pp.32–48). *Highest behavioural divergence from NSW.*
+- **QLD** rules: 10-year, restricted cashing-out (requires award/EA permission or QIRC approval), 3-month break tolerance (IR Act 2016 (Qld) Ch.2 Pt.3 Div.9; PDF pp.49–64)
+- **WA** rules: 10-year, dual continuous-service regimes either side of 20 Jun 2022, Workers Comp counting only from 1 Jul 2024 (LSL Act 1958 (WA); PDF pp.65–79). *Encoding risk: same employee may have two regimes applied across their tenure.*
+- **SA** rules: 10-year → **13 weeks** (most generous accrual), PHs inclusive of LSL (vs NSW exclusive), cashing-out permitted in writing (LSA 1987 (SA); PDF pp.80–94)
+- **TAS** rules: 10-year, cashing-out permitted after entitlement, no advance leave, 3-month break tolerance (LSL Act 1976 (Tas); PDF pp.95–108)
+- **ACT** rules: 7-year qualifying period (lowest), **overtime hours count for part-time/casual ordinary-pay** (inverts NSW), termination paid within 90 days vs NSW immediate (LSL Act 1976 (ACT); PDF pp.109–123). *High mis-coding risk.*
+- **NT** rules: 10-year → 13 weeks, cashing-out prohibited (s.12), strongest restriction on working elsewhere during LSL (s.16) (LSL Act 1981 (NT); PDF pp.124–136)
+- **Per-state gold-standard test suites**: each suite derived from that state's worked APA examples + edge cases unique to that state
+- **Multi-state employer support**: a "governing jurisdiction" selector that lets the user nominate which state's law applies for an employee with cross-jurisdictional service (the "sufficiently connected" test — PDF p.138 — is legal judgement, not arithmetic; calculator must surface ambiguity rather than choose silently)
+- **Cross-state regression suite**: every change runs every state's suite; any break blocks merge
+- **State selector in UI**: extended from NSW-only to all 8; citation block dynamically references the active state's Act
+- **State-prioritisation order**: VIC second (highest population + highest divergence drives encoding maturity); then QLD, WA, SA, ACT, TAS, NT (population-weighted), unless E3 audit data from the field reveals a different demand signal
+
+**What success looks like:** All 8 states encoded; each state's gold-standard suite passes at 100%; the UI state selector exposes every state; the multi-state-employer governing-jurisdiction selector is in production with explicit "this is a legal judgement, not a computed default" framing.
+
+**Why it goes third in build order:** Cross-state expansion is the obvious customer-base expansion path, but it should follow E3 because audit demand from APA members (Phase 1) provides real-world signal about which states are most-asked-for. Expanding state-by-state in the order the market actually asks for them beats expanding in any pre-decided order.
 
 _Spec: `.specify/features/002-all-state-coverage/spec.md` (not yet written)_
 
 ---
 
-## E3 · Payroll System Integrations
+## E4 · Payroll System Integrations
 
-**The problem:** Manual entry of employee start date, wage history, and pay components per calculation is friction that scales linearly with calculation volume. Audit replay is impractical without bulk wage history.
-**The mechanism:** Read-only API integrations with the major Australian payroll platforms (Xero, MYOB, KeyPay, ADP, etc.) to ingest employee data and wage history on demand.
+**The problem:** Manual CSV uploads (E3) and manual single-employee data entry (E1) are friction that scale linearly with calculation volume. They also create a data-quality risk: every hand-typed start date, hand-entered pay component, or hand-edited CSV is a place where the calculator's correctness can be undermined by bad inputs to a correct rules engine. The eventual mature product reads directly from the payroll system of record.
+
+**The mechanism:** Build read-only OAuth/API connectors to the major Australian payroll platforms. Map payroll-platform fields to the NSW-LSA-s.8-derived schema used by E1 + E3. On each calculation or audit run, pull live data from the payroll system rather than asking the user to enter it.
+
 **What it bundles:**
-- Connector for first payroll platform (vendor TBD — likely the highest-share platform among APA members)
-- Authentication / OAuth flow per vendor
-- Data mapping: payroll-platform fields → rules-engine inputs
-- Connector for second and third payroll platforms
-- Telemetry on which fields are missing / ambiguous, by vendor
+- **First payroll-vendor connector** (vendor TBD; selection based on APA-member share — likely Xero, MYOB, KeyPay, or ADP)
+- **OAuth/API authentication flow** per vendor
+- **Field-mapping engine**: payroll-platform field → rules-engine input. Includes telemetry on missing/ambiguous fields by vendor so the gaps are visible across the customer base
+- **Connectors for second and third vendors**
+- **Refresh model**: explicit user-triggered refresh (not background sync) so the auditor's report is reproducible from a specific timestamp
+- **Read-only by design**: API tokens scoped to read; no write-back into client payroll under any circumstance (see §7 of `product.md`)
+- **Fallback to CSV**: every customer can still use the E3 CSV flow if their vendor isn't supported
 
-**What success looks like:** A payroll manager whose company runs on a supported platform completes an LSL calculation with zero manual data entry beyond selecting the employee and the trigger.
-**Why it goes third:** API integrations are higher engineering cost and require vendor partnerships. Pre-E3, CSV import covers the same data-ingest problem at lower fidelity. E3 is the path to scaling beyond the early-adopter cohort.
+**What success looks like:** A payroll manager whose company runs on a supported platform completes an LSL calculation or audit run with zero manual data entry beyond selecting the employee(s) and the trigger. The rules engine receives the same inputs it would receive from a perfect CSV, traced by field provenance ("this current rate came from vendor X's `current_pay_rate` field at timestamp T").
 
-_Spec: `.specify/features/003-payroll-integrations/spec.md` (not yet written)_
+**Why it goes last:** API integrations are higher engineering cost, require vendor partnerships, and depend on E2 (cross-state) being mature so the connector design doesn't have to be reworked when the rules engine changes shape. Until E2 ships, CSV (E3) covers the ingest need at lower fidelity but full state coverage.
 
----
-
-## E4 · Audit Upload and Variance Report
-
-**The problem:** A payroll manager or external auditor needs to verify that previously-paid LSL transactions were correct. Doing this by hand across a year of payments is impractical, and the data lives across multiple systems.
-**The mechanism:** CSV upload of historical LSL payments plus wage history; replay each payment against the encoded rules engine; produce a variance report (PDF + CSV) showing correct, under-paid, and over-paid lines with amounts and citations.
-**What it bundles:**
-- CSV import flows: LSL payments, wage history (template + validation)
-- Replay engine: each payment → rules-engine recalculation → variance row
-- Variance report output: PDF for human reading, CSV for ingestion
-- Auditor workspace (separate from payroll workspace) — sees variance reports, not individual calculations
-
-**What success looks like:** An auditor uploads a year's LSL payments + wage history and receives a variance report identifying every under/over-payment with the rule and legislation section that drove the discrepancy.
-**Why it goes fourth (per client sequencing):** Tracy ordered API integrations before CSV/audit, presumably because once API integrations exist the CSV step gets shorter and the audit experience improves. *Note: this ordering is flagged as an Open Decision in `product.md` — the audit feature is the more differentiated wedge against payroll vendors, and there is a defensible case for moving E4 ahead of E3.*
-
-_Spec: `.specify/features/004-audit-upload-variance-report/spec.md` (not yet written)_
+_Spec: `.specify/features/004-payroll-integrations/spec.md` (not yet written)_
 
 ---
 
 ## Sequence argument
 
-E1 first because nothing else has a foundation until one state works end-to-end inside the APA portal. The wedge (deterministic rules + citation block) has to be proven on a real state before duplicating effort across the remaining seven.
+The four epics ship in this build order:
 
-E2 second because cross-state coverage is the obvious customer expansion path from E1, and the rules engine already exists — this is incremental risk only.
+1. **E1 (NSW Calculator)** — Phase 1, first. Proves the rules engine + citation block + 100% accuracy gate on a single state. No other epic has a foundation until this works.
+2. **E3 v1 (NSW audit replay)** — Phase 1, immediately after E1 reaches Stage 4 (Tested). Reuses the E1 rules engine; adds CSV import + replay + variance report. Reaches the auditor persona within Phase 1 at low marginal cost. Provides real-world demand signal about which states are most-asked-for, which informs E2 prioritisation.
+3. **E2 (All-state coverage)** — Phase 2, expanded state-by-state in the order E3 audit demand reveals. VIC is the most likely second state by population + divergence-risk-as-encoding-value; ACT and WA are the highest mis-coding risk states and warrant disproportionate test-suite investment when encoded.
+4. **E3 v2 (cross-state audit)** — Phase 2, in parallel with E2. As each state is added in E2, audit coverage for that state lands automatically.
+5. **E4 (Payroll integrations)** — Phase 3. Removes the CSV friction once the rules engine and audit replay are mature across multiple states.
 
-E3 third (per the client's stated order) because read-only payroll API integrations reduce friction across both single-calc and audit use cases. The CSV path covers the same ingest need at lower fidelity until E3 ships, so the audit work in E4 is unblocked even without E3.
-
-E4 fourth (per the client's stated order). Note: there is a credible alternative sequencing where E4 ships before E3 because audit replay is the more differentiated wedge against payroll vendors and is achievable with CSV alone. This sequencing decision is logged in `product.md` Open Decisions and should be revisited before E3 enters discovery.
+Why not the obvious "E1 → E2 → E3 → E4" order? Because expanding state coverage before proving the second buyer (the auditor) leaves the more differentiated revenue stream (audit replay) un-validated for an extra phase. CSV-based audit is achievable today against NSW alone and is the strongest evidence that the product solves a problem worth paying for outside the payroll-manager persona.

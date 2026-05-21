@@ -4,9 +4,9 @@ LSL Calculator · Written by Tracy · Draft v0.1 · 2026-05-21
 
 ## 1. The problem
 
-Australia has eight states and territories, each with its own long service leave (LSL) legislation. Every state defines the qualifying service period, the lookback window for "average earnings" (current week, last 12 months, last 5 years, or whole-of-employment — and which one applies depends on the state and on whether the leave is being taken or paid out on termination), and which components of pay are included. No mainstream payroll system calculates LSL automatically because the rules don't compress into a single formula. Payroll managers do it by hand from legislation PDFs, and they get it wrong — the cost of which lands on the employer as underpayment claims or on the employee as silent under-payment. There are ~56,000 payroll personnel in Australia, every one of whom has to make this call.
+Australia has eight states and territories, each with its own long service leave (LSL) legislation. NSW alone has three distinct pay-pattern categories with different "greater of" comparisons between current rate, 12-month average and 5-year average; a separate inclusion test for bonuses against the $183,100 high-income threshold; and a continuous-service rule that distinguishes employer-initiated breaks from resignation. The other seven states each diverge from NSW in their own ways — VIC criminalises cashing out, ACT counts overtime hours for casuals (inverting NSW), WA has dual rule sets either side of 20 June 2022, SA accrues 13 weeks instead of 8.67. There are ~56,000 payroll personnel in Australia, every one of whom has to make these calls. Mainstream payroll systems do not auto-calculate LSL because the rules don't compress into a single formula.
 
-The broken assumption is that "payroll software handles payroll." It doesn't handle this part. The market has accepted manual calculation as the cost of doing business because no vendor wants to own eight pieces of constantly-shifting state legislation. If we're wrong about this, no amount of feature work saves us.
+The cost is concrete and quantified. APA's own training material shows that payroll-system-driven calculations — which compute `hours × hourly rate` — produce errors of 3–34% against the legislated value. In one worked example from the training, a 12-year casual-to-full-time transition is **underpaid by $3,316.64 on a correct payout of $9,880.04** (LSL Masterclass PDF pp.139–141). The broken assumption is that "payroll software handles payroll." It doesn't handle this part. The market has accepted manual calculation as the cost of doing business because no vendor wants to own eight pieces of constantly-shifting state legislation. If we're wrong about this, no amount of feature work saves us.
 
 ## 2. What we deliver
 
@@ -61,7 +61,7 @@ API integrations with the two or three largest Australian payroll platforms are 
 
 | Competitor | What they do well | Where they fall short | Our angle |
 |------------|-------------------|------------------------|-----------|
-| Major payroll vendors (Xero, MYOB, ADP, KeyPay, etc.) | Run payroll end-to-end. Already in every payroll team's stack. | Do not auto-calculate LSL — the eight-state complexity is outside their scope. | Single-purpose, deterministic, defensible. Integrates with them rather than competing. |
+| Major payroll vendors (Xero, MYOB, ADP, KeyPay, etc.) | Run payroll end-to-end. Already in every payroll team's stack. | Do not auto-calculate LSL — system formulas (`hours × rate`) produce errors of 3–34% vs. legislated values (APA training pp.139–141). The eight-state complexity is outside their scope. | Single-purpose, deterministic, defensible. Integrates with them rather than competing. |
 | Manual spreadsheets + accountant review | Fully customisable; the payroll team knows their own workings. | Error-prone, slow, not reproducible, expensive when an accountant is involved, no audit trail. | Faster, deterministic, with a citation block under every number. |
 | State authority calculators (where they exist) | Authoritative for the one state they cover. Free. | Single-state only. No audit replay. No CSV. No bulk. No multi-state employer support. | Cross-state coverage + audit replay. |
 | In-house bespoke tools (large enterprise) | Tailored to one employer's payroll structure. | Costly to maintain; legislation drift breaks them silently. | We absorb the legislation drift cost across the whole market. |
@@ -88,22 +88,30 @@ API integrations with the two or three largest Australian payroll platforms are 
 
 ## 12. How we know it's working
 
-- **Leading metric**: % of test-suite calculations matching the gold-standard manual calculation, segmented by state. *Target: ≥99%.* This is "the calculator works accurately" in measurable form.
-- **Trailing metric**: # of APA-portal accounts running ≥1 calculation per fortnight (the fortnightly LSL pay cycle is the natural cadence). *Target: a defined adoption rate inside the APA member base; baseline TBD after launch.* This is "clients actually use it" in measurable form.
+**The hard requirement: 100% of calculations must match the relevant state's legislation.** There is no leading-or-trailing metric trade-off here. The calculator is either correct or it isn't. A single wrong calculation under load-bearing use would invalidate the wedge (the deterministic, defensible rules engine) and surrender the product's only credible advantage over a spreadsheet.
+
+Operationally this is enforced through a maintained gold-standard test suite — every encoded rule has covering test cases derived from legislation and from real-world calculations validated by APA. Any change that breaks any test blocks deployment. A calculation in production that is later proven incorrect is treated as a Sev-1 incident.
+
+*Note: no separate usage / adoption metric is tracked in this doc per PM direction. Usage signals may be observed but are not a success criterion.*
 
 ## 13. Next 90 days
 
-- **One state, end to end, live in the APA portal.** A payroll manager picks the chosen first state, enters employee details, sees a defensible LSL number with citations, within thirty seconds. Accuracy ≥99% against a 100-case test suite.
-- **All eight states encoded as rules.** Calculation logic and per-state test cases written for every Australian state and territory, even if the UI exposes only the first state. State coverage is a code/data milestone, not a UI milestone.
-- **Audit replay prototype on the first state.** CSV upload of historical LSL payments, replay against the encoded rules, return a variance report. End-to-end against one state proves the second buyer (the auditor) is reachable.
+- **NSW calculator, end to end, live in the APA portal.** A payroll manager handling an NSW employee picks NSW, enters employee details, sees a defensible LSL number with citations to the NSW *Long Service Leave Act 1955*, within thirty seconds. 100% accuracy against the NSW gold-standard test suite is the gate to launch.
+- **Audit replay on NSW (CSV).** Auditors and payroll managers upload a CSV of historical NSW LSL payments + wage history; the tool replays each payment through the rules engine and returns a variance report with citations. End-to-end against NSW proves the second buyer (the auditor) is reachable before any cross-state or API-integration work.
+- **All eight states encoded as rules.** Calculation logic and per-state test cases written for every Australian state and territory, even if the UI exposes only NSW. State coverage is a code/data milestone — the regression suite covers all 8 states from this point forward.
 
 ## 14. Open decisions
 
-- **Which state ships first?** Victoria, NSW, and Queensland are the obvious candidates by population. Owner: Tracy. Deadline: before Bet 1 starts.
-- **Pricing for the non-member licence?** Per-seat, per-employer, per-calculation, or annual? Owner: Tracy + APA board. Deadline: before public launch (post-Bet-1).
-- **Hosting / auth inside APA portal.** Single sign-on with APA member auth, or standalone with a deep-link from the portal? Owner: Tracy + APA technical lead. Deadline: before Bet 1 starts.
-- **Sequence of API integration vs. CSV audit upload.** Round 2 of the client interview listed API integrations *before* CSV import; the audit-upload use case was strongly emphasised in Round 1. Confirm the intended sequence given the audit feature is the more differentiated wedge against payroll vendors. Owner: Tracy. Deadline: end of Phase 1.
-- **Legislation source-of-truth and update cadence.** Who watches state legislation for change, and how does a change reach the rules engine? Owner: TBD. Deadline: before Bet 2 ships.
+- **Pricing for the non-member licence.** Per-seat, per-employer, per-calculation, or annual? Owner: Tracy + APA board. Deadline: before public launch.
+- **Hosting and auth inside APA portal.** Working default is **standalone + deep-link** — the calculator is its own app at its own URL, the APA portal links to it, sign-in is via a short-lived token in the URL or a separate login. Upgrade to full SSO with APA member auth if friction warrants it. Owner: Tracy + APA technical lead. Deadline: before E1 development starts.
+- **Legislation source-of-truth and update cadence.** Who watches each state's legislation for change, and how does a change reach the rules engine within the SLA we need? Owner: TBD. Deadline: before E2 ships.
+- **Audit data acquisition.** How do auditor-persona customers receive the historical LSL payment data + wage history they need to upload? Direct from their payroll system, from the client they are auditing, from APA? Owner: Tracy. Deadline: before E3 ships.
+- **Quality gate enforcement.** The single hard requirement in §12 ("100% of calculations correct") needs an operational definition: who signs off the gold-standard test suite, who approves a release with new tests, what happens when production is found to be wrong. Owner: Tracy + QA. Deadline: before E1 ships.
+
+**Resolved by PM on 2026-05-21:**
+- First state to ship: **NSW**.
+- Sequencing of audit replay (E3) vs. payroll API integrations (E4): **audit replay (CSV) before API integrations**.
+- Success metric: **single hard requirement — 100% of calculations must match legislation**. No separate usage / adoption metric is tracked.
 
 ---
 
