@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 150;
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MB per F5 / AC28
-const MAX_PAGES = 200; // matches client-side cap; documents over this go to CSV
+const MAX_PAGES = 50; // spec F5 / AC28; matches client-side cap
 
 /**
  * POST /api/extract-pdf
