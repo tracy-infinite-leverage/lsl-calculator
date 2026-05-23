@@ -78,13 +78,18 @@ _Spec: `.specify/features/003-audit-upload-variance-report/spec.md` (not yet wri
 - **Multi-state employer support**: a "governing jurisdiction" selector that lets the user nominate which state's law applies for an employee with cross-jurisdictional service (the "sufficiently connected" test — PDF p.138 — is legal judgement, not arithmetic; calculator must surface ambiguity rather than choose silently)
 - **Cross-state regression suite**: every change runs every state's suite; any break blocks merge
 - **State selector in UI**: extended from NSW-only to all 8; citation block dynamically references the active state's Act
-- **State-prioritisation order**: VIC second (highest population + highest divergence drives encoding maturity); then QLD, WA, SA, ACT, TAS, NT (population-weighted), unless E3 audit data from the field reveals a different demand signal
+- **State-prioritisation order (RES-1, committed 2026-05-23)**: **VIC → QLD → WA → SA → ACT → TAS → NT** (population-weighted, VIC first on divergence-risk — cashing-out criminalisation + dual regime). Out-of-sequence development requires explicit operator override.
+- **Bulk mode mixed-state from day one (RES-4)**: CSV must carry a per-row `state` column from v1; no single-state-only interim mode. Row-level validation surfaces unrecognised/empty states as errors; valid rows in the same batch still process.
+- **Sign-off authority (RES-6)**: PM-only per-state sign-off; no APA-engaged specialist co-signer. Per-state launch gate = PM signoff on `test-cases.md` + automated suite 100% green in CI on merge commit.
+- **Legislation monitoring (RES-3)**: Manual, owned by Tracy personally for all 8 jurisdictions, quarterly cadence (1 Mar / 1 Jun / 1 Sep / 1 Dec) + on-trigger override on gazetted amendments. No automated watch.
+- **Deferred to v2 (RES-5)**: cross-jurisdictional governing-state advisory heuristic. F13 manual nomination remains MUST in v1; F14 legal-judgement caveat is the sole advisory text surfaced.
 
 **What success looks like:** All 8 states encoded; each state's gold-standard suite passes at 100%; the UI state selector exposes every state; the multi-state-employer governing-jurisdiction selector is in production with explicit "this is a legal judgement, not a computed default" framing.
 
-**Why it goes third in build order:** Cross-state expansion is the obvious customer-base expansion path, but it should follow E3 because audit demand from APA members (Phase 1) provides real-world signal about which states are most-asked-for. Expanding state-by-state in the order the market actually asks for them beats expanding in any pre-decided order.
+**Why it goes third in build order:** Cross-state expansion is the obvious customer-base expansion path. The original sequence argument (below) had E2 follow E3 v1 so it could inherit real demand signal from NSW audit-replay customers. **Operator override 2026-05-23**: spec E2 in parallel with E1 finishing so it is queued by the time NSW ships. Risk acknowledged — NSW Phase 3–7 work may shift the rules-engine pattern and force E2 spec re-work; the operator has accepted that risk to compress the timeline.
 
-_Spec: `.specify/features/002-all-state-coverage/spec.md` (not yet written)_
+_Spec: `.specify/features/002-all-state-coverage/spec.md` v0.3.0 (all 6 OQs resolved 2026-05-23, ready for `dev-feature-plan`)_
+_Dev findings: `.specify/features/002-all-state-coverage/dev-findings.md` (0 HIGH, 6 MEDIUM, 5 LOW)_
 
 ---
 
