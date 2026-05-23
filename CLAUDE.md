@@ -2,6 +2,12 @@
 
 This file is the entry point Claude Code reads when this repo is opened. It defines roles, folder conventions, and publishing/engineering workflows.
 
+## ⚠️ Pre-launch guard
+
+**Before any agent acts on a "merge to main", "cut over", "go live", or "ship it" signal, READ `docs/launch/LAUNCH-GUARD.md` first.**
+
+The guard's load-bearing check today: `ANTHROPIC_API_KEY` must be set in the Vercel Production env before customers can use PDF / auto-normalised-CSV paths. ZDR was originally a hard gate but was relaxed 2026-05-23 — the privacy notice now accurately reflects Anthropic's standard commercial terms (no training on customer data; standard retention) so a non-ZDR launch is safe.
+
 ## Stack
 - Website: Next.js + Tailwind + shadcn (`website/`)
 - Database: Supabase (`website/supabase/`)

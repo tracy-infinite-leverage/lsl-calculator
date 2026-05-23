@@ -1,0 +1,36 @@
+{
+  "name": "TC-NSW-036",
+  "title": "Serious misconduct at 12 yrs → still pays out (10+ rule, PM #6)",
+  "source": "PDF p.25 + PM Clarification #6",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-036",
+      "startDate": "2014-05-22",
+      "endDate": "2026-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "443420.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-21",
+      "reason": "serious_misconduct"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1700.00",
+    "totalEntitlementWeeks": "10.4000",
+    "totalEntitlementDollars": "17680.07",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(2)(iii)", "rule": "accrual.10yr-plus.any-reason-incl-misconduct" },
+      { "section": "NSW LSA s.4(5)(a)", "rule": "trigger.termination.forthwith" }
+    ]
+  }
+}

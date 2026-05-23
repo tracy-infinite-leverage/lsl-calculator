@@ -1,0 +1,37 @@
+{
+  "name": "TC-NSW-007",
+  "title": "Liam — 12-yr casual, varied hours, taking 3 weeks (Cat B fall-through to C math)",
+  "source": "PDF p.20 + spec v0.5.0 §F8 (gross-only Cat B = Cat C math)",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-007",
+      "legalName": "Liam",
+      "startDate": "2014-05-22",
+      "employmentType": "casual",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1163.46",
+      "wageHistory": [
+        { "periodStart": "2025-05-22", "periodEnd": "2026-05-21", "grossPay": "60500.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2024-05-22", "periodEnd": "2025-05-21", "grossPay": "60000.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2023-05-22", "periodEnd": "2024-05-21", "grossPay": "57000.00", "frequency": "other", "periodDays": 366 },
+        { "periodStart": "2022-05-22", "periodEnd": "2023-05-21", "grossPay": "56500.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2021-05-22", "periodEnd": "2022-05-21", "grossPay": "54000.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2023-09-04", "endDate": "2023-09-22" },
+        { "type": "leave_without_pay", "startDate": "2022-10-03", "endDate": "2022-11-04" }
+      ]
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-05-22" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "B",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(5)(c)", "rule": "value-of-week.B.12mo-greater-of" },
+      { "section": "NSW LSA s.4(7)", "rule": "trigger.taking-leave.payable-in-pay-period" },
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.lwop-excluded" }
+    ]
+  }
+}

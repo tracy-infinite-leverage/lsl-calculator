@@ -1,9 +1,15 @@
 # Dependencies
 website/node_modules/
+node_modules/
 
 # Build output
 website/.next/
 website/out/
+
+# Test artifacts (when vitest/playwright accidentally run from repo root)
+test-results/
+playwright-report/
+.vite/
 
 # Secrets
 .env
@@ -25,3 +31,4 @@ working_files/
 *.ai
 *.mov
 *.mp4
+.vercel

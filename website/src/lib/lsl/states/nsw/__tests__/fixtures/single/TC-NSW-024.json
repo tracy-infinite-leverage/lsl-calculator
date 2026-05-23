@@ -1,0 +1,44 @@
+{
+  "name": "TC-NSW-024",
+  "title": "12-yr casual-to-FT — $9,880.04 EXACT (AC25 / SC3 / AC6)",
+  "source": "PDF p.140–141 Example 2; spec v0.5.0 §F8 (gross-only fall-through)",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-024",
+      "legalName": "SysVsManual-Ex2",
+      "startDate": "2014-05-22",
+      "endDate": "2026-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "950.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-22", "periodEnd": "2026-05-21", "grossPay": "49400.00", "frequency": "weekly", "note": "Yr 12 FT" },
+        { "periodStart": "2024-05-22", "periodEnd": "2025-05-21", "grossPay": "49400.00", "frequency": "weekly", "note": "Yr 11 FT" },
+        { "periodStart": "2023-05-22", "periodEnd": "2024-05-21", "grossPay": "30000.00", "frequency": "other", "periodDays": 366, "note": "Yr 10 casual" },
+        { "periodStart": "2022-05-22", "periodEnd": "2023-05-21", "grossPay": "40000.00", "frequency": "other", "periodDays": 365, "note": "Yr 9 casual" },
+        { "periodStart": "2021-05-22", "periodEnd": "2022-05-21", "grossPay": "32000.00", "frequency": "other", "periodDays": 365, "note": "Yr 8 casual" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-21",
+      "reason": "voluntary_resignation"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "yearsOfContinuousService": "12.0000",
+    "valueOfWeek": "950.00",
+    "valueOfDay": "190.00",
+    "totalEntitlementWeeks": "10.4000",
+    "totalEntitlementDollars": "9880.04",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(2)(iii)", "rule": "accrual.10yr-plus.any-reason" },
+      { "section": "NSW LSA s.4(5)(b)", "rule": "value-of-week.A.current" },
+      { "section": "NSW LSA s.4(5)(a)", "rule": "trigger.termination.forthwith" }
+    ]
+  }
+}

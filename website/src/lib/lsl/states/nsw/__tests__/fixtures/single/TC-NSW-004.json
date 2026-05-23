@@ -1,0 +1,35 @@
+{
+  "name": "TC-NSW-004",
+  "title": "Soria — 1-yr UPL pushes 10-yr milestone forward",
+  "source": "PDF p.14 'Does Not Count'; AC9 / research brief §5.2",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-004",
+      "legalName": "Soria",
+      "startDate": "2014-07-01",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1400.00",
+      "wageHistory": [
+        { "periodStart": "2014-07-01", "periodEnd": "2025-07-01", "grossPay": "780000.00", "frequency": "other", "periodDays": 4019 }
+      ],
+      "serviceEvents": [
+        { "type": "unpaid_parental_leave", "startDate": "2017-07-01", "endDate": "2018-07-01" }
+      ]
+    },
+    "trigger": {
+      "kind": "as_at",
+      "asAtDate": "2025-07-01"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1400.00",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.upl-excluded" },
+      { "section": "NSW LSA s.4(5)(b)", "rule": "value-of-week.A.current" }
+    ]
+  }
+}

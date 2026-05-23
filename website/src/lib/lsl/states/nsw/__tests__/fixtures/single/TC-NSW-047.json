@@ -1,0 +1,29 @@
+{
+  "name": "TC-NSW-047",
+  "title": "Industrial action — excluded from service AND lookback",
+  "source": "PDF p.14, p.15",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-047",
+      "startDate": "2016-05-22",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "391286.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": [
+        { "type": "industrial_action", "startDate": "2025-06-01", "endDate": "2025-06-08" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.industrial-action-excluded" }
+    ]
+  }
+}

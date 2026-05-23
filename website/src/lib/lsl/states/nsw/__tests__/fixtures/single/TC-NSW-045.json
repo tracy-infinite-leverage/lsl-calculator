@@ -1,0 +1,23 @@
+{
+  "name": "TC-NSW-045",
+  "title": "Cross-jurisdiction (NSW + VIC) → BLOCKED",
+  "source": "F10 + AC23 + research brief §5.8",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-045",
+      "legalName": "CrossJurisdictionFixture",
+      "startDate": "2018-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW", "VIC"],
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "470000.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "blocked_cross_jurisdiction"
+  }
+}

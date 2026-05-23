@@ -1,0 +1,42 @@
+From: Tracy Angwin <tracy@austpayroll.com.au>
+To: [Anthropic account team email — fill in]
+Cc:
+Subject: Confirming no-retention enterprise contract for LSL Calculator production deployment
+Content-Type: text/plain; charset=utf-8
+
+Hi team,
+
+I'm about to launch a public NSW Long Service Leave calculator that uses Claude (Opus 4.7) for payroll-PDF extraction. The calculator targets Australian payroll teams; production traffic will start in the next 1-2 weeks.
+
+Before I switch on live customer traffic I need to confirm in writing:
+
+1. Our organisation / API key is on the no-retention enterprise tier
+   (not the standard tier).
+
+2. Request payloads (PDF text + system prompt) and response payloads are
+   not retained beyond the request lifecycle — i.e. not used for training,
+   not stored for support replay, not held in any retrievable form
+   after the response returns.
+
+3. The only data retained is standard infrastructure logging
+   (request id, timestamp, latency, status). Could you confirm the
+   retention window for those logs?
+
+4. Inference is occurring on US infrastructure (no AU region exists
+   today, as far as I'm aware) — is that still accurate?
+
+For context: payroll PDFs containing wage history, employee names, dates, and gross amounts will pass through the API. Customers reading our privacy notice are being told that Anthropic operates under a no-retention contract for this data; I want a written confirmation on file before that claim goes live.
+
+Happy to share the data-handling policy we've published if useful — it's
+at:
+
+  https://github.com/tracy-infinite-leverage/lsl-calculator/blob/main/docs/engineering/data-handling-policy.md
+
+Section 2 lays out exactly what we're telling end users.
+
+Thanks for confirming. Happy to do a brief call if it's easier than
+email.
+
+Tracy Angwin
+Director, Australian Payroll Association
+tracy@austpayroll.com.au

@@ -1,0 +1,31 @@
+{
+  "name": "TC-NSW-015",
+  "title": "Raj — transfer of business preserves service",
+  "source": "PDF p.16 (Raj); F9 / NSW LSA s.4(6) / research brief §5.4",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-015",
+      "legalName": "Raj",
+      "startDate": "2014-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "2100.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "547800.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": [
+        { "type": "transfer_of_business", "startDate": "2021-07-01" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "2100.00",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(6)", "rule": "continuous-service.transfer-of-business-preserves" }
+    ]
+  }
+}

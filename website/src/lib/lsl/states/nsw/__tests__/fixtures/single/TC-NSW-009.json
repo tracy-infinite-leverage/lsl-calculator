@@ -1,0 +1,35 @@
+{
+  "name": "TC-NSW-009",
+  "title": "Rinaldo — 11-yr Category C piece worker",
+  "source": "PDF p.21 (Rinaldo); F8 Cat C greater-of",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-009",
+      "legalName": "Rinaldo",
+      "startDate": "2015-05-21",
+      "employmentType": "full_time",
+      "categoryOverride": "C",
+      "categoryOverrideConfirmed": true,
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1373.15",
+      "wageHistory": [
+        { "periodStart": "2025-05-22", "periodEnd": "2026-05-21", "grossPay": "71600.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2024-05-22", "periodEnd": "2025-05-21", "grossPay": "75000.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2023-05-22", "periodEnd": "2024-05-21", "grossPay": "69997.00", "frequency": "other", "periodDays": 366 },
+        { "periodStart": "2022-05-22", "periodEnd": "2023-05-21", "grossPay": "75102.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2021-05-22", "periodEnd": "2022-05-21", "grossPay": "68363.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-05-22" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "C",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(5)(d)", "rule": "value-of-week.C.5yr-greater-of" },
+      { "section": "NSW LSA s.4(7)", "rule": "trigger.taking-leave.payable-in-pay-period" }
+    ]
+  }
+}

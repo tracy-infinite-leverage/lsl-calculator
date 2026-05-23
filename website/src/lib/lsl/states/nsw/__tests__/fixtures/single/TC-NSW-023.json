@@ -1,0 +1,35 @@
+{
+  "name": "TC-NSW-023",
+  "title": "10-yr NSW casual — system formula variance surfaced (F21 / AC12)",
+  "source": "PDF p.139–140",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-023",
+      "legalName": "SysVsManual-Ex1",
+      "startDate": "2016-05-22",
+      "endDate": "2026-05-21",
+      "employmentType": "casual",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "558.92",
+      "wageHistory": [
+        { "periodStart": "2025-05-22", "periodEnd": "2026-05-21", "grossPay": "29064.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2021-05-22", "periodEnd": "2025-05-21", "grossPay": "128202.76", "frequency": "other", "periodDays": 1461 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-21",
+      "reason": "voluntary_resignation"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "B",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(5)(c)", "rule": "value-of-week.B.5yr-greater-of" },
+      { "section": "NSW LSA s.4(5)(a)", "rule": "trigger.termination.forthwith" }
+    ]
+  }
+}

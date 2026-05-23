@@ -12,6 +12,12 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
+/playwright/.cache
+
+# pdf.js worker — copied from node_modules by scripts/copy-pdfjs-worker.cjs on postinstall
+/public/pdf.worker.min.mjs
 
 # next.js
 /.next/

@@ -1,0 +1,38 @@
+{
+  "name": "TC-NSW-022",
+  "title": "Bevan — Practice 1(C) 16-yr casual resigned with 9 wks prior LSL taken",
+  "source": "PDF p.29 Practice 1(C)",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-022",
+      "legalName": "Bevan",
+      "startDate": "2010-05-22",
+      "endDate": "2026-05-21",
+      "employmentType": "casual",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1276.49",
+      "priorLeaveTakenWeeks": "9",
+      "wageHistory": [
+        { "periodStart": "2025-05-22", "periodEnd": "2026-05-21", "grossPay": "66560.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2021-05-22", "periodEnd": "2025-05-21", "grossPay": "279232.23", "frequency": "other", "periodDays": 1461 }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2023-06-01", "endDate": "2023-08-04", "note": "9 wks paid LSL previously taken" }
+      ]
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-21",
+      "reason": "voluntary_resignation"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "B",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(2)(iii)", "rule": "accrual.10yr-plus.any-reason" },
+      { "section": "NSW LSA s.4(5)(a)", "rule": "trigger.termination.forthwith" }
+    ]
+  }
+}

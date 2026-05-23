@@ -1,0 +1,34 @@
+{
+  "name": "TC-NSW-040",
+  "title": "65 wks UPL — NSW has no cap; days excluded from both ledgers",
+  "source": "Research brief §5.2 + Clarification #5 — no NSW cap on UPL exclusion",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-040",
+      "startDate": "2014-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "300000.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": [
+        {
+          "type": "unpaid_parental_leave",
+          "startDate": "2024-05-22",
+          "endDate": "2025-08-22"
+        }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-21" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(11)", "rule": "continuous-service.upl-excluded" },
+      { "section": "NSW LSA s.4(5)", "rule": "lookback.days-not-counted" }
+    ]
+  }
+}

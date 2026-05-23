@@ -1,0 +1,31 @@
+{
+  "name": "TC-NSW-020",
+  "title": "Kate — Practice 1(A) FT 13.5 yrs $2,000/wk + bonus warning",
+  "source": "PDF p.27 Practice 1(A); F18 + PM Clarification #4",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-020",
+      "legalName": "Kate",
+      "startDate": "2012-11-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "2000.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "520000.00", "frequency": "other", "periodDays": 1826, "note": "includes annual bonus payments" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-05-22" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "2000.00",
+    "warnings": ["bonus_in_notes_v1_out_of_scope"],
+    "expected_citations": [
+      { "section": "NSW LSA s.4(5)(b)", "rule": "value-of-week.A.current" },
+      { "section": "NSW LSA s.4(7)", "rule": "trigger.taking-leave.payable-in-pay-period" }
+    ]
+  }
+}

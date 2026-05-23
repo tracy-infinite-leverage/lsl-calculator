@@ -1,65 +1,80 @@
-import Image from "next/image";
+import Link from 'next/link';
+import { ArrowRight, FileText, Users } from 'lucide-react';
+import { Header } from '@/components/shell/header';
+import { Footer } from '@/components/shell/footer';
+import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      <Header />
+      <main className="flex-1">
+        <section className="mx-auto max-w-6xl px-4 pt-16 pb-12 sm:pt-24">
+          <div className="max-w-3xl">
+            <p className="text-sm font-medium uppercase tracking-wider text-primary">
+              NSW Long Service Leave
+            </p>
+            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+              The defensible LSL calculator.
+            </h1>
+            <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+              Compute long-service-leave for any NSW employee with every numeric output traceable to
+              a section of the <span className="font-medium text-foreground">Long Service Leave Act 1955</span>.
+              Built on the legislated <em>greater of (current rate, 12-month average, 5-year average)</em>
+              {' '}test — not the system shortcut your payroll software runs.
+            </p>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-24">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Card className="group hover:border-primary transition-colors">
+              <CardHeader>
+                <FileText className="h-7 w-7 text-primary mb-2" aria-hidden />
+                <CardTitle>Single mode</CardTitle>
+                <CardDescription>
+                  One employee, one event — taking leave, termination, or an as-at snapshot.
+                  Enter wage history by CSV (PDF extraction coming in Phase 3).
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full sm:w-auto">
+                  <Link href="/calculator/single">
+                    Calculate for one employee
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="group">
+              <CardHeader>
+                <Users className="h-7 w-7 text-primary mb-2" aria-hidden />
+                <CardTitle>Bulk mode</CardTitle>
+                <CardDescription>
+                  Many employees in one upload — audit & liability reporting. CSV in, results out.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link href="/calculator/bulk">
+                    Calculate for many
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <p className="mt-12 text-sm text-muted-foreground max-w-2xl">
+            v1 supports NSW only. Other states (VIC, QLD, WA, SA, TAS, ACT, NT) follow in E2.
+            All calculations cite the relevant LSA section — every output is defensible
+            against an auditor.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+        </section>
       </main>
-    </div>
+      <Footer />
+    </>
   );
 }

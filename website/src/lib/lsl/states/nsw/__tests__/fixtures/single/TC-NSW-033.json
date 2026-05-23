@@ -1,0 +1,35 @@
+{
+  "name": "TC-NSW-033",
+  "title": "AC7 — 7-yr voluntary resignation = $0",
+  "source": "AC7; NSW LSA s.4(2)(iii)",
+  "input": {
+    "employee": {
+      "id": "TC-NSW-033",
+      "startDate": "2019-05-21",
+      "endDate": "2026-05-21",
+      "employmentType": "full_time",
+      "statesOfService": ["NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-22", "periodEnd": "2026-05-21", "grossPay": "391286.00", "frequency": "other", "periodDays": 1826 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-21",
+      "reason": "voluntary_resignation"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "expected_citations": [
+      { "section": "NSW LSA s.4(2)(iii)", "rule": "accrual.5-to-10.no-special-reason-no-entitlement" }
+    ]
+  }
+}

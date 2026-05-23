@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["syd1"],
+  "functions": {
+    "src/app/api/extract-pdf/route.ts": {
+      "memory": 1024,
+      "maxDuration": 300
+    },
+    "src/app/api/export-pdf/route.ts": {
+      "memory": 1024,
+      "maxDuration": 300
+    }
+  }
+}
