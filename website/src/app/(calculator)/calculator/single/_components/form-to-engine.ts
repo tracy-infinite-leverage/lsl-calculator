@@ -1,0 +1,191 @@
+import type {
+  Employee,
+  Trigger,
+  PayFrequency,
+  ServiceEventType,
+  WagePeriod,
+  ContinuousServiceEvent,
+  TerminationReason,
+  State,
+} from '@/lib/lsl/engine/types';
+import { asISODate } from '@/lib/lsl/engine/types';
+import type { FormState } from './types';
+
+export interface FormValidation {
+  ok: boolean;
+  fieldErrors: Record<string, string>;
+  generalErrors: string[];
+}
+
+/** Validate the form. Returns field-level errors keyed by field path. */
+export function validateForm(state: FormState): FormValidation {
+  const fieldErrors: Record<string, string> = {};
+  const generalErrors: string[] = [];
+
+  if (!state.startDate) fieldErrors.startDate = 'Start date is required.';
+  if (!state.employmentType) fieldErrors.employmentType = 'Employment type is required.';
+  if (!state.currentWeeklyGross) {
+    fieldErrors.currentWeeklyGross = 'Current weekly gross pay is required.';
+  } else if (!/^\d+(\.\d+)?$/.test(state.currentWeeklyGross)) {
+    fieldErrors.currentWeeklyGross = 'Must be a positive number.';
+  }
+  if (state.statesOfService.length === 0) {
+    fieldErrors.statesOfService = 'Select at least one state of service.';
+  }
+  if (state.statesOfService.length > 1 && !state.governingJurisdiction) {
+    fieldErrors.governingJurisdiction =
+      'Nominate the governing jurisdiction when multiple states are selected.';
+  }
+
+  if (!state.triggerKind) {
+    fieldErrors.triggerKind = 'Select a trigger.';
+  } else if (state.triggerKind === 'taking_leave' && !state.leaveStartDate) {
+    fieldErrors.leaveStartDate = 'Leave start date is required.';
+  } else if (state.triggerKind === 'termination') {
+    if (!state.terminationDate) fieldErrors.terminationDate = 'Termination date is required.';
+    if (!state.terminationReason)
+      fieldErrors.terminationReason = 'Termination reason is required.';
+  } else if (state.triggerKind === 'as_at' && !state.asAtDate) {
+    fieldErrors.asAtDate = 'As-at date is required.';
+  }
+
+  // Wage history rows
+  state.wageHistory.forEach((row, i) => {
+    if (!row.periodStart || !row.periodEnd || !row.grossPay) {
+      generalErrors.push(`Wage history row ${i + 1} is incomplete.`);
+    }
+    if (row.frequency === 'other' && !row.periodDays) {
+      generalErrors.push(
+        `Wage history row ${i + 1}: period days are required when frequency = "other".`
+      );
+    }
+    if (!row.frequency) {
+      generalErrors.push(`Wage history row ${i + 1}: select a pay frequency.`);
+    }
+  });
+
+  if (state.wageHistory.length === 0) {
+    generalErrors.push(
+      'Add at least one wage-history row, either via CSV upload or manual entry.'
+    );
+  }
+
+  // Service events
+  state.serviceEvents.forEach((ev, i) => {
+    if (!ev.type) generalErrors.push(`Service event ${i + 1}: select an event type.`);
+    if (!ev.startDate) generalErrors.push(`Service event ${i + 1}: start date is required.`);
+    const endRequired =
+      ev.type !== 'transfer_of_business' &&
+      ev.type !== 'apprentice_to_tradesperson_transition';
+    if (endRequired && !ev.endDate && ev.type !== '') {
+      generalErrors.push(`Service event ${i + 1}: end date is required for this event type.`);
+    }
+  });
+
+  return {
+    ok: Object.keys(fieldErrors).length === 0 && generalErrors.length === 0,
+    fieldErrors,
+    generalErrors,
+  };
+}
+
+/** Convert form draft → engine Employee + Trigger. Assumes validated input. */
+export function formToEngine(state: FormState): { employee: Employee; trigger: Trigger } {
+  const wageHistory: WagePeriod[] = state.wageHistory.map((r) => {
+    const wp: WagePeriod = {
+      periodStart: asISODate(r.periodStart),
+      periodEnd: asISODate(r.periodEnd),
+      grossPay: r.grossPay,
+      frequency: r.frequency as PayFrequency,
+    };
+    if (r.periodDays) wp.periodDays = Number(r.periodDays);
+    if (r.note) wp.note = r.note;
+    return wp;
+  });
+
+  const serviceEvents: ContinuousServiceEvent[] = state.serviceEvents.map((ev) => {
+    const e: ContinuousServiceEvent = {
+      type: ev.type as ServiceEventType,
+      startDate: asISODate(ev.startDate),
+    };
+    if (ev.endDate) e.endDate = asISODate(ev.endDate);
+    if (ev.note) e.note = ev.note;
+    return e;
+  });
+
+  const employee: Employee = {
+    id: state.externalEmployeeId || 'single-mode',
+    startDate: asISODate(state.startDate),
+    employmentType: state.employmentType as Employee['employmentType'],
+    statesOfService: state.statesOfService as State[],
+    currentWeeklyGross: state.currentWeeklyGross,
+    wageHistory,
+    serviceEvents,
+  };
+  if (state.legalName) employee.legalName = state.legalName;
+  if (state.externalEmployeeId) employee.externalEmployeeId = state.externalEmployeeId;
+  if (state.governingJurisdiction) {
+    employee.governingJurisdiction = state.governingJurisdiction as State;
+  }
+  if (state.priorLeaveTakenWeeks) {
+    employee.priorLeaveTakenWeeks = state.priorLeaveTakenWeeks;
+  }
+  if (state.categoryOverride && state.categoryOverrideConfirmed) {
+    employee.categoryOverride = state.categoryOverride;
+    employee.categoryOverrideConfirmed = true;
+  }
+
+  let trigger: Trigger;
+  if (state.triggerKind === 'taking_leave') {
+    trigger = { kind: 'taking_leave', leaveStartDate: asISODate(state.leaveStartDate) };
+  } else if (state.triggerKind === 'termination') {
+    trigger = {
+      kind: 'termination',
+      terminationDate: asISODate(state.terminationDate),
+      reason: state.terminationReason as TerminationReason,
+    };
+    employee.endDate = asISODate(state.terminationDate);
+  } else {
+    trigger = { kind: 'as_at', asAtDate: asISODate(state.asAtDate) };
+  }
+
+  return { employee, trigger };
+}
+
+/** localStorage key for browser-local persistence (D13). */
+export const LOCAL_STORAGE_KEY = 'lsl-calculator:single-mode:v1';
+
+export function loadFromStorage(): FormState | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { savedAt: number; state: FormState };
+    // 7-day auto-clear per impl-plan §5.5
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    if (Date.now() - parsed.savedAt > SEVEN_DAYS_MS) {
+      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
+      return null;
+    }
+    return parsed.state;
+  } catch {
+    return null;
+  }
+}
+
+export function saveToStorage(state: FormState): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(
+      LOCAL_STORAGE_KEY,
+      JSON.stringify({ savedAt: Date.now(), state })
+    );
+  } catch {
+    /* ignore quota or serialization errors */
+  }
+}
+
+export function clearStorage(): void {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(LOCAL_STORAGE_KEY);
+}
