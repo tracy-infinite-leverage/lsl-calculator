@@ -48,17 +48,20 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            <Card className="group opacity-60">
+            <Card className="group">
               <CardHeader>
-                <Users className="h-7 w-7 text-muted-foreground mb-2" aria-hidden />
+                <Users className="h-7 w-7 text-primary mb-2" aria-hidden />
                 <CardTitle>Bulk mode</CardTitle>
                 <CardDescription>
-                  Many employees in one upload — audit & liability reporting. Coming in Phase 4.
+                  Many employees in one upload — audit & liability reporting. CSV in, results out.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" disabled className="w-full sm:w-auto">
-                  Calculate for many
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link href="/calculator/bulk">
+                    Calculate for many
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
