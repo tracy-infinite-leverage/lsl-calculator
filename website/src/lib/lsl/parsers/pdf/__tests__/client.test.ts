@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { inspectPDF } from '../client';
 
 /**
@@ -83,4 +83,48 @@ describe('inspectPDF — pre-upload guards', () => {
   // MIME missing" path here — both push past the type-guard into pdfjs,
   // which needs a browser environment (DOMMatrix, OffscreenCanvas). That
   // coverage lives in the Playwright e2e suite which runs in a real browser.
+});
+
+describe('inspectPDF — pdfjs-mocked page-count branch', () => {
+  it('AC28: rejects a PDF whose page count exceeds 50 with a clear message, and never uploads', async () => {
+    // Mock pdfjs-dist so we can drive `numPages` deterministically without
+    // needing a browser env. This is Q-03's "option (a)" — a hermetic test
+    // that mocks pdfjs.getDocument(...).numPages.
+    const destroy = vi.fn().mockResolvedValue(undefined);
+    vi.doMock('pdfjs-dist', () => ({
+      GlobalWorkerOptions: { workerSrc: '' },
+      getDocument: vi.fn(() => ({
+        promise: Promise.resolve({ numPages: 51, destroy }),
+      })),
+    }));
+
+    // Spy on fetch to assert the client-side guard short-circuits BEFORE any
+    // network upload. inspectPDF itself never calls fetch, but the spy proves
+    // the contract: type-guard + size-guard + page-guard all run client-side.
+    const fetchSpy = vi.fn();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchSpy as unknown as typeof fetch;
+
+    try {
+      // Reimport so vi.doMock's factory takes effect for this test only.
+      const { inspectPDF: freshInspect } = await import('../client');
+      const big = makeFile('many-pages.pdf', 1024 * 1024, 'application/pdf');
+      const result = await freshInspect(big);
+
+      expect(result.ok).toBe(false);
+      expect(result.error?.code).toBe('too_many_pages');
+      expect(result.error?.message).toMatch(/51 pages/);
+      expect(result.error?.message).toMatch(/50 pages/);
+      expect(result.pages).toBe(51);
+      expect(result.sizeBytes).toBe(1024 * 1024);
+      // destroy() must still be called so we don't leak the pdfjs doc handle.
+      expect(destroy).toHaveBeenCalledTimes(1);
+      // No upload attempted — the guard fired before any network call.
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      globalThis.fetch = originalFetch;
+      vi.doUnmock('pdfjs-dist');
+      vi.resetModules();
+    }
+  });
 });
