@@ -1,26 +1,103 @@
 @import "tailwindcss";
 
+/* LSL Calculator design tokens — APA-blue palette, Tailwind v4 @theme inline */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0.02 250);
+
+  /* Surfaces */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.02 250);
+  --muted: oklch(0.97 0.005 250);
+  --muted-foreground: oklch(0.45 0.02 250);
+
+  /* Primary (APA blue) */
+  --primary: oklch(0.51 0.18 256);          /* ~#2563eb */
+  --primary-foreground: oklch(0.98 0.005 250);
+
+  /* Accent */
+  --accent: oklch(0.95 0.02 256);
+  --accent-foreground: oklch(0.30 0.10 256);
+
+  /* Borders / inputs */
+  --border: oklch(0.92 0.005 250);
+  --input: oklch(0.92 0.005 250);
+  --ring: oklch(0.51 0.18 256);
+
+  /* Status */
+  --destructive: oklch(0.55 0.22 27);       /* red-600-ish */
+  --destructive-foreground: oklch(0.98 0.005 250);
+  --warning: oklch(0.70 0.15 70);           /* amber */
+  --warning-foreground: oklch(0.20 0.05 70);
+  --success: oklch(0.60 0.15 145);          /* green */
+  --success-foreground: oklch(0.98 0.005 145);
+
+  /* Typography */
+  --radius: 0.5rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 0.25rem);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 0.25rem);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: oklch(0.13 0.02 250);
+    --foreground: oklch(0.95 0.005 250);
+    --card: oklch(0.18 0.02 250);
+    --card-foreground: oklch(0.95 0.005 250);
+    --muted: oklch(0.20 0.02 250);
+    --muted-foreground: oklch(0.65 0.02 250);
+    --primary: oklch(0.65 0.18 256);
+    --primary-foreground: oklch(0.13 0.02 250);
+    --accent: oklch(0.25 0.05 256);
+    --accent-foreground: oklch(0.90 0.05 256);
+    --border: oklch(0.25 0.02 250);
+    --input: oklch(0.25 0.02 250);
+    --ring: oklch(0.65 0.18 256);
   }
+}
+
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
