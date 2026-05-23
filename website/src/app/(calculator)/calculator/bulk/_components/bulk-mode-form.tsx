@@ -6,16 +6,19 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { parseBulkCSV, type BulkParsedEmployee } from '@/lib/lsl/parsers/csv/bulk';
-import { bulkToEngineEmployees } from '@/lib/lsl/parsers/csv/bulk-to-engine';
+import { bulkToEngineEmployees, bulkToEngine } from '@/lib/lsl/parsers/csv/bulk-to-engine';
 import { runBulk, type BulkProgress } from '@/lib/lsl/bulk-runner';
-import { asISODate, type Trigger } from '@/lib/lsl/engine/types';
+import { calculateNSWSafe } from '@/lib/lsl/states/nsw';
+import { asISODate, type State, type Trigger } from '@/lib/lsl/engine/types';
 import type { Result } from '@/lib/lsl/engine/types';
 import { BulkPreviewTable } from './bulk-preview-table';
+import { BulkResultsTable } from './bulk-results-table';
+import { UnblockJurisdictionModal } from './unblock-jurisdiction-modal';
 import { saveBulkState, loadBulkState, clearBulkState } from './bulk-storage';
 
 type Stage =
@@ -23,7 +26,12 @@ type Stage =
   | { kind: 'parse_error'; message: string }
   | { kind: 'preview'; parsed: BulkParsedEmployee[]; warnings: string[]; errors: string[] }
   | { kind: 'running'; progress: BulkProgress; total: number }
-  | { kind: 'done'; results: Result[]; summary: { computed: number; blocked: number; failed: number; elapsedMs: number } };
+  | {
+      kind: 'done';
+      results: Result[];
+      parsed: BulkParsedEmployee[];
+      summary: { computed: number; blocked: number; failed: number; elapsedMs: number };
+    };
 
 const SAMPLE_CSV = `employee_id,legal_name,start_date,employment_type,states,current_weekly_gross,period_start,period_end,gross_pay,frequency
 E001,Alice Nguyen,2014-03-01,full_time,NSW,1500.00,2025-05-22,2026-05-21,78000.00,weekly
@@ -33,6 +41,7 @@ E003,Carol Lee,2018-01-10,casual,NSW,950.00,2025-05-22,2026-05-21,49400.00,weekl
 export function BulkModeForm() {
   const [stage, setStage] = React.useState<Stage>({ kind: 'idle' });
   const [csvText, setCsvText] = React.useState<string>('');
+  const [unblockTarget, setUnblockTarget] = React.useState<string | null>(null);
   const fileRef = React.useRef<HTMLInputElement | null>(null);
 
   // Restore from localStorage on mount
@@ -42,6 +51,7 @@ export function BulkModeForm() {
       setStage({
         kind: 'done',
         results: restored.results,
+        parsed: restored.parsed ?? [],
         summary: restored.summary,
       });
     }
@@ -101,8 +111,8 @@ export function BulkModeForm() {
       failed: out.summary.failed,
       elapsedMs: Math.round(out.summary.elapsedMs),
     };
-    setStage({ kind: 'done', results: out.results, summary });
-    saveBulkState({ results: out.results, summary });
+    setStage({ kind: 'done', results: out.results, parsed, summary });
+    saveBulkState({ results: out.results, parsed, summary });
   }
 
   function reset() {
@@ -111,6 +121,52 @@ export function BulkModeForm() {
     setCsvText('');
     if (fileRef.current) fileRef.current.value = '';
   }
+
+  /**
+   * Re-runs a single row with a newly-nominated governing jurisdiction.
+   * Replaces only that row in `results`; the rest are untouched.
+   */
+  function handleUnblockResolve(employeeId: string, nominated: State) {
+    setStage((s) => {
+      if (s.kind !== 'done') return s;
+      const parsedRow = s.parsed.find((p) => p.employeeId === employeeId);
+      if (!parsedRow) return s;
+
+      // Patch the parsed row's governing jurisdiction, then re-derive the
+      // engine Employee. Same trigger as before (use the existing result's).
+      const patched = { ...parsedRow, governingJurisdiction: nominated };
+      const employee = bulkToEngine(patched);
+      const existing = s.results.find((r) => r.employeeId === employeeId);
+      const trigger: Trigger =
+        existing?.trigger ??
+        { kind: 'as_at', asAtDate: asISODate(new Date().toISOString().slice(0, 10)) };
+
+      const newResult = calculateNSWSafe(employee, trigger);
+      const nextResults = s.results.map((r) => (r.employeeId === employeeId ? newResult : r));
+      const nextParsed = s.parsed.map((p) => (p.employeeId === employeeId ? patched : p));
+      const nextSummary = recountSummary(nextResults, s.summary.elapsedMs);
+      saveBulkState({ results: nextResults, parsed: nextParsed, summary: nextSummary });
+      return {
+        kind: 'done',
+        results: nextResults,
+        parsed: nextParsed,
+        summary: nextSummary,
+      };
+    });
+    setUnblockTarget(null);
+  }
+
+  const unblockEmployee =
+    stage.kind === 'done' && unblockTarget
+      ? stage.parsed.find((p) => p.employeeId === unblockTarget) ?? null
+      : null;
+
+  const namesById = React.useMemo(() => {
+    if (stage.kind !== 'done') return {};
+    const map: Record<string, string | undefined> = {};
+    for (const p of stage.parsed) map[p.employeeId] = p.legalName;
+    return map;
+  }, [stage]);
 
   return (
     <div className="space-y-6">
@@ -293,6 +349,9 @@ export function BulkModeForm() {
             <CardTitle>3. Results</CardTitle>
             <CardDescription>
               {stage.results.length} employees processed in {(stage.summary.elapsedMs / 1000).toFixed(1)}s
+              {stage.summary.blocked > 0 && (
+                <> · click any <Badge variant="warning" className="mx-1">blocked</Badge> row to nominate a jurisdiction</>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -306,46 +365,11 @@ export function BulkModeForm() {
               )}
             </div>
 
-            {/* Wave-1 placeholder: simple list. Wave 2 replaces this with BulkResultsTable. */}
-            <div className="rounded-md border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left p-2">Employee</th>
-                    <th className="text-left p-2">Status</th>
-                    <th className="text-left p-2">Category</th>
-                    <th className="text-right p-2">Weeks</th>
-                    <th className="text-right p-2">$ Entitlement</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stage.results.map((r) => (
-                    <tr key={r.employeeId} className="border-t">
-                      <td className="p-2 font-medium">{r.employeeId}</td>
-                      <td className="p-2">
-                        {r.status === 'computed' && <Badge variant="success">computed</Badge>}
-                        {r.status === 'blocked_cross_jurisdiction' && (
-                          <Badge variant="warning">blocked</Badge>
-                        )}
-                        {r.status === 'failed' && <Badge variant="destructive">failed</Badge>}
-                      </td>
-                      <td className="p-2">{r.category ?? '—'}</td>
-                      <td className="p-2 text-right font-mono">
-                        {r.outputs?.totalEntitlement.weeks.display ?? '—'}
-                      </td>
-                      <td className="p-2 text-right font-mono">
-                        {r.outputs?.totalEntitlement.dollars.display ?? '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-              Wave 1 results view. A sortable / filterable / virtualised results table with full
-              citations per row lands in Wave 2.
-            </p>
+            <BulkResultsTable
+              results={stage.results}
+              namesById={namesById}
+              onUnblock={(employeeId) => setUnblockTarget(employeeId)}
+            />
 
             <Separator />
             <div className="flex gap-2">
@@ -368,6 +392,32 @@ export function BulkModeForm() {
           </CardContent>
         </Card>
       )}
+
+      <UnblockJurisdictionModal
+        open={unblockTarget !== null}
+        employeeId={unblockTarget}
+        employeeName={unblockEmployee?.legalName ?? null}
+        candidateStates={(unblockEmployee?.states ?? []) as State[]}
+        currentGoverning={unblockEmployee?.governingJurisdiction ?? null}
+        onCancel={() => setUnblockTarget(null)}
+        onResolve={handleUnblockResolve}
+      />
     </div>
   );
+}
+
+function recountSummary(
+  results: Result[],
+  elapsedMs: number
+): { computed: number; blocked: number; failed: number; elapsedMs: number } {
+  let computed = 0;
+  let blocked = 0;
+  let failed = 0;
+  for (const r of results) {
+    if (!r) continue;
+    if (r.status === 'computed') computed++;
+    else if (r.status === 'blocked_cross_jurisdiction') blocked++;
+    else failed++;
+  }
+  return { computed, blocked, failed, elapsedMs };
 }

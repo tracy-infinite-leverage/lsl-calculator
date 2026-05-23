@@ -13,12 +13,16 @@
  */
 
 import type { Result } from '@/lib/lsl/engine/types';
+import type { BulkParsedEmployee } from '@/lib/lsl/parsers/csv/bulk';
 
-const STORAGE_KEY = 'lsl-calculator:bulk-mode:v1';
+// v2 — added `parsed` for name lookup + unblock re-runs (Wave 2).
+const STORAGE_KEY = 'lsl-calculator:bulk-mode:v2';
 const MAX_BYTES = 4 * 1024 * 1024; // 4 MB hard cap (D13)
 
 export interface PersistedBulkState {
   results: Result[];
+  /** Optional — present in v2, absent in legacy v1 entries (already invalidated by key bump). */
+  parsed?: BulkParsedEmployee[];
   summary: {
     computed: number;
     blocked: number;
