@@ -40,6 +40,13 @@ test.describe('WCAG 2.2 AA — axe-core', () => {
     expect(results.violations).toEqual([]);
   });
 
+  test('privacy notice passes axe', async ({ page }) => {
+    await page.goto('/privacy');
+    await expect(page.locator('body')).toBeVisible();
+    const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+    expect(results.violations).toEqual([]);
+  });
+
   test('bulk-mode preview state passes axe (sample CSV loaded)', async ({ page }) => {
     await page.goto('/calculator/bulk');
     await page.getByRole('button', { name: /Load sample CSV/i }).click();
