@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { extractPDF } from '@/lib/lsl/parsers/pdf/extract';
 import { checkConfidence } from '@/lib/lsl/parsers/pdf/confidence';
 import type { ExtractionMode } from '@/lib/lsl/parsers/pdf/prompts';
+import { extractPdfText } from '@/server/pdf-text';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // seconds — single-mode budget; bulk needs more (D-OQ7 will raise)
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MB per F5 / AC28
+const MAX_PAGES = 200; // matches client-side cap; documents over this go to CSV
 
 /**
  * POST /api/extract-pdf
@@ -68,11 +70,47 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Read file → base64 for the Anthropic document content block
+  // Server-side text extraction: bypasses Anthropic's 100-page document-block
+  // ceiling and is significantly cheaper in tokens. Scanned image-only PDFs
+  // will return zero text — we surface that as a 422 with the CSV fallback CTA.
   const arrayBuffer = await fileField.arrayBuffer();
-  const pdfBase64 = Buffer.from(arrayBuffer).toString('base64');
+  const pdfBuffer = Buffer.from(arrayBuffer);
 
-  const result = await extractPDF(pdfBase64, mode);
+  let extracted: Awaited<ReturnType<typeof extractPdfText>>;
+  try {
+    extracted = await extractPdfText(pdfBuffer);
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: 'invalid_pdf',
+        userMessage: `Couldn't read the PDF (${err instanceof Error ? err.message : 'unknown error'}). Try a different file or upload your wage history as CSV instead.`,
+      },
+      { status: 422 }
+    );
+  }
+
+  if (extracted.pages > MAX_PAGES) {
+    return NextResponse.json(
+      {
+        error: 'too_many_pages',
+        userMessage: `This PDF has ${extracted.pages} pages. The calculator accepts PDFs up to ${MAX_PAGES} pages. Please split the file or upload as CSV instead.`,
+      },
+      { status: 413 }
+    );
+  }
+
+  if (extracted.isLikelyScanned) {
+    return NextResponse.json(
+      {
+        error: 'scanned_pdf',
+        userMessage:
+          "This PDF appears to be a scanned image (no extractable text). Please use a text-based payroll export, or upload your wage history as CSV instead.",
+      },
+      { status: 422 }
+    );
+  }
+
+  const result = await extractPDF(extracted.text, mode);
   if (!result.ok) {
     const status = result.code === 'anthropic_not_configured' ? 503 : 500;
     return NextResponse.json(

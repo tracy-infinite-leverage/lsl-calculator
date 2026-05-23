@@ -39,7 +39,7 @@ const TIMEOUTS: Record<ExtractionMode, number> = {
  * appended; second failure routes the user to CSV fallback (AC26).
  */
 export async function extractPDF(
-  pdfBase64: string,
+  pdfText: string,
   mode: ExtractionMode
 ): Promise<ExtractionResult> {
   let client: Anthropic;
@@ -58,7 +58,7 @@ export async function extractPDF(
 
   try {
     const firstAttempt = await callWithTimeout(
-      () => callClaude(client, pdfBase64, mode),
+      () => callClaude(client, pdfText, mode),
       timeoutMs
     );
 
@@ -76,7 +76,7 @@ export async function extractPDF(
     try {
       const retry = await callWithTimeout(
         () =>
-          callClaudeWithCorrection(client, pdfBase64, mode, validated.error.message),
+          callClaudeWithCorrection(client, pdfText, mode, validated.error.message),
         timeoutMs
       );
       const validated2 = ExtractionResponseSchema.safeParse(retry.parsed);
@@ -110,10 +110,10 @@ interface RawCallResult {
 
 async function callClaude(
   client: Anthropic,
-  pdfBase64: string,
+  pdfText: string,
   mode: ExtractionMode
 ): Promise<RawCallResult> {
-  const request = buildExtractionRequest(mode, pdfBase64);
+  const request = buildExtractionRequest(mode, pdfText);
   // Cast: Claude SDK types lag the structured-outputs + adaptive-thinking betas.
   // The response is always Message — we never set stream:true.
   const response = (await client.messages.create(
@@ -124,11 +124,11 @@ async function callClaude(
 
 async function callClaudeWithCorrection(
   client: Anthropic,
-  pdfBase64: string,
+  pdfText: string,
   mode: ExtractionMode,
   validationError: string
 ): Promise<RawCallResult> {
-  const request = buildExtractionRequest(mode, pdfBase64);
+  const request = buildExtractionRequest(mode, pdfText);
   // Append a correction note to the user message
   const lastMessage = request.messages[request.messages.length - 1];
   lastMessage.content.push({

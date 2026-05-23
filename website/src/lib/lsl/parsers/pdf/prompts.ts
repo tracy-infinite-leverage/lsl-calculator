@@ -55,10 +55,15 @@ Pay periods belonging to one employee should go in that employee's wage_history 
 /**
  * Build the Anthropic Messages API parameters for a PDF extraction call.
  * System + schema are cached across calls per shared/prompt-caching.md.
+ *
+ * The PDF arrives as already-extracted text (server-side pdfjs pass). Sending
+ * text lets us bypass Anthropic's 100-page `document` content block ceiling
+ * and supports up to 200 pages within the model's context window. Page markers
+ * (`--- PAGE N ---`) are preserved so Claude can cite by page when relevant.
  */
 export function buildExtractionRequest(
   mode: ExtractionMode,
-  pdfBase64: string,
+  pdfText: string,
   modelOverride?: string
 ): {
   model: string;
@@ -68,13 +73,7 @@ export function buildExtractionRequest(
   system: Array<{ type: 'text'; text: string; cache_control?: { type: 'ephemeral' } }>;
   messages: Array<{
     role: 'user';
-    content: Array<
-      | {
-          type: 'document';
-          source: { type: 'base64'; media_type: 'application/pdf'; data: string };
-        }
-      | { type: 'text'; text: string }
-    >;
+    content: Array<{ type: 'text'; text: string }>;
   }>;
 } {
   const userText = mode === 'single' ? SINGLE_MODE_USER_PROMPT : BULK_MODE_USER_PROMPT;
@@ -104,14 +103,9 @@ export function buildExtractionRequest(
         role: 'user',
         content: [
           {
-            type: 'document',
-            source: {
-              type: 'base64',
-              media_type: 'application/pdf',
-              data: pdfBase64,
-            },
+            type: 'text',
+            text: `Below is the text extracted from a payroll-report PDF. Extract the employee data and emit JSON per the schema.\n\n${userText}\n\n--- PDF TEXT ---\n${pdfText}`,
           },
-          { type: 'text', text: userText },
         ],
       },
     ],
