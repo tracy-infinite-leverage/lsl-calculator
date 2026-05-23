@@ -24,6 +24,8 @@
     "@react-pdf/renderer": "^4.5.1",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.25",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.2.1",
@@ -37,6 +39,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

@@ -20,6 +20,7 @@ import { BulkPreviewTable } from './bulk-preview-table';
 import { BulkResultsTable } from './bulk-results-table';
 import { UnblockJurisdictionModal } from './unblock-jurisdiction-modal';
 import { saveBulkState, loadBulkState, clearBulkState } from './bulk-storage';
+import { track, bucketElapsed } from '@/lib/observability/track';
 
 type Stage =
   | { kind: 'idle' }
@@ -64,6 +65,7 @@ export function BulkModeForm() {
       setStage({ kind: 'parse_error', message: result.errors.map((e) => e.message).join('; ') });
       return;
     }
+    track({ event: 'bulk_csv_uploaded', employee_count: result.employees.length });
     setStage({
       kind: 'preview',
       parsed: result.employees,
@@ -91,6 +93,8 @@ export function BulkModeForm() {
       if (p.trigger) overrides[p.employeeId] = p.trigger;
     }
 
+    track({ event: 'bulk_calculation_started', employee_count: employees.length });
+
     setStage({
       kind: 'running',
       progress: { completed: 0, total: employees.length, batchIndex: 0, batchCount: 1 },
@@ -111,6 +115,13 @@ export function BulkModeForm() {
       failed: out.summary.failed,
       elapsedMs: Math.round(out.summary.elapsedMs),
     };
+    track({
+      event: 'bulk_calculation_completed',
+      computed: summary.computed,
+      blocked: summary.blocked,
+      failed: summary.failed,
+      elapsed_ms_bucket: bucketElapsed(summary.elapsedMs),
+    });
     setStage({ kind: 'done', results: out.results, parsed, summary });
     saveBulkState({ results: out.results, parsed, summary });
   }
@@ -142,6 +153,7 @@ export function BulkModeForm() {
         { kind: 'as_at', asAtDate: asISODate(new Date().toISOString().slice(0, 10)) };
 
       const newResult = calculateNSWSafe(employee, trigger);
+      track({ event: 'bulk_unblock_resolved', state: nominated });
       const nextResults = s.results.map((r) => (r.employeeId === employeeId ? newResult : r));
       const nextParsed = s.parsed.map((p) => (p.employeeId === employeeId ? patched : p));
       const nextSummary = recountSummary(nextResults, s.summary.elapsedMs);

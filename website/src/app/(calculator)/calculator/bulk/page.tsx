@@ -8,8 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function BulkCalculatorPage() {
+  // No nested <main> — the (calculator) layout already provides one. WCAG
+  // SC 1.3.1 / axe `landmark-no-duplicate-main` requires exactly one main.
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-8">
       <header className="space-y-2">
         <p className="text-sm uppercase tracking-wider text-muted-foreground">
           Bulk mode · NSW
@@ -25,6 +27,6 @@ export default function BulkCalculatorPage() {
       </header>
 
       <BulkModeForm />
-    </main>
+    </div>
   );
 }
