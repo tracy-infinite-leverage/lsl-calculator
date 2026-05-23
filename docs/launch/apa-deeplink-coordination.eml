@@ -1,0 +1,54 @@
+From: Tracy Angwin <tracy@austpayroll.com.au>
+To: [APA technical lead email — fill in]
+Cc:
+Subject: NSW LSL Calculator deep-link — what URL would you like?
+Content-Type: text/plain; charset=utf-8
+
+Hi [name],
+
+The NSW Long Service Leave calculator we discussed is nearly ready for
+soft launch — accessibility, performance, privacy notice, and a
+gold-standard test suite covering the s.4(2) / s.4(5) edge cases are
+all in place.
+
+Once the production URL is live (next 1-2 weeks) I'd like to link from
+the APA member portal. Two quick coordination questions before we
+go live:
+
+1. What's the exact link text + destination you'd prefer?
+
+   Default plan: link the text "NSW Long Service Leave Calculator"
+   from the APA portal to:
+
+     https://lsl.austpayroll.com.au/
+
+   (or whatever final domain we settle on)
+
+   This drops the member on the landing page where they pick
+   single-mode or bulk-mode. No member token / SSO is needed
+   in v1; the calculator is anonymous.
+
+2. Any tracking parameters you'd like me to honour for attribution?
+
+   Examples:
+     ?source=apa-portal
+     ?utm_source=apa&utm_medium=portal&utm_campaign=member-tools
+
+   I can wire the calculator to recognise any param string you
+   want and surface it in our analytics so we can measure APA-
+   sourced traffic separately. No code change is strictly required —
+   I can do this purely server-side via Vercel Analytics if the
+   answer is "just give us the URL, don't worry about UTM".
+
+If the answer to both is "just put the link, no UTM, no further
+coordination needed" that's totally fine — I just want to make sure
+I haven't missed anything you need on the portal side.
+
+When can we aim to have the link added to the portal? Soft launch is
+gated on a couple of other items (PM sign-off on privacy notice,
+final Anthropic contract confirmation) which I expect to clear this
+week.
+
+Tracy Angwin
+Director, Australian Payroll Association
+tracy@austpayroll.com.au
