@@ -4,7 +4,36 @@ This file gates the production cutover. Any agent (or human) acting on a
 "merge time", "cut over", "go live", or "ship it" signal MUST work through
 this guard first. No exceptions.
 
-## Hard gate — Anthropic Zero Data Retention
+## Hard gate #1 — `ANTHROPIC_API_KEY` in Vercel Production env
+
+The Vercel production project (`lsl-calculator` on team
+`infiniteleverage-2`) exists but does NOT yet have an
+`ANTHROPIC_API_KEY` set in the Production environment. Without it,
+`/api/extract-pdf` and `/api/normalize-csv` will return 503 in
+production.
+
+Before any merge to `main` that would deploy:
+
+1. Confirm ZDR has been switched on by Anthropic (see hard gate #2).
+2. Get the ZDR-enabled production key from console.anthropic.com.
+3. Set it in Vercel via either:
+   - **Recommended**: ask the dev agent to run
+     `vercel env add ANTHROPIC_API_KEY production` and paste the key
+     into the prompt. The key disappears from the terminal after
+     submission. It DOES briefly appear in chat scrollback — rotate
+     either token (Anthropic, or Vercel CLI if exposed) as
+     standard hygiene.
+   - Or: paste it via the Vercel dashboard → Settings → Environment
+     Variables → Production only.
+4. Run a manual preview deploy of the current branch + curl
+   `/api/normalize-csv` to confirm the key works:
+   `vercel deploy --prebuilt` then test the resulting URL.
+
+**Do NOT use the local-dev key** (the one in `website/.env.local`)
+for Production. The local key is on Anthropic's standard tier; the
+production key needs to be on the ZDR-enabled tier.
+
+## Hard gate #2 — Anthropic Zero Data Retention
 
 Zero Data Retention was REQUESTED with Anthropic on **2026-05-23**.
 The privacy notice at `/privacy` and the data-handling policy at

@@ -41,12 +41,13 @@ In rough order of dependency:
 - [x] Branch protection enforced on `main` (CI must pass before merge)
 - [x] Zero Data Retention requested with Anthropic (2026-05-23)
 - [ ] **ZDR approval landed from Anthropic** — confirm on the production key in the console before cutover. Without this, privacy-notice claim is inaccurate.
-- [ ] Vercel production project created on Pro plan (Sydney region)
-- [ ] Production domain mapped (e.g. `lsl.austpayroll.com.au`)
-- [ ] `ANTHROPIC_API_KEY` set in Vercel Production environment (ZDR-enabled key)
-- [ ] PR #1 moved from draft → ready for review
-- [ ] Final manual smoke on the Vercel preview URL
-- [ ] Tracy merges PR #1 → `main` (Vercel auto-deploys)
+- [x] Vercel production project `lsl-calculator` created on team `infiniteleverage-2` (Sydney region, root dir `website/`)
+- [x] GitHub integration connected; preview build on `001-nsw-calculator` green (41s build)
+- [x] Production domain `lsl.austpayroll.com.au` mapped — **awaiting your DNS step at Cloudflare**: add `A lsl 76.76.21.21` to austpayroll.com.au DNS, or change the subdomain to use Vercel nameservers
+- [ ] `ANTHROPIC_API_KEY` set in Vercel Production environment (ZDR-enabled key — see LAUNCH-GUARD hard gate #1)
+- [x] PR #1 moved from draft → ready for review (28 commits, 262/262 vitest, 20/20 Playwright, CI green)
+- [ ] Final manual smoke on production URL once domain DNS resolves
+- [ ] Tracy merges PR #1 → `main` (Vercel auto-deploys to production)
 - [ ] First-hour telemetry watch on Vercel Analytics
 
 ### Deferred (not blocking launch)
