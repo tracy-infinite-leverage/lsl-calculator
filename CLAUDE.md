@@ -2,6 +2,12 @@
 
 This file is the entry point Claude Code reads when this repo is opened. It defines roles, folder conventions, and publishing/engineering workflows.
 
+## ⚠️ Pre-launch guard — Anthropic ZDR
+
+**Before any agent acts on a "merge to main", "cut over", "go live", or "ship it" signal, READ `docs/launch/LAUNCH-GUARD.md` first.**
+
+In short: Zero Data Retention was requested with Anthropic on 2026-05-23. Production traffic cannot start until Anthropic confirms ZDR is **active** on the production key — the privacy notice claim becomes inaccurate otherwise. The guard file has the full check + fallback options.
+
 ## Stack
 - Website: Next.js + Tailwind + shadcn (`website/`)
 - Database: Supabase (`website/supabase/`)

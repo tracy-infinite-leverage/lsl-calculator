@@ -1,5 +1,22 @@
 # Launch checklist & artifacts
 
+> ## 🛑 LAUNCH GUARD — ZDR must be ACTIVE before any production traffic
+>
+> Zero Data Retention was **requested** with Anthropic on 2026-05-23, but
+> requesting ≠ active. Before merging PR #1 to `main`:
+>
+> 1. Log into https://console.anthropic.com
+> 2. Confirm ZDR is **switched on for the production API key** (not just the
+>    sandbox key, not just "requested" — actually active).
+> 3. Only then proceed with cutover.
+>
+> Without ZDR active, the privacy notice claim ("Anthropic operates under a
+> no-retention contract") is inaccurate and we'd be misleading users.
+>
+> If ZDR takes longer than expected: we can soft-launch with PDF extraction
+> behind a feature flag (CSV-only path; no Anthropic round-trip). Ask the
+> dev agent.
+
 Everything Tracy needs to action before flipping the NSW LSL Calculator to
 production. The code is done; what's left is human coordination.
 
