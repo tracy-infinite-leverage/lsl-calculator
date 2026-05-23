@@ -167,9 +167,121 @@ What I would NOT accept as a "deferral":
 
 For PM / DevOps:
 
-- [ ] Q-01 — fix dialog label associations + Select accessible names.
-- [ ] Q-02 — add `a11y.spec.ts` test for the PDF preview dialog.
+- [x] Q-01 — fix dialog label associations + Select accessible names. **CLOSED 2026-05-24** (commit `2c9c469`, re-verified §10).
+- [x] Q-02 — add `a11y.spec.ts` test for the PDF preview dialog. **CLOSED 2026-05-24** (commit `2c9c469`, re-verified §10).
 - [ ] Q-03 — add `too_many_pages` coverage (mocked pdfjs or fixture PDF).
 - [ ] Q-04 — execute task 3.9 calibration once APA-sourced PDFs are available; PM signs off threshold.
 - [ ] `ANTHROPIC_API_KEY` in Vercel production (already gated by `LAUNCH-GUARD.md`).
 - [ ] Real-network re-verify of AC26 timing on a preview deployment (handoff item).
+
+---
+
+## 10. Re-QA — 2026-05-24 — Q-01 + Q-02 fix verification
+
+**Reviewer**: QA agent
+**Branch**: `001-nsw-calculator` (verified at start and end; no commits made)
+**HEAD reviewed**: `2c9c469 fix(a11y): bind preview dialog labels + add a11y CI coverage — Q-01, Q-02`
+**Inputs**: developer addendum in HANDOFF.md (2026-05-24); modified files `website/src/components/lsl/editable-preview-table.tsx`, `website/e2e/a11y.spec.ts`.
+
+### 10.1 Verdict
+
+- **Q-01 — CLOSED.** Independently re-verified in-browser with axe-core 4.11.4 against the open dialog: 7 critical violations → 0. Label bindings and Select accessible names all wired correctly. No regression in dialog behaviour.
+- **Q-02 — CLOSED.** New Playwright test exercises the open dialog (not a closed page); Playwright debug trace proves the axe scan runs after `getByRole('dialog')` and the "Confirm extracted data" text are visible.
+- **Phase 3 final verdict: PASSES WITH NOTES.** Only the P3 items (Q-03, Q-04, Q-05, Q-06) remain; none block branch merge. Same overall posture as the original report — but with the two pre-launch P1/P2 items now closed.
+
+### 10.2 Branch hygiene
+
+| Check | Start | End |
+|---|---|---|
+| `git branch --show-current` | `001-nsw-calculator` | `001-nsw-calculator` |
+| Working tree | clean apart from untracked `website/.claude/` (incidental, ignored) | unchanged |
+| New commits by QA | — | none |
+| Files staged by QA | — | none |
+| Force-push / `--no-verify` / `git add .` | — | none |
+
+### 10.3 Test results
+
+| Suite | Result |
+|---|---|
+| `npm run test` (vitest) | 316 / 316 passed (19 files, 1.27s) — matches dev claim |
+| `npx playwright test` (full e2e) | 22 / 22 passed (was 21; +1 = new dialog a11y test) — matches dev claim |
+| `npx playwright test e2e/a11y.spec.ts -g "PDF preview dialog"` (isolated) | 1 / 1 passed in 595 ms |
+
+No flake, no new browser warnings beyond the pre-existing controlled/uncontrolled Select warning (Q-06 — pre-existing, not in this fix's surface).
+
+### 10.4 Q-01 in-browser axe scan (gold reference)
+
+Method: same as original §4 — preview server, `/calculator/single`, fetch stub on `/api/extract-pdf` returning a 93%-confidence response, drove the file input with a minimal valid PDF, waited for the dialog to mount, then ran `axe.run(dialog, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] })` against the dialog DOM only.
+
+| Metric | Before (5be8526) | After (2c9c469) |
+|---|---|---|
+| axe version | 4.11.4 | 4.11.4 |
+| Total violations on open dialog | 7 (2 critical) | **0** |
+| `label` violations | 5 (Legal name, Employee ID, Start date, End date, Current weekly gross) | 0 |
+| `button-name` violations | 2 (Employment type Select, Frequency Select) | 0 |
+
+**Confirms dev's claim of 7 → 0.** No new violations introduced.
+
+### 10.5 Q-01 binding semantics (DOM spot-check)
+
+Inspected the live DOM in the open dialog:
+
+- 5 `Input` elements have `React.useId()` ids, each linked to a visible `<label htmlFor>`. Texts resolve to: "Legal name", "Employee ID", "Start date", "End date (optional)", "Current weekly gross (AUD)". All 5 ids are **unique** — `useId()` per-instance means future bulk-mode reuse cannot collide.
+- 3 wage-history row inputs use `aria-label` (Period start / Period end / Gross pay) — unchanged, still correct.
+- `FieldEmploymentType` `SelectTrigger` has `aria-labelledby` resolving to the visible "Employment type" label id. Radix forwards aria attributes to the underlying `<button>`.
+- Per-row Frequency `SelectTrigger` has `aria-label="Frequency"` — consistent with the row's sibling inputs.
+
+**Edge case checked**: multiple rows in the wage-history table — currently 1 row in the stub. The pattern uses `aria-label` (not id) on row inputs, so multi-row reuse would not generate id collisions either way. `useId()` is only used on the per-employee field components above the table.
+
+### 10.6 Q-02 — does the new test actually exercise the dialog?
+
+Read the new test (`a11y.spec.ts:54–117`). Verified the assertion order:
+
+1. `page.route('**/api/extract-pdf', ...)` — stubs the route with a 93%-confidence response.
+2. `page.goto('/calculator/single')` — navigates.
+3. `page.setInputFiles('#pdf-upload', FIXTURE_PDF)` — drives the file input with the real fixture PDF (`e2e/fixtures/sample-payroll.pdf` — confirmed present).
+4. `await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 })` — **dialog must be visible** before proceeding.
+5. `await expect(page.getByText('Confirm extracted data')).toBeVisible()` — dialog **content rendered**, not just the wrapper.
+6. `new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze()` — scans the whole page (dialog is in the DOM).
+7. `expect(results.violations).toEqual([])` — strict equality, no allowed exceptions.
+
+Could the test false-pass scanning the closed-dialog DOM? **No.** Steps 4 and 5 would fail before axe ever runs. Playwright debug trace (`DEBUG=pw:api`) confirms: `getByRole('dialog')` resolves to a `<div role="dialog" data-state="open" aria-labelledby=...>` — the actual open Radix dialog — and axe runs AFTER both visibility assertions pass.
+
+Minor strengthening note: the test scans the full page rather than just the dialog. That's fine and slightly stronger than dialog-only — if a future page-level a11y regression surfaces, this test would catch it too. The existing `single-mode calculator passes axe` page-level test runs first, so the dialog test does meaningful additional work.
+
+### 10.7 Regression check — golden path
+
+1. Drop fixture PDF on the PDF input → preview dialog opens (stubbed 93% conf).
+2. Verify dialog renders all fields with proper labels (§10.5).
+3. Click "Confirm and use this data" → dialog closes, form fields populate:
+   - `#legalName` = "A11y Test Employee"
+   - `#externalEmployeeId` = "E-PDF-A11Y"
+   - `#startDate` = "2018-03-15"
+   - `#currentWeeklyGross` = "1500.00"
+
+**PASS.** Dialog functional behaviour unchanged.
+
+### 10.8 Keyboard navigation / focus
+
+Re-opened the dialog and walked Tab order. Radix `Dialog` continues to trap focus and place initial focus on the first interactive element (an `<input>` inside the dialog, confirmed).
+
+Tab stops 1–6 in order, with accessible names resolved as a screen reader would:
+
+| # | Element | Accessible name (resolves via) |
+|---|---|---|
+| 1 | INPUT text | "Legal name" (via `label[for]`) |
+| 2 | INPUT text | "Employee ID" (via `label[for]`) |
+| 3 | INPUT date | "Start date" (via `label[for]`) |
+| 4 | INPUT date | "End date (optional)" (via `label[for]`) |
+| 5 | BUTTON combobox | "Employment type" (via `aria-labelledby`) |
+| 6 | INPUT text | "Current weekly gross (AUD)" (via `label[for]`) |
+
+Every stop has a meaningful accessible name. Escape still closes the dialog (unchanged from original §4). **PASS.**
+
+### 10.9 New bugs / findings from re-verification
+
+None. The fix is narrow and well-scoped; no collateral damage detected.
+
+### 10.10 Phase 3 final verdict
+
+**PASSES WITH NOTES** — same posture as the original report, but with the two pre-launch P1/P2 items (Q-01, Q-02) now closed. Remaining items are all P3, all listed in §9 above. Branch is in good shape for merge once the launch-gate items in §9 are scheduled.
