@@ -447,6 +447,109 @@
 
 ---
 
+## Phase 7 — Logins (email + password)
+
+**Goal**: post-launch follow-on. Add user accounts so payroll managers can save calculations, view history, and (in a later epic) take advantage of paid features. **Strictly email + password — no magic links, no SSO, no OAuth providers.**
+
+This phase is sequenced AFTER Phase 6 cutover. The unauthenticated calculator stays the default landing experience; auth is opt-in. Browser-local state (D13) keeps working for anonymous users; signing in upgrades that state to a server-side per-user record.
+
+> **Scope guard**: Phase 7 changes S1 (no server-side employee data) from "forbidden in v1" to "permitted for authenticated users only, with explicit consent and APP-compliant handling." A small privacy-policy revision is required before this phase ships.
+
+### 7.0 Auth provider decision + env vars — **S**
+- Default: **Supabase Auth** (already the project's data layer per `CLAUDE.md`). Reversible — wrapper in `src/server/auth.ts` allows swap.
+- Provision `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` in Vercel env. Document in `docs/engineering/`.
+- Refs: S1, F25, OQ-B (data-handling policy).
+- Depends on: 6.7.
+
+### 7.1 Supabase Auth client + server SDK wiring — **S**
+- Install `@supabase/supabase-js` + `@supabase/ssr`. Build `src/server/supabase-server.ts` and `src/lib/supabase-browser.ts`. No direct `service_role` access from client.
+- Refs: 7.0.
+- Depends on: 7.0.
+
+### 7.2 Database schema: profiles + saved_calculations + RLS — **M**
+- Migration files under `website/supabase/migrations/`:
+  - `profiles` table: `{ id (uuid, FK auth.users), email, display_name, created_at, updated_at }`. RLS: user can SELECT/UPDATE their own row.
+  - `saved_calculations` table: `{ id, user_id (FK), name, input_json (jsonb), result_json (jsonb), created_at, updated_at }`. RLS: user can CRUD only their own rows. Service-role read-only for ops.
+  - Trigger: `auth.users` insert → create matching `profiles` row.
+- Use Supabase MCP `apply_migration` (per `~/.claude/rules/global-engineering.md` Supabase rules — no raw SQL).
+- Refs: S1 (revised), Australian Privacy Principles 1 + 6 + 11.
+- Depends on: 7.1.
+
+### 7.3 Signup page (`/auth/signup`) — **M**
+- Email + password (min 12 chars, complexity rules), password confirm, ToS checkbox.
+- Server action calls `supabase.auth.signUp({ email, password, emailRedirectTo })`. Surfaces friendly errors (already registered, weak password, network).
+- Builds on the existing form primitives (Card, Input, Label, Button). No new design-system work.
+- Refs: F25, S2 (HTTPS-only), APP 5 (collection notice — links to privacy notice from 6.2).
+- Depends on: 7.1, 7.2.
+
+### 7.4 Login page (`/auth/login`) — **S**
+- Email + password. "Forgot password?" link → 7.5.
+- Successful sign-in redirects to `/calculator/single` (or to `?redirect=` param if set by a protected route).
+- Refs: F25.
+- Depends on: 7.1.
+
+### 7.5 Password reset flow — **M**
+- `/auth/reset` (request page): email field → `supabase.auth.resetPasswordForEmail()`.
+- `/auth/reset/confirm` (handler page): receives the token URL, prompts for new password, calls `supabase.auth.updateUser({ password })`.
+- Reset email template content PM-signed-off (Resend transactional template if Brevo/Resend is already wired; otherwise Supabase default).
+- Refs: APP 11 (security).
+- Depends on: 7.1.
+
+### 7.6 Email verification + welcome email — **M**
+- Supabase email-confirmation enabled in dashboard.
+- On first successful confirmation, Resend transactional email (template: "Welcome to LSL Calculator — here's how to get started"). Falls back silently if Resend not configured (per `~/.claude/rules/lark-optional.md` pattern).
+- Refs: F25.
+- Depends on: 7.5.
+
+### 7.7 Session middleware + protected routes — **S**
+- `src/middleware.ts` reads the Supabase session cookie. Routes that require auth (anything under `/account/*`) redirect anonymous users to `/auth/login?redirect=...`.
+- `/calculator/*` stays public; the calculator works unchanged for anonymous users.
+- Refs: S2, S3.
+- Depends on: 7.4.
+
+### 7.8 Upgrade browser-local state to server-side on first login — **S**
+- After login, if there's a `lsl-calculator:single-mode:v1` localStorage entry, prompt: "Save this calculation to your account?" If yes, INSERT into `saved_calculations` and clear local state.
+- One-time prompt per session; user can dismiss.
+- Refs: F20, D13, F25.
+- Depends on: 7.2, 7.7.
+
+### 7.9 "My calculations" history view (`/account/history`) — **M**
+- List view: name, date, employee (display name only — engine outputs are owned by the user), trigger kind, total entitlement. Sortable + filterable.
+- Row click → opens the calculator with the saved inputs hydrated and the result re-computed (deterministic, so result matches).
+- Delete-row action with confirmation modal.
+- Export single calculation as PDF (reuses `/api/export-pdf`).
+- Refs: F25, APP 12 (access) + 13 (correction).
+- Depends on: 7.2, 7.8.
+
+### 7.10 Account settings (`/account`) — **M**
+- Email change (re-verification required), password change (current + new), display-name edit, **delete-account** (irreversible — purges profile + all saved_calculations rows, sends confirmation email).
+- Refs: APP 12, 13, 11.
+- Depends on: 7.7.
+
+### 7.11 Header auth UI + sign-out — **S**
+- Header (`src/components/shell/header.tsx`) shows "Sign in" / "Sign up" for anonymous users; user menu (display name → "My calculations", "Account", "Sign out") for authenticated.
+- Refs: F25.
+- Depends on: 7.7.
+
+### 7.12 RLS + auth-flow tests — **M**
+- Unit tests: RLS policies (user A cannot read user B's saved_calculations even with anon key).
+- Playwright: signup → email confirmation (mocked) → login → save calculation → logout → login again → calculation visible. Negative path: password reset → new password works → old password rejected.
+- Refs: AC24, S1 (revised).
+- Depends on: 7.9.
+
+### 7.13 Privacy-notice revision + APP review — **S** (PM + cross-functional)
+- Update `docs/engineering/data-handling-policy.md` to cover authenticated server-side persistence. Refresh user-facing privacy notice (from 6.2) to disclose:
+  - What's stored when you sign up (email, hashed password via Supabase Auth, optional display name)
+  - What's stored when you save a calculation (inputs + result; never sent to a third-party LLM)
+  - Retention + deletion rights (7.10's delete-account flow)
+- PM sign-off before this phase ships to production.
+- Refs: APP 1, 5, 11, 12, 13; S1 (revised); F25.
+- Depends on: 7.10.
+
+**Phase 7 exit criteria**: a user can sign up, verify email, log in, save a calculation, view it later, change their password, delete their account. Anonymous calculator path unchanged. RLS enforced — cross-user read attempts fail in tests. Privacy notice updated + PM-signed.
+
+---
+
 ## Task summary
 
 | Phase | Tasks | Notes |
@@ -458,7 +561,8 @@
 | 4 — Bulk-mode UI | 11 | Reuses Phase 3 extraction |
 | 5 — Hardening | 8 | WCAG, telemetry, errors, perf, spec-gap resolution |
 | 6 — Pre-launch | 7 | Policy, privacy notice, deep-link, CI gate, deploy |
-| **Total** | **68** | |
+| 7 — Logins (email + password) | 14 | Post-launch follow-on; opt-in accounts + saved calculations; no magic links / SSO / OAuth |
+| **Total** | **82** | |
 
 ## Dependencies between phases
 
@@ -468,6 +572,7 @@
 - **Phase 3 → 4**: bulk reuses extraction route.
 - **Phase 4 → 5**: hardening covers both routes.
 - **Phase 5 → 6**: all spec gaps resolved before policy + cutover.
+- **Phase 6 → 7**: production live (Phase 6 ships without auth). Phase 7 is opt-in iteration on the live calculator.
 
 ## Cross-cutting references
 
