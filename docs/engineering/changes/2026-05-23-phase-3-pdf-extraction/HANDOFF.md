@@ -196,3 +196,46 @@ The new Playwright a11y test runs the **same axe-core 4.11.x rule set** QA used 
 - PDF extraction logic (route, prompts, schema, confidence gate): not touched — Q-01 was purely UI a11y.
 - QA-REPORT.md: not touched (QA owns that document).
 
+---
+
+## Addendum — 2026-05-24 — Q-03 + Q-04 fix
+
+**Author**: Developer agent
+**Branch**: `001-nsw-calculator` (unchanged; verified at start and end)
+**Scope**: only the two P3 bugs from QA-REPORT.md §5 — Q-03 and Q-04. Q-05 / Q-06 are pre-existing and explicitly out of scope.
+
+### What changed
+
+| File | Change |
+|---|---|
+| `website/src/lib/lsl/parsers/pdf/__tests__/client.test.ts` | Added new test `AC28: rejects a PDF whose page count exceeds 50 with a clear message, and never uploads` under a new `describe('inspectPDF — pdfjs-mocked page-count branch')`. Uses `vi.doMock('pdfjs-dist', ...)` to stub `getDocument(...).promise` with `numPages: 51`, then asserts `error.code === 'too_many_pages'`, the message includes both `51 pages` and `50 pages`, `pages === 51`, and `destroy()` is called once so the pdfjs doc handle doesn't leak. Also spies on `globalThis.fetch` to assert the guard short-circuits before any network upload could happen. Test isolates its mock with `vi.doUnmock` + `vi.resetModules` in a `finally` block. |
+| `docs/launch/LAUNCH-GUARD.md` | Added a new "Documented risk — PDF extraction confidence thresholds uncalibrated" section between the soft DNS gate and the history note. Captures: thresholds are best-guess defaults (`0.85` / `0.7`), the 50-PDF calibration set (task 3.9) is deferred to Phase 6, both false-positive and false-negative error modes are possible, why this is not a hard gate (CSV fallback + editable preview always force user review), PM owns the sourcing, cross-references `docs/engineering/pdf-extraction-calibration.md`. |
+
+### Why this design
+
+- **`vi.doMock` + dynamic re-import (not `vi.mock` at top of file).** `vi.mock` hoists to the top of the file and would affect every test in this file, including the existing tests that deliberately exercise the type/size guards *before* pdfjs is loaded. Using `vi.doMock` scoped inside one `it()` plus a `vi.resetModules()` / `vi.doUnmock()` in `finally` keeps the new test fully isolated — the other six tests still run with the real (un-imported) `pdfjs-dist` and continue to pass unchanged.
+- **Documented risk, not a hard gate.** Calibration deferral is a known-unknown, not a launch blocker. The existing Hard gate (`ANTHROPIC_API_KEY`) vs Soft gate (DNS) distinction maps cleanly onto a third "Documented risk" category — same tone, same Markdown structure, no reformatting of unrelated sections.
+- **Cross-reference to the calibration writeup**, not duplication. `docs/engineering/pdf-extraction-calibration.md` already explains the execution plan and the (a) / (b) trade-off if APA sourcing slips; the LAUNCH-GUARD entry summarises the risk in two paragraphs and links out.
+
+### Evidence
+
+| Gate | Result |
+|---|---|
+| `npm run test` | 317 / 317 passed (19 files, 1.31s) — was 316 before this run; the new `too_many_pages` test is the +1. |
+| `npx tsc --noEmit` | clean (no output). |
+| `npm run build` | clean (`✓ Compiled successfully in 1573ms`, TypeScript pass, 10/10 static pages). |
+
+### Branch hygiene
+
+- `git branch --show-current` at start: `001-nsw-calculator`. After test edits: `001-nsw-calculator`. After LAUNCH-GUARD edit: `001-nsw-calculator`. At end: `001-nsw-calculator`.
+- Files modified: only the three listed above (client.test.ts, LAUNCH-GUARD.md, this HANDOFF.md).
+- `website/.claude/launch.json` left over from QA's MCP session was NOT staged.
+- No commits pushed. No `--no-verify`. No `git add .` / `-A`. No force-push.
+
+### Not in scope (untouched)
+
+- Q-01 / Q-02: already closed and re-QA'd in the previous addendum.
+- Q-05 / Q-06: pre-existing, separate cleanup PR per task instructions.
+- Phase 3 PDF logic (route, prompts, schema, confidence gate, client.ts): not touched — Q-03 was a pure test-coverage gap, not a code change.
+- QA-REPORT.md: not touched (QA owns that document).
+
