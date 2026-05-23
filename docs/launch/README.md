@@ -22,15 +22,23 @@ In rough order of dependency:
 - [x] PM signs off on the user-facing privacy notice (`/privacy`)
 - [ ] PM signs off on the data-handling policy (`docs/engineering/data-handling-policy.md`)
 - [x] Branch protection enforced on `main` (CI must pass before merge)
-- [ ] Anthropic no-retention confirmation received in writing
-- [ ] APA deep-link URL + attribution params agreed
+- [x] Zero Data Retention requested with Anthropic (2026-05-23)
+- [ ] **ZDR approval landed from Anthropic** — confirm on the production key in the console before cutover. Without this, privacy-notice claim is inaccurate.
 - [ ] Vercel production project created on Pro plan (Sydney region)
 - [ ] Production domain mapped (e.g. `lsl.austpayroll.com.au`)
-- [ ] `ANTHROPIC_API_KEY` set in Vercel Production environment (no-retention tier)
+- [ ] `ANTHROPIC_API_KEY` set in Vercel Production environment (ZDR-enabled key)
 - [ ] PR #1 moved from draft → ready for review
 - [ ] Final manual smoke on the Vercel preview URL
 - [ ] Tracy merges PR #1 → `main` (Vercel auto-deploys)
 - [ ] First-hour telemetry watch on Vercel Analytics
+
+### Deferred (not blocking launch)
+
+- ~~APA portal deep-link coordination~~ — Tracy will handle this informally
+  after launch. APA can link to the production URL at any time without code
+  changes on our side. The drafted email at
+  `apa-deeplink-coordination.eml` stays on file for reference; ignore unless
+  Tracy escalates.
 
 ## Order of operations once everything's confirmed
 
