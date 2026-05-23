@@ -1,21 +1,18 @@
 # Launch checklist & artifacts
 
-> ## 🛑 LAUNCH GUARD — ZDR must be ACTIVE before any production traffic
+> ## 🛑 LAUNCH GUARD — `ANTHROPIC_API_KEY` must be set in Production env
 >
-> Zero Data Retention was **requested** with Anthropic on 2026-05-23, but
-> requesting ≠ active. Before merging PR #1 to `main`:
+> Before merging PR #1 to `main`:
 >
-> 1. Log into https://console.anthropic.com
-> 2. Confirm ZDR is **switched on for the production API key** (not just the
->    sandbox key, not just "requested" — actually active).
-> 3. Only then proceed with cutover.
+> 1. Get a production API key from https://console.anthropic.com (ZDR is
+>    nice-to-have, not required — the privacy notice has been written to
+>    match Anthropic's standard commercial terms).
+> 2. Set it via `vercel env add ANTHROPIC_API_KEY production` (interactive
+>    paste) or the Vercel dashboard.
+> 3. Trigger a preview build + curl `/api/normalize-csv` on the preview URL
+>    to confirm 200, not 503.
 >
-> Without ZDR active, the privacy notice claim ("Anthropic operates under a
-> no-retention contract") is inaccurate and we'd be misleading users.
->
-> If ZDR takes longer than expected: we can soft-launch with PDF extraction
-> behind a feature flag (CSV-only path; no Anthropic round-trip). Ask the
-> dev agent.
+> Full guard at [`LAUNCH-GUARD.md`](./LAUNCH-GUARD.md).
 
 Everything Tracy needs to action before flipping the NSW LSL Calculator to
 production. The code is done; what's left is human coordination.
@@ -36,19 +33,18 @@ Both have placeholder `[fill in]` lines for recipient name/email.
 
 In rough order of dependency:
 
-- [x] PM signs off on the user-facing privacy notice (`/privacy`)
-- [ ] PM signs off on the data-handling policy (`docs/engineering/data-handling-policy.md`)
+- [x] PM signs off on the user-facing privacy notice (`/privacy`) — standard-tier copy approved 2026-05-23
+- [x] PM signs off on the data-handling policy (`docs/engineering/data-handling-policy.md`) — standard-tier rewrite approved 2026-05-23
 - [x] Branch protection enforced on `main` (CI must pass before merge)
-- [x] Zero Data Retention requested with Anthropic (2026-05-23)
-- [ ] **ZDR approval landed from Anthropic** — confirm on the production key in the console before cutover. Without this, privacy-notice claim is inaccurate.
 - [x] Vercel production project `lsl-calculator` created on team `infiniteleverage-2` (Sydney region, root dir `website/`)
 - [x] GitHub integration connected; preview build on `001-nsw-calculator` green (41s build)
-- [x] Production domain `lsl.austpayroll.com.au` mapped — **awaiting your DNS step at Cloudflare**: add `A lsl 76.76.21.21` to austpayroll.com.au DNS, or change the subdomain to use Vercel nameservers
-- [ ] `ANTHROPIC_API_KEY` set in Vercel Production environment (ZDR-enabled key — see LAUNCH-GUARD hard gate #1)
-- [x] PR #1 moved from draft → ready for review (28 commits, 262/262 vitest, 20/20 Playwright, CI green)
-- [ ] Final manual smoke on production URL once domain DNS resolves
+- [x] Production domain `lsl.austpayroll.com.au` mapped — **DNS step at Cloudflare still pending**: add `A lsl 76.76.21.21` to austpayroll.com.au DNS, or change the subdomain to use Vercel nameservers. Soft gate (Vercel-issued URL works without this).
+- [ ] `ANTHROPIC_API_KEY` set in Vercel Production environment — see LAUNCH-GUARD hard gate
+- [x] PR #1 moved from draft → ready for review (28+ commits, 262/262 vitest, 20/20 Playwright, CI green)
+- [ ] Final manual smoke on Vercel-issued URL after env var is set
 - [ ] Tracy merges PR #1 → `main` (Vercel auto-deploys to production)
 - [ ] First-hour telemetry watch on Vercel Analytics
+- [ ] (Nice-to-have, post-launch) Switch to ZDR-enabled key when Anthropic approves; update privacy notice + policy to strengthen disclosure
 
 ### Deferred (not blocking launch)
 

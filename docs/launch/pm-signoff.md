@@ -22,28 +22,21 @@ test in commit `556cd28`).
 
 **Status: SIGNED OFF · Tracy Angwin · 2026-05-23**
 
-The policy doc was lifted directly from impl-plan §8 (which Tracy
-previously signed off as part of the planning artifact). The lift
-updated it to reflect the actual built state — Vercel-native
-telemetry replacing the planned Plausible+Sentry, and server-side
-text extraction (binary PDFs never reach Anthropic).
+Originally drafted assuming Anthropic ZDR would be active before
+launch. Tracy decided 2026-05-23 to launch on Anthropic's standard
+tier rather than wait for ZDR — both the policy doc and the
+user-facing privacy notice were rewritten to accurately reflect
+Anthropic's standard commercial terms (no training on customer
+data; up to 30 days retention for service operation and abuse
+monitoring).
 
-Tracy declined a deep read on the basis that the underlying claims
-hadn't changed materially from the impl-plan version and the user-
-facing `/privacy` page (which surfaces the same claims in plain
-English) was already approved.
-
-Caveat captured in the file itself (and the `docs/launch/LAUNCH-GUARD.md`
-file): the claim "Anthropic operates under a no-retention contract"
-becomes accurate only once Anthropic confirms ZDR is **active** on
-the production API key. This sign-off is conditional on that ZDR
-confirmation landing before production traffic starts.
+Standard-tier rewrite approved without further conditions.
 
 ---
 
 ## Sign-off chain — full
 
-1. **Privacy notice** ✓ Tracy 2026-05-23 (reviewed on dev server)
-2. **Data-handling policy** ✓ Tracy 2026-05-23 (signed off conditional on ZDR)
-3. **ZDR active confirmation** ⏳ awaiting Anthropic
-4. **Production cutover** ⏳ blocked on #3
+1. **Privacy notice** ✓ Tracy 2026-05-23 (standard-tier rewrite approved)
+2. **Data-handling policy** ✓ Tracy 2026-05-23 (standard-tier rewrite approved)
+3. **Production cutover** ⏳ blocked on `ANTHROPIC_API_KEY` in Vercel Production env (LAUNCH-GUARD hard gate)
+4. **ZDR upgrade** ⏳ nice-to-have, post-launch; switch keys + update both docs when Anthropic approves the ZDR request

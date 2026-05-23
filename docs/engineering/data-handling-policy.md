@@ -49,20 +49,33 @@ No Plausible, no Sentry, no Google Analytics, no LogRocket, no Hotjar.
 
 ---
 
-## 2. The Anthropic no-retention contract
+## 2. Anthropic Claude API — standard commercial terms
 
-Per Anthropic's enterprise no-retention terms (as understood at 2026-05-23):
+The calculator launches on Anthropic's **standard API tier**, governed by
+the published [Anthropic Commercial Terms](https://www.anthropic.com/legal/commercial-terms).
+Zero Data Retention (ZDR) was requested on 2026-05-23 and is pending; when ZDR
+becomes active on the production key this section will be updated and the
+user-facing privacy notice strengthened accordingly.
 
-- Request and response data are **not retained** after the response is returned. Not used for training, not stored beyond the request lifecycle, not available for support replay.
-- Standard infrastructure logs (request id, timestamp, latency) are retained per Anthropic's standard retention policy.
-- Inference occurs on **US infrastructure**; data crosses the Pacific in transit (HTTPS, TLS 1.2+).
-- No Australian inference region exists today.
+Today, on the standard tier:
+
+- **No training on customer data.** Anthropic does not use customer inputs or
+  outputs to train its models. This is universal across all API tiers and is
+  not contingent on ZDR being active.
+- **Limited retention for service operation and abuse monitoring.** Request and
+  response data may be retained for up to 30 days per Anthropic's published
+  retention schedule. Access is restricted to Anthropic personnel for service
+  reliability and Trust & Safety review under defined circumstances.
+- **Inference occurs on US infrastructure.** Data crosses the Pacific in transit
+  (HTTPS, TLS 1.2+). No Australian inference region exists today.
 
 ### 2.1 Pre-production checklist (Tracy to confirm before cutover)
 
-- [ ] Anthropic enterprise no-retention contract confirmed with Anthropic account team in writing.
-- [ ] Production API key issued under the no-retention tier (not the standard tier).
-- [ ] Anthropic's published retention policy at the time of cutover is captured here for the record.
+- [ ] Production API key issued and verified working on the standard tier.
+- [ ] Anthropic's currently-published retention policy captured here for the
+      record (snapshot at cutover time).
+- [ ] (Optional, when ZDR lands) Switch the production key to a ZDR-enabled key
+      and update this section + the user-facing privacy notice to reflect ZDR.
 
 ---
 
@@ -73,7 +86,7 @@ Per Anthropic's enterprise no-retention terms (as understood at 2026-05-23):
 | Single-mode form state | Browser `localStorage` key `lsl-calculator:single-mode:v1` | Until user clicks "Start over" or browser clears storage | The user |
 | Bulk-mode results + parsed employees | Browser `localStorage` key `lsl-calculator:bulk-mode:v2` | Same as above; capped at 4 MB | The user |
 | Extracted PDF text | Server memory during the request only | Garbage-collected after the response returns | Nobody |
-| Anthropic request/response | Anthropic's lifecycle (~ duration of the API call) | Per no-retention contract | Anthropic |
+| Anthropic request/response | Anthropic's lifecycle | Up to 30 days per Anthropic's standard retention; not used for training | Anthropic |
 | Vercel runtime logs | Vercel | Per Vercel retention (currently 30 days for Hobby, longer for Pro) | Vercel |
 | Vercel Analytics events | Vercel | Per Vercel Analytics retention | Vercel |
 
@@ -90,7 +103,7 @@ The calculator handles workplace data that may include personal information. We 
 | **APP 1** Open and transparent management | This policy + a plain-English privacy notice rendered on `/privacy`, linked from the footer of every page and from the upload controls. |
 | **APP 5** Notification of collection | The privacy notice tells the user what happens to uploaded data **before** they upload. The upload control on single-mode and bulk-mode pages also surfaces the Anthropic flow inline. |
 | **APP 6** Use or disclosure | Extracted data is used only to populate the calculator's preview. Not used for any other purpose. Not disclosed to anyone other than Anthropic for the extraction round-trip. |
-| **APP 8** Cross-border disclosure | Anthropic is the cross-border recipient (US). The user-facing notice discloses this clearly. The no-retention contract is the basis for treating Anthropic's retention surface as bounded. |
+| **APP 8** Cross-border disclosure | Anthropic is the cross-border recipient (US). The user-facing notice discloses this clearly. Anthropic's published Commercial Terms — no training on customer data + standard retention — are the basis we disclose to users. |
 | **APP 11** Security | HTTPS-only transport. No third-party analytics that capture inputs. Browser-only persistence. Minimal LLM payload (text only, no metadata). PII-scrubbed error logs. |
 | **APP 12 / APP 13** Access and correction | Not directly applicable in v1 since we hold no employee records server-side. Users can clear their own browser state via the "Start over" control. |
 

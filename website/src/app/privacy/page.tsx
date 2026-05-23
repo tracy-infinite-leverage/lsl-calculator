@@ -52,8 +52,18 @@ export default function PrivacyPage() {
                 <strong>PDF uploads are different.</strong> A PDF goes to our server long
                 enough to extract the text, then the text is sent to Anthropic Claude (US) for
                 interpretation. The PDF itself is not sent to Anthropic — only the extracted
-                text. Anthropic operates under a no-retention contract: they don&apos;t keep
-                the data after answering the request.
+                text. Anthropic does not use customer data to train its models. They may retain
+                request/response data for a limited period (currently up to 30 days) for service
+                operation and abuse monitoring per their{' '}
+                <a
+                  href="https://www.anthropic.com/legal/commercial-terms"
+                  className="underline underline-offset-2"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Commercial Terms
+                </a>
+                .
               </li>
               <li>
                 <strong>We don&apos;t store anything server-side.</strong> No database, no
@@ -97,7 +107,7 @@ export default function PrivacyPage() {
                   <tr className="border-t align-top">
                     <td className="p-2 font-medium">Anthropic Claude API (US)</td>
                     <td className="p-2">Extracted PDF text (the words, not the PDF)</td>
-                    <td className="p-2">Interpreting wage data so we can populate the calculator&apos;s preview. No-retention contract; data isn&apos;t kept by Anthropic.</td>
+                    <td className="p-2">Interpreting wage data so we can populate the calculator&apos;s preview. Anthropic does not train on customer data; standard retention applies (up to 30 days for abuse monitoring).</td>
                   </tr>
                   <tr className="border-t align-top">
                     <td className="p-2 font-medium">Vercel Analytics</td>
@@ -122,7 +132,8 @@ export default function PrivacyPage() {
               The Anthropic Claude API runs on US infrastructure. There is no Australian
               inference region available at the time of writing. The PDF text you upload
               transits the Pacific over HTTPS (TLS 1.2 or later) and is processed in the US
-              under Anthropic&apos;s no-retention enterprise contract.
+              under Anthropic&apos;s standard commercial terms — your data is not used to train
+              their models, and standard retention applies (up to 30 days for abuse monitoring).
             </p>
             <p>
               If you&apos;d prefer not to send anything to a US service, use the{' '}
