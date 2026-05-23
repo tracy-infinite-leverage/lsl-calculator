@@ -147,3 +147,52 @@ These are good targets for the QA pass:
   task we did NOT close in this run, and why.
 
 Hand off ready.
+
+---
+
+## Addendum — 2026-05-24 — Q-01 + Q-02 fix
+
+**Author**: Developer agent
+**Branch**: `001-nsw-calculator` (unchanged; verified at start and end)
+**Scope**: only the two bugs raised in QA-REPORT.md §5 — Q-01 (P1) and Q-02 (P2).
+Q-03 / Q-04 / Q-05 / Q-06 intentionally left untouched per task instructions.
+
+### What changed
+
+| File | Change |
+|---|---|
+| `website/src/components/lsl/editable-preview-table.tsx` | Bound `<Label>` to `<Input>` via `htmlFor` / `id` (stable per-instance ids from `React.useId()`) in `FieldText` and `FieldDate`. Used `aria-labelledby` to connect the visible `<Label>` to the `<SelectTrigger>` in `FieldEmploymentType`. Added `aria-label="Frequency"` to the wage-history per-row `<SelectTrigger>`. |
+| `website/e2e/a11y.spec.ts` | Added test `single-mode PDF preview dialog passes axe (stubbed)`. Mirrors the network-stub pattern in `pdf-extract.spec.ts` (mocks `/api/extract-pdf` with a 93%-confidence response), drives the file input with `e2e/fixtures/sample-payroll.pdf`, waits for the dialog, then runs axe-core with the existing `WCAG_TAGS` and asserts `violations === []`. |
+
+### Why this design
+
+- **`React.useId()` for label-input binding.** `useId` produces SSR-stable, collision-free ids per component instance. Each rendered `FieldText` / `FieldDate` gets its own id, so multiple rows of `Identity` / `Employment` fields can't collide even with future bulk-mode reuse. No prop drilling, no parent index threading.
+- **`aria-labelledby` (not `aria-label`) on `FieldEmploymentType`.** The visible "Employment type" `<Label>` already carries the human-readable text; pointing the trigger at the label id avoids the standard duplication / drift between visible label and accessible name. Radix's `SelectTrigger` forwards arbitrary aria attributes to the underlying button.
+- **`aria-label="Frequency"` on the wage-history row trigger.** That row already uses `aria-label` on its three sibling inputs (`Period start`, `Period end`, `Gross pay`); using `aria-label` on the trigger keeps the row internally consistent and avoids inventing an off-row visible label that the existing grid layout doesn't accommodate.
+
+### Evidence
+
+| Gate | Result |
+|---|---|
+| `npm run test` | 316 / 316 passed (19 files, 1.17s) |
+| `npx tsc --noEmit` | clean (no output) |
+| `npm run build` | clean (`✓ Compiled successfully in 1456ms`, TypeScript pass, 10/10 static pages) |
+| `npx playwright test e2e/a11y.spec.ts` | 6 / 6 passed including the new dialog test — `violations === []` against `wcag2a wcag2aa wcag21a wcag21aa wcag22aa` |
+| `npx playwright test` (full suite) | 22 / 22 passed (was 21 before this run — the new dialog a11y test is the +1) |
+
+The new Playwright a11y test runs the **same axe-core 4.11.x rule set** QA used in their browser-driven scan (QA-REPORT.md §4), so a green assertion on `violations === []` is equivalent to QA's "zero critical violations on `label` and `button-name`" acceptance criterion. The five `label` violations and two `button-name` violations are all caught by the rules included in the `WCAG_TAGS` filter (`1.3.1` → `wcag2a`, `4.1.2` → `wcag2a`).
+
+### Branch hygiene
+
+- `git branch --show-current` at start: `001-nsw-calculator`. At end: `001-nsw-calculator`.
+- Files modified: only the two listed above.
+- `website/.claude/launch.json` (left over from QA's MCP preview session) was NOT staged.
+- No commits, pushes, or empty CI-trigger commits made by this run.
+- No `--no-verify`, no `git add .` / `-A`, no force-push.
+
+### Not in scope (untouched)
+
+- Q-03 / Q-04 / Q-05 / Q-06: per task instructions, deferred.
+- PDF extraction logic (route, prompts, schema, confidence gate): not touched — Q-01 was purely UI a11y.
+- QA-REPORT.md: not touched (QA owns that document).
+

@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import * as path from 'node:path';
+
+// Playwright runs with testDir=./e2e and CWD=website/ — resolve from project root.
+const FIXTURE_PDF = path.resolve('e2e/fixtures/sample-payroll.pdf');
 
 /**
  * WCAG 2.2 AA audit per tasks.md §5.1 / A1 / SC5.
@@ -43,6 +47,71 @@ test.describe('WCAG 2.2 AA — axe-core', () => {
   test('privacy notice passes axe', async ({ page }) => {
     await page.goto('/privacy');
     await expect(page.locator('body')).toBeVisible();
+    const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+    expect(results.violations).toEqual([]);
+  });
+
+  test('single-mode PDF preview dialog passes axe (stubbed)', async ({ page }) => {
+    // The PDF upload flow calls /api/extract-pdf (Anthropic). Mock with a happy
+    // response so we can scan the open dialog DOM without real-network cost.
+    // Mirrors the stub pattern in pdf-extract.spec.ts.
+    await page.route('**/api/extract-pdf', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            employees: [
+              {
+                external_employee_id: 'E-PDF-A11Y',
+                legal_name: 'A11y Test Employee',
+                start_date: '2018-03-15',
+                end_date: null,
+                employment_type: 'full_time',
+                states_of_service: ['NSW'],
+                current_weekly_gross: '1500.00',
+                wage_history: [
+                  {
+                    period_start: '2025-05-22',
+                    period_end: '2026-05-21',
+                    gross_pay: '78000.00',
+                    frequency: 'weekly',
+                    period_days: null,
+                  },
+                ],
+                service_events: [],
+                confidence: {
+                  identity: 0.95,
+                  employment: 0.95,
+                  wage_history: 0.93,
+                  aggregate: 0.93,
+                },
+              },
+            ],
+            extraction_notes: null,
+          },
+          flags: [
+            { employeeIndex: 0, identity: false, employment: false, wageHistory: false },
+          ],
+          worstAggregate: 0.93,
+          lowOverallConfidence: false,
+          usage: {
+            inputTokens: 0,
+            outputTokens: 0,
+            cacheReadInputTokens: 0,
+            cacheCreationInputTokens: 0,
+          },
+          cacheHit: false,
+        }),
+      });
+    });
+
+    await page.goto('/calculator/single');
+    await page.setInputFiles('#pdf-upload', FIXTURE_PDF);
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('Confirm extracted data')).toBeVisible();
+
     const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
     expect(results.violations).toEqual([]);
   });
