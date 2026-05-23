@@ -5,7 +5,9 @@ import type { ExtractionMode } from '@/lib/lsl/parsers/pdf/prompts';
 import { extractPdfText } from '@/server/pdf-text';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60; // seconds — single-mode budget; bulk needs more (D-OQ7 will raise)
+// Route ceiling must exceed extract.ts TIMEOUTS.single (120s) — leave a small
+// margin for the rest of the request (text extraction, validation, JSON write).
+export const maxDuration = 150;
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MB per F5 / AC28
 const MAX_PAGES = 200; // matches client-side cap; documents over this go to CSV
@@ -119,25 +121,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Confidence gate
-  const gate = checkConfidence(result.data.employees);
-  if (!gate.ok) {
-    return NextResponse.json(
-      {
-        error: 'low_confidence',
-        userMessage:
-          "We couldn't read this PDF with enough confidence to populate the form automatically. Please upload your wage history as CSV instead — your other inputs are preserved.",
-        aggregate: gate.aggregate,
-      },
-      { status: 422 }
-    );
-  }
+  // Confidence report — informational, never blocks. The editable preview
+  // table is the user's chance to review every field; we just decorate the
+  // response with flags + an overall-low banner hint.
+  const report = checkConfidence(result.data.employees);
 
   return NextResponse.json(
     {
       ok: true,
       data: result.data,
-      flags: gate.flags,
+      flags: report.flags,
+      worstAggregate: report.worstAggregate,
+      lowOverallConfidence: report.lowOverallConfidence,
       usage: result.usage,
       cacheHit: result.cacheHit,
     },

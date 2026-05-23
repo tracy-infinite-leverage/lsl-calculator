@@ -38,6 +38,8 @@ type State =
       kind: 'preview';
       data: ExtractionResponse;
       flags: PerFieldFlags[];
+      worstAggregate: number;
+      lowOverallConfidence: boolean;
     };
 
 export function PdfUpload({ onConfirmed, onSwitchToCSV }: PdfUploadProps) {
@@ -69,8 +71,20 @@ export function PdfUpload({ onConfirmed, onSwitchToCSV }: PdfUploadProps) {
         });
         return;
       }
-      const body2: { ok: true; data: ExtractionResponse; flags: PerFieldFlags[] } = await res.json();
-      setState({ kind: 'preview', data: body2.data, flags: body2.flags });
+      const body2: {
+        ok: true;
+        data: ExtractionResponse;
+        flags: PerFieldFlags[];
+        worstAggregate: number;
+        lowOverallConfidence: boolean;
+      } = await res.json();
+      setState({
+        kind: 'preview',
+        data: body2.data,
+        flags: body2.flags,
+        worstAggregate: body2.worstAggregate,
+        lowOverallConfidence: body2.lowOverallConfidence,
+      });
     } catch (err) {
       setState({
         kind: 'upload_error',
@@ -197,6 +211,8 @@ export function PdfUpload({ onConfirmed, onSwitchToCSV }: PdfUploadProps) {
               employees={state.data.employees}
               flags={state.flags}
               extractionNotes={state.data.extraction_notes ?? undefined}
+              worstAggregate={state.worstAggregate}
+              lowOverallConfidence={state.lowOverallConfidence}
               onConfirm={handleConfirm}
               onCancel={handleCancel}
             />

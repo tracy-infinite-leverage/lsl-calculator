@@ -51,10 +51,34 @@ const HAPPY_RESPONSE = {
 };
 
 const LOW_CONFIDENCE_RESPONSE = {
-  error: 'low_confidence',
-  userMessage:
-    "We couldn't read this PDF with enough confidence to populate the form automatically. Please upload your wage history as CSV instead — your other inputs are preserved.",
-  aggregate: 0.62,
+  ok: true,
+  data: {
+    employees: [
+      {
+        external_employee_id: null,
+        legal_name: 'Maybe Smith',
+        start_date: '2020-01-15',
+        end_date: null,
+        employment_type: 'full_time',
+        states_of_service: ['NSW'],
+        current_weekly_gross: '1200.00',
+        wage_history: [],
+        service_events: [],
+        confidence: {
+          identity: 0.55,
+          employment: 0.62,
+          wage_history: 0.60,
+          aggregate: 0.55,
+        },
+      },
+    ],
+    extraction_notes: null,
+  },
+  flags: [{ employeeIndex: 0, identity: true, employment: true, wageHistory: true }],
+  worstAggregate: 0.55,
+  lowOverallConfidence: true,
+  usage: { inputTokens: 1234, outputTokens: 567, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 },
+  cacheHit: false,
 };
 
 test.describe('PDF extraction', () => {
@@ -89,10 +113,13 @@ test.describe('PDF extraction', () => {
     await expect(page.locator('#currentWeeklyGross')).toHaveValue('1500.00');
   });
 
-  test('AC26: low-confidence extraction surfaces fallback CTA', async ({ page }) => {
+  test('AC26: low-confidence extraction shows preview with warning banner', async ({ page }) => {
+    // Revised AC26 behaviour: we no longer block low-confidence extractions.
+    // The preview opens with a prominent warning banner urging careful review.
+    // The user can review, edit, or cancel + use CSV.
     await page.route('**/api/extract-pdf', async (route) => {
       await route.fulfill({
-        status: 422,
+        status: 200,
         contentType: 'application/json',
         body: JSON.stringify(LOW_CONFIDENCE_RESPONSE),
       });
@@ -102,14 +129,13 @@ test.describe('PDF extraction', () => {
     const t0 = Date.now();
     await page.setInputFiles('#pdf-upload', FIXTURE_PDF);
 
-    // Error alert should appear quickly (AC26 says ≤10s — we're well under here)
-    await expect(page.getByText("couldn't read this PDF", { exact: false })).toBeVisible({
-      timeout: 10_000,
-    });
+    // Preview opens within 10s
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 });
     expect(Date.now() - t0).toBeLessThan(15_000);
 
-    // Fallback CTA visible
-    await expect(page.getByRole('button', { name: /Upload as CSV instead/i })).toBeVisible();
+    // Warning banner with the confidence percentage is visible
+    await expect(page.getByText(/Low overall confidence/i)).toBeVisible();
+    await expect(page.getByText(/Verify every field carefully/i)).toBeVisible();
   });
 
   test('AC26: 503 from extraction service surfaces fallback within 10s', async ({ page }) => {

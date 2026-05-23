@@ -27,7 +27,10 @@ interface TokenUsage {
 }
 
 const TIMEOUTS: Record<ExtractionMode, number> = {
-  single: 30_000, // 30s per attempt (D04)
+  // Opus 4.7 with adaptive thinking + structured outputs needs ≥60s on real
+  // payroll PDFs. 30s was too tight — the test fixture (empty) ran in 3-13s
+  // but a content-bearing PDF reliably tripped the 30s ceiling.
+  single: 120_000, // 2 min per attempt
   bulk: 5 * 60_000, // 5min per attempt (D04 / P3)
 };
 
@@ -186,6 +189,7 @@ function mapErrorToResult(err: unknown): ExtractionResult {
     };
   }
   if (err instanceof Anthropic.RateLimitError) {
+    console.error('[extract-pdf] Anthropic rate limit:', err.message);
     return {
       ok: false,
       code: 'rate_limited',
@@ -194,13 +198,19 @@ function mapErrorToResult(err: unknown): ExtractionResult {
     };
   }
   if (err instanceof Anthropic.APIError) {
+    console.error(
+      '[extract-pdf] Anthropic APIError',
+      'status=', err.status,
+      'message=', err.message,
+      'error=', JSON.stringify((err as unknown as { error?: unknown }).error ?? null)
+    );
     const isTransient = err.status >= 500;
     return {
       ok: false,
       code: isTransient ? 'service_unavailable' : 'extraction_failed',
       userMessage: isTransient
         ? 'PDF extraction is temporarily unavailable. Please upload your wage history as CSV instead. Your other form inputs are preserved.'
-        : `Extraction service rejected the file (HTTP ${err.status}). Try a different PDF or use CSV upload.`,
+        : `Extraction service rejected the file (HTTP ${err.status}): ${err.message}. Try a different PDF or use CSV upload.`,
     };
   }
   if (err instanceof SyntaxError) {

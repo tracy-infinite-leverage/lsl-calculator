@@ -124,9 +124,14 @@ export const EXTRACTION_JSON_SCHEMA = {
             type: ['string', 'null'],
             description: 'ISO date YYYY-MM-DD',
           },
+          // anyOf — Anthropic's structured-outputs validator rejects the
+          // `type: ['string', 'null']` + `enum` combo, even when null is in
+          // the enum list. anyOf is the canonical JSON Schema spelling.
           employment_type: {
-            type: ['string', 'null'],
-            enum: [...EMPLOYMENT_TYPES, null],
+            anyOf: [
+              { type: 'string', enum: EMPLOYMENT_TYPES },
+              { type: 'null' },
+            ],
           },
           states_of_service: {
             type: 'array',
@@ -147,8 +152,10 @@ export const EXTRACTION_JSON_SCHEMA = {
                 period_end: { type: 'string' },
                 gross_pay: { type: 'string' },
                 frequency: {
-                  type: ['string', 'null'],
-                  enum: [...FREQUENCIES, null],
+                  anyOf: [
+                    { type: 'string', enum: FREQUENCIES },
+                    { type: 'null' },
+                  ],
                 },
                 period_days: { type: ['integer', 'null'] },
               },
@@ -172,11 +179,14 @@ export const EXTRACTION_JSON_SCHEMA = {
             type: 'object',
             additionalProperties: false,
             required: ['identity', 'employment', 'wage_history', 'aggregate'],
+            // Anthropic's structured-outputs JSON Schema dialect rejects
+            // `minimum`/`maximum` on number types. Range (0..1) is enforced
+            // by the Zod schema after the model returns.
             properties: {
-              identity: { type: 'number', minimum: 0, maximum: 1 },
-              employment: { type: 'number', minimum: 0, maximum: 1 },
-              wage_history: { type: 'number', minimum: 0, maximum: 1 },
-              aggregate: { type: 'number', minimum: 0, maximum: 1 },
+              identity: { type: 'number' },
+              employment: { type: 'number' },
+              wage_history: { type: 'number' },
+              aggregate: { type: 'number' },
             },
           },
         },

@@ -29,6 +29,10 @@ export interface EditablePreviewTableProps {
   flags: PerFieldFlags[];
   /** Optional notes Claude returned about extraction quality. */
   extractionNotes?: string | null;
+  /** Worst aggregate confidence across employees (0..1). Shown as a chip. */
+  worstAggregate?: number;
+  /** True when overall confidence is below threshold — show prominent banner. */
+  lowOverallConfidence?: boolean;
   /** Called when the user clicks "Confirm and calculate". */
   onConfirm: (employees: ExtractedEmployee[]) => void;
   /** Called when the user clicks "Cancel" or wants to upload a different file. */
@@ -44,6 +48,8 @@ export function EditablePreviewTable({
   employees,
   flags,
   extractionNotes,
+  worstAggregate,
+  lowOverallConfidence,
   onConfirm,
   onCancel,
 }: EditablePreviewTableProps) {
@@ -69,11 +75,34 @@ export function EditablePreviewTable({
     );
   }
 
+  const confidencePct =
+    typeof worstAggregate === 'number' ? Math.round(worstAggregate * 100) : null;
+
   return (
     <div className="space-y-4">
+      {lowOverallConfidence && (
+        <Alert variant="warning">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>
+            Low overall confidence{confidencePct !== null ? ` (${confidencePct}%)` : ''}
+          </AlertTitle>
+          <AlertDescription>
+            Claude flagged this extraction as uncertain. Verify every field carefully before
+            confirming. If the data looks unusable, click Cancel and use the CSV uploader instead.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Alert variant="info">
         <FileSearch className="h-4 w-4" />
-        <AlertTitle>Review extracted data before calculating</AlertTitle>
+        <AlertTitle>
+          Review extracted data before calculating
+          {confidencePct !== null && !lowOverallConfidence && (
+            <Badge variant="secondary" className="ml-2 text-[10px]">
+              {confidencePct}% confidence
+            </Badge>
+          )}
+        </AlertTitle>
         <AlertDescription>
           The values below were extracted from your PDF by an LLM. Review every field — anything
           marked <Badge variant="warning" className="mx-1">low confidence</Badge>

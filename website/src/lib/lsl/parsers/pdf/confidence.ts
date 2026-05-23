@@ -1,22 +1,20 @@
 import type { Confidence, ExtractedEmployee } from './schema';
 
 /**
- * Confidence-threshold gate per impl-plan §4.4 / D05.
+ * Confidence reporting per impl-plan §4.4 / D05 — REVISED 2026-05-23.
  *
- *   aggregate ≥ 0.85 → render preview, all values editable
- *   aggregate <  0.85 → refuse + route to CSV with form state preserved
- *   per-field < 0.7   → low-confidence badge on the corresponding form section
+ * Original design rejected aggregate < 0.85 outright. Real-world testing
+ * showed Claude routinely returns 0.6-0.8 on extractions that are largely
+ * correct — it's just honest about ambiguity. Blocking those at the route
+ * level defeats the purpose of the editable preview table.
  *
- * The 0.85 threshold is configurable here; D05 calls for calibration against
- * a labelled 50-PDF set before launch. Threshold lives in code (not env) so
- * it's reviewable in PR diffs.
+ * New behaviour: always show the preview. Per-field scores below 0.7 paint
+ * the corresponding section yellow (existing). Aggregate below
+ * AGGREGATE_WARN_THRESHOLD adds a banner urging extra-careful review but
+ * doesn't block the workflow.
  */
-export const AGGREGATE_THRESHOLD = 0.85;
+export const AGGREGATE_WARN_THRESHOLD = 0.85;
 export const PER_FIELD_LOW_CONFIDENCE_THRESHOLD = 0.7;
-
-export type ConfidenceGate =
-  | { ok: true; flags: PerFieldFlags[] }
-  | { ok: false; reason: 'aggregate_below_threshold'; aggregate: number };
 
 export interface PerFieldFlags {
   employeeIndex: number;
@@ -25,29 +23,32 @@ export interface PerFieldFlags {
   wageHistory: boolean;
 }
 
-/** Apply the gate to one or more extracted employees. */
-export function checkConfidence(employees: ExtractedEmployee[]): ConfidenceGate {
-  // Worst-case across all employees in a bulk batch sets the bar.
+export interface ConfidenceReport {
+  /** Worst aggregate score across all employees. */
+  worstAggregate: number;
+  /** True when worstAggregate is below the warn threshold — show banner. */
+  lowOverallConfidence: boolean;
+  /** Per-field flags drive yellow section borders. */
+  flags: PerFieldFlags[];
+}
+
+/** Build the confidence report for one or more extracted employees. */
+export function checkConfidence(employees: ExtractedEmployee[]): ConfidenceReport {
   let worstAggregate = 1;
   for (const e of employees) {
     if (e.confidence.aggregate < worstAggregate) worstAggregate = e.confidence.aggregate;
   }
-  if (worstAggregate < AGGREGATE_THRESHOLD) {
-    return {
-      ok: false,
-      reason: 'aggregate_below_threshold',
-      aggregate: worstAggregate,
-    };
-  }
-
   const flags: PerFieldFlags[] = employees.map((e, i) => ({
     employeeIndex: i,
     identity: e.confidence.identity < PER_FIELD_LOW_CONFIDENCE_THRESHOLD,
     employment: e.confidence.employment < PER_FIELD_LOW_CONFIDENCE_THRESHOLD,
     wageHistory: e.confidence.wage_history < PER_FIELD_LOW_CONFIDENCE_THRESHOLD,
   }));
-
-  return { ok: true, flags };
+  return {
+    worstAggregate,
+    lowOverallConfidence: worstAggregate < AGGREGATE_WARN_THRESHOLD,
+    flags,
+  };
 }
 
 /** Convenience: is any per-field score below threshold? */
