@@ -5,8 +5,8 @@
  * Per D03: use pdf.js to read page metadata without rendering.
  */
 
-const MAX_BYTES = 50 * 1024 * 1024; // 50 MB
-const MAX_PAGES = 200;
+const MAX_BYTES = 50 * 1024 * 1024; // 50 MB (spec F5 / AC28)
+const MAX_PAGES = 50; // spec F5 / AC28 — bulk-mode P3 ceiling
 
 export interface PDFInspection {
   ok: boolean;

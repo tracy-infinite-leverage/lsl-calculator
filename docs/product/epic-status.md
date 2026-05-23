@@ -1,4 +1,4 @@
-# LSL Calculator · Epic Status · Last updated: 2026-05-23 · Phase in flight: Phase 3 · E1 Phases 1+2 shipped
+# LSL Calculator · Epic Status · Last updated: 2026-05-23 · Phase in flight: Phase 3 (feature-complete, awaiting QA) · E1 Phases 1+2 shipped
 
 ## Pipeline stages
 
@@ -16,7 +16,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 
 | Epic | Status | % done (est) | Pipeline | Open bugs | Closed bugs | Notes |
 |------|--------|--------------|----------|-----------|-------------|-------|
-| E1 · NSW Calculator | 🔄 in flight | 45% | ●●●○○ | 0 | 0 | Phases 1+2 shipped on `001-nsw-calculator` (engine + single-mode UI + PDF export). 227 unit tests, 3 Playwright E2E, $9,880.04 load-bearing case asserted in browser. Phase 3 next (PDF extraction via Anthropic). Phase 7 added (post-launch logins, email+password only). |
+| E1 · NSW Calculator | 🔄 in flight | 58% | ●●●●○ | 0 | 0 | Phases 1+2+3 feature-complete on `001-nsw-calculator` (engine + single-mode UI + PDF export + PDF extraction via Anthropic Opus 4.7). 316 unit tests + 4 Playwright E2E green. Phase 3 awaits QA sign-off (task 3.9 calibration deferred to Phase 6 — see `docs/engineering/pdf-extraction-calibration.md`). Phase 7 added (post-launch logins, email+password only). |
 | E2 · All-State Coverage | ☐ planned | 0% | ○○○○○ | 0 | 0 | Blocked on E1 proving the rules-engine pattern on NSW. |
 | E3 · Audit Upload and Variance Report | ☐ planned | 0% | ○○○○○ | 0 | 0 | Moved ahead of API integrations on PM direction (2026-05-21). CSV-only ingest. |
 | E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. Depends on E2 having ≥2-3 states encoded. |
@@ -24,8 +24,8 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 ## Drilldown
 
 ### E1 · NSW Calculator
-- **Phase**: Phase 3 (PDF extraction) — Phases 1+2 shipped 2026-05-23
-- **Pipeline**: ●●●○○ (Stage 1 · Specified — complete; Stage 2 · In flight — Phases 1+2 done, Phase 3 next)
+- **Phase**: Phase 3 feature-complete 2026-05-23 — Phases 1+2 shipped 2026-05-23, Phase 3 awaits QA sign-off
+- **Pipeline**: ●●●●○ (Stage 3 · Feature-complete — Phases 1+2+3 done; Stage 4 · Tested — Phase 3 QA pending)
 - **Branch**: `001-nsw-calculator` (pushed to origin)
 - **Spec**: `.specify/features/001-nsw-calculator/spec.md` v0.5.0 (PM-signed-off 2026-05-21)
 - **Test cases**: `.specify/features/001-nsw-calculator/test-cases.md` v1.1 (PM-signed-off 2026-05-21, 60 cases, all 8 TBDs resolved)
@@ -41,7 +41,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 - **PM sign-offs (2026-05-21)**: PM-A mobile = responsive best-effort; PM-B bulk trigger = `as_at` default; OQ-B LLM = Anthropic Claude API no-retention; all 8 Phase-0 TBDs resolved.
 - **Pre-flight blockers** (still open from product.md §14):
   - APA portal hosting + auth model (working default: standalone + deep-link)
-- **Next action**: developer agent starts **Phase 3** (PDF extraction via Anthropic Claude API) per `tasks.md` §3. Phases 1+2 are green (227 vitest + 3 Playwright passing on push `78e0ee7`).
+- **Next action**: QA agent picks up Phase 3 sign-off — `EditablePreviewTable` + `/api/extract-pdf` flow, AC3, AC26, AC27, AC28 all under unit + e2e coverage; in-browser golden path verified 2026-05-23. Phase 3 task 3.9 (50-PDF calibration set) deferred to Phase 6 — see `docs/engineering/pdf-extraction-calibration.md`. 316 vitest passing on the branch tip.
 - **Phase 7 scope (added 2026-05-23)**: opt-in user accounts with email + password (no magic links, no SSO, no OAuth). Adds `profiles` + `saved_calculations` Supabase tables with RLS, signup/login/reset flows, "my calculations" history view, and an account-deletion path. Triggers a privacy-notice revision (S1 changes from "no server-side employee data" to "permitted for authenticated users only").
 
 ### E2 · All-State Coverage

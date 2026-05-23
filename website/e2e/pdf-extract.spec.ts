@@ -138,6 +138,22 @@ test.describe('PDF extraction', () => {
     await expect(page.getByText(/Verify every field carefully/i)).toBeVisible();
   });
 
+  test('AC27: dropping a CSV on the PDF input is rejected with a friendly message', async ({ page }) => {
+    await page.goto('/calculator/single');
+
+    // Write a tiny CSV into the PDF input. Playwright accepts a name+mime+buffer.
+    await page.setInputFiles('#pdf-upload', {
+      name: 'wage-history.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from('period_start,period_end,gross_pay\n2026-01-01,2026-01-07,1500.00\n'),
+    });
+
+    // The client-side inspector rejects before any network call. We expect the
+    // friendly "drop it on the CSV card" message in the alert.
+    await expect(page.getByText(/CSV file/i)).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText(/Upload wage history CSV/i)).toBeVisible();
+  });
+
   test('AC26: 503 from extraction service surfaces fallback within 10s', async ({ page }) => {
     await page.route('**/api/extract-pdf', async (route) => {
       await route.fulfill({
