@@ -1,5 +1,5 @@
 From: Tracy Angwin <tracy@austpayroll.com.au>
-To: [APA technical lead email — fill in]
+To: info@austpayroll.com.au
 Cc:
 Subject: NSW LSL Calculator deep-link — what URL would you like?
 Content-Type: text/plain; charset=utf-8
@@ -22,8 +22,6 @@ go live:
 
      https://lsl.austpayroll.com.au/
 
-   (or whatever final domain we settle on)
-
    This drops the member on the landing page where they pick
    single-mode or bulk-mode. No member token / SSO is needed
    in v1; the calculator is anonymous.
@@ -45,9 +43,9 @@ coordination needed" that's totally fine — I just want to make sure
 I haven't missed anything you need on the portal side.
 
 When can we aim to have the link added to the portal? Soft launch is
-gated on a couple of other items (PM sign-off on privacy notice,
-final Anthropic contract confirmation) which I expect to clear this
-week.
+gated on a couple of remaining items (PM sign-off on the privacy
+notice, your reply on the URL/UTM question, your portal link going
+live). I expect to ship within the week.
 
 Tracy Angwin
 Director, Australian Payroll Association
