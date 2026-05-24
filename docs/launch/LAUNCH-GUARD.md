@@ -79,11 +79,10 @@ every extracted field regardless of confidence score. A wrongly-tuned
 threshold cannot ship bad LSL values to a customer — it can only
 mis-decorate the preview.
 
-**Owner**: PM — sourcing labelled PDFs from APA member contributions.
+**Owner**: PM — sourcing labelled real-world payroll PDFs (source TBD; original APA-member-contribution plan was dropped when the calculator was de-integrated from the APA portal).
 
 **Cross-reference**: `docs/engineering/pdf-extraction-calibration.md`
-for the full execution plan and the (a) / (b) trade-off if APA
-sourcing slips before cutover.
+for the full execution plan and the (a) / (b) ship-or-hold trade-off.
 
 ---
 
