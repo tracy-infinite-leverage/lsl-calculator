@@ -16,7 +16,7 @@
  * naturally between microtasks.
  */
 
-import { calculateNSWSafe } from '@/lib/lsl/states/nsw';
+import { calculateSafe } from '@/lib/lsl/dispatch';
 import type { Employee, Result, Trigger } from '@/lib/lsl/engine/types';
 
 export const BULK_CHUNK_SIZE = 25;
@@ -123,10 +123,10 @@ async function runOne(
 ): Promise<{ index: number; result: Result }> {
   const trigger = overrides[emp.id] ?? defaultTrigger;
   try {
-    const result = calculateNSWSafe(emp, trigger);
+    const result = calculateSafe(emp, trigger);
     return { index, result };
   } catch (err) {
-    // calculateNSWSafe should never throw — but defensively wrap anyway.
+    // dispatch.calculateSafe should never throw — but defensively wrap anyway.
     return {
       index,
       result: {

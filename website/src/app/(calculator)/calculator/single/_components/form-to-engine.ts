@@ -126,6 +126,12 @@ export function formToEngine(state: FormState): { employee: Employee; trigger: T
   if (state.externalEmployeeId) employee.externalEmployeeId = state.externalEmployeeId;
   if (state.governingJurisdiction) {
     employee.governingJurisdiction = state.governingJurisdiction as State;
+  } else if (state.statesOfService.length === 1) {
+    // Single-state employee — populate governingJurisdiction so the dispatcher
+    // (E2 Phase 1) can route without needing the form to special-case it.
+    // Pre-E2 the engine fell back to NSW for any unset value; this is a
+    // strictly-additive change with no behavioural difference for NSW users.
+    employee.governingJurisdiction = state.statesOfService[0] as State;
   }
   if (state.priorLeaveTakenWeeks) {
     employee.priorLeaveTakenWeeks = state.priorLeaveTakenWeeks;

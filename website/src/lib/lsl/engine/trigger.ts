@@ -1,3 +1,4 @@
+import { CashOutNotSupportedError } from './errors';
 import type { ISODate, Trigger } from './types';
 
 /**
@@ -5,6 +6,9 @@ import type { ISODate, Trigger } from './types';
  *   - taking_leave: day before LSL commences
  *   - termination: termination date
  *   - as_at: as-at date
+ *   - cash_out: cash-out date (only meaningful for states that support cashing-out;
+ *     unsupported states short-circuit before reaching this function — see
+ *     `CashOutNotSupportedError`)
  */
 export function prescribedDate(trigger: Trigger): ISODate {
   switch (trigger.kind) {
@@ -14,6 +18,11 @@ export function prescribedDate(trigger: Trigger): ISODate {
       return trigger.terminationDate;
     case 'as_at':
       return trigger.asAtDate;
+    case 'cash_out':
+      // Shared engine has no view on which state allows cashing-out — the per-state
+      // orchestrator must short-circuit before calling prescribedDate. Reaching here
+      // is a programmer error.
+      throw new CashOutNotSupportedError('shared engine');
   }
 }
 

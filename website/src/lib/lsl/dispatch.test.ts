@@ -1,0 +1,116 @@
+import { describe, it, expect } from 'vitest';
+import { calculate, calculateSafe, ENCODED_STATES, isStateEncoded } from './dispatch';
+import { calculateNSW } from './states/nsw';
+import { asISODate } from './engine/types';
+import type { Employee, Trigger } from './engine/types';
+
+const baseEmployee = (overrides: Partial<Employee> = {}): Employee => ({
+  id: 'EMP-001',
+  startDate: asISODate('2014-05-21'),
+  employmentType: 'full_time',
+  statesOfService: ['NSW'],
+  currentWeeklyGross: '1900',
+  wageHistory: [
+    {
+      periodStart: asISODate('2025-05-22'),
+      periodEnd: asISODate('2026-05-21'),
+      grossPay: '98800',
+      frequency: 'other',
+      periodDays: 365,
+    },
+  ],
+  serviceEvents: [],
+  ...overrides,
+});
+
+const asAtTrigger = (date = '2026-05-21'): Trigger => ({
+  kind: 'as_at',
+  asAtDate: asISODate(date),
+});
+
+describe('dispatch — ENCODED_STATES', () => {
+  it('contains only NSW today (Phase 1)', () => {
+    expect(ENCODED_STATES).toEqual(['NSW']);
+  });
+
+  it('isStateEncoded returns true for NSW, false for unshipped states', () => {
+    expect(isStateEncoded('NSW')).toBe(true);
+    expect(isStateEncoded('VIC')).toBe(false);
+    expect(isStateEncoded('QLD')).toBe(false);
+    expect(isStateEncoded('NT')).toBe(false);
+  });
+});
+
+describe('dispatch — calculate', () => {
+  it('byte-identical to calculateNSW for an NSW-only employee', () => {
+    const employee = baseEmployee();
+    const trigger = asAtTrigger();
+    const fromDispatch = calculate(employee, trigger);
+    const fromDirect = calculateNSW(employee, trigger);
+    expect(fromDispatch).toEqual(fromDirect);
+  });
+
+  it('honors explicit governingJurisdiction = NSW for multi-state employee', () => {
+    const employee = baseEmployee({
+      statesOfService: ['NSW', 'VIC'],
+      governingJurisdiction: 'NSW',
+    });
+    const r = calculate(employee, asAtTrigger());
+    expect(r.status).toBe('computed');
+  });
+
+  it('blocks unshipped governing state with cross_jurisdiction_pending', () => {
+    const employee = baseEmployee({
+      statesOfService: ['VIC'],
+      governingJurisdiction: 'VIC',
+    });
+    const r = calculate(employee, asAtTrigger());
+    expect(r.status).toBe('blocked_cross_jurisdiction');
+    expect(r.warnings[0].code).toBe('cross_jurisdiction_pending');
+    expect(r.warnings[0].message).toContain('VIC');
+    expect(r.warnings[0].message).toContain('NSW'); // lists what's supported
+  });
+
+  it('blocks single non-NSW state (no governing nominated) too', () => {
+    const employee = baseEmployee({
+      statesOfService: ['QLD'],
+    });
+    const r = calculate(employee, asAtTrigger());
+    expect(r.status).toBe('blocked_cross_jurisdiction');
+    expect(r.warnings[0].message).toContain('QLD');
+  });
+
+  it('defaults to NSW when no governing and no states-of-service', () => {
+    const employee = baseEmployee({
+      statesOfService: [],
+    });
+    const r = calculate(employee, asAtTrigger());
+    expect(r.status).toBe('computed');
+  });
+});
+
+describe('dispatch — calculateSafe', () => {
+  it('byte-identical to calculate for happy-path NSW employee', () => {
+    const employee = baseEmployee();
+    const trigger = asAtTrigger();
+    expect(calculateSafe(employee, trigger)).toEqual(calculate(employee, trigger));
+  });
+
+  it('returns failed Result (not throw) when NSW orchestrator throws for cash_out', () => {
+    const employee = baseEmployee();
+    const trigger: Trigger = { kind: 'cash_out', cashOutDate: asISODate('2026-05-21') };
+    const r = calculateSafe(employee, trigger);
+    expect(r.status).toBe('failed');
+    expect(r.error?.code).toBe('cash_out_not_supported');
+  });
+
+  it('blocks unshipped state without throwing', () => {
+    const employee = baseEmployee({
+      statesOfService: ['WA'],
+      governingJurisdiction: 'WA',
+    });
+    expect(() => calculateSafe(employee, asAtTrigger())).not.toThrow();
+    const r = calculateSafe(employee, asAtTrigger());
+    expect(r.status).toBe('blocked_cross_jurisdiction');
+  });
+});

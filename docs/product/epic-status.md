@@ -1,4 +1,4 @@
-# LSL Calculator · Epic Status · Last updated: 2026-05-24 · E1 NSW Calculator SHIPPED — Phases 1+2+3 live on lsl-calculator.vercel.app (PR #3 merged at 50061f5)
+# LSL Calculator · Epic Status · Last updated: 2026-05-24 · E1 NSW SHIPPED (Phases 1+2+3 live on lsl-calculator.vercel.app) · E2 Phase 1 foundation in PR #8
 
 ## Pipeline stages
 
@@ -17,7 +17,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 | Epic | Status | % done (est) | Pipeline | Open bugs | Closed bugs | Notes |
 |------|--------|--------------|----------|-----------|-------------|-------|
 | E1 · NSW Calculator | ✅ done | 100% | ●●●●● | 0 | 6 (Q-01..Q-04 fixed in PR #3; Q-05/Q-06 pre-existing single-mode items, separate cleanup ticket) | **SHIPPED 2026-05-24.** Phases 1+2+3 live on https://lsl-calculator.vercel.app (`lsl.austpayroll.com.au` pending DNS). PR #3 squash-merged at `50061f5`. Architectural fix removed server-side pdfjs (issue #5) in favour of Anthropic document content block. 319 unit tests + 92 Playwright across 4 browsers. Phase 7 (opt-in logins) deferred post-launch. |
-| E2 · All-State Coverage | 🔄 in flight | 12% | ●○○○○ | 0 | 0 | Spec v0.3.0 + impl-plan + tasks committed on `002-all-state-coverage`. 10 phases, 76 tasks, 35-52 dev-days. Operator-override prepared E2 while E1 was at Phase 3; E1 now shipped so the override risk is resolved. Next action: when ready to start coding, dev runs Phase 1 (StateRuleSet interface, dispatcher, telemetry). VIC first per RES-1; T3.0 (test-cases-vic.md) is the gate before any VIC engine code. |
+| E2 · All-State Coverage | 🔄 in flight | 20% | ●●○○○ | 0 | 0 | Spec v0.3.0 + impl-plan + tasks committed (10 phases, 76 tasks). **Phase 1 foundation in PR #8** on `e2-phase-1-foundation` (StateRuleSet + dispatcher + telemetry + CI matrix; NSW byte-identical 153/153; 344/344 unit + 23/23 Playwright dev + 23/23 production-bundle). QA PASSES WITH NOTES. Next action: merge PR #8, then start Phase 2 (mixed-state bulk CSV) or Phase 3 (VIC engine). |
 | E3 · Audit Upload and Variance Report | ☐ planned | 0% | ○○○○○ | 0 | 0 | Moved ahead of API integrations on PM direction (2026-05-21). CSV-only ingest. |
 | E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. Depends on E2 having ≥2-3 states encoded. |
 
@@ -47,12 +47,21 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 - **Phase 7 scope (added 2026-05-23)**: opt-in user accounts with email + password (no magic links, no SSO, no OAuth). Adds `profiles` + `saved_calculations` Supabase tables with RLS, signup/login/reset flows, "my calculations" history view, and an account-deletion path. Triggers a privacy-notice revision (S1 changes from "no server-side employee data" to "permitted for authenticated users only").
 
 ### E2 · All-State Coverage
-- **Phase**: Phase 1 (Specified, plan + tasks ready) — **gate to E1 cleared 2026-05-24 when NSW shipped**
-- **Branch**: `002-all-state-coverage` (pushed to origin)
-- **Spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.0 (all 6 clarifications resolved)
+- **Phase**: **Phase 1 Foundation in PR #8** on `e2-phase-1-foundation` — gate to E1 cleared 2026-05-24 when NSW shipped
+- **Pipeline**: ●●○○○ (Stage 1 Specified done; Stage 2 In flight — Phase 1 foundation feature-complete in PR #8, QA PASSED with notes)
+- **Spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.0 (all 6 OQs resolved 2026-05-23 across two clarification rounds)
 - **Plan + tasks**: `.specify/features/002-all-state-coverage/{impl-plan,tasks}.md` (10 phases, 76 tasks, 35-52 dev-days)
-- **Priority order (RES-1)**: VIC → QLD → WA → SA → ACT → TAS → NT
-- **Next action**: when operator gives the go-ahead, dev starts Phase 1 (StateRuleSet interface + dispatcher + telemetry). Phase 3 (VIC engine) is the first state-specific work; gated on T3.0 — PM-signed `docs/qa/test-cases-vic.md`.
+- **Dev findings**: `.specify/features/002-all-state-coverage/dev-findings.md` (0 HIGH, 6 MEDIUM, 5 LOW — DEV-E2-M1, M3, M4, M6, L1, L4 closed in PR #8; M2, M5, L2, L3 deferred to per-state phases)
+- **Resolved decisions (v0.3.0)**:
+  - **RES-1 (priority order)**: VIC → QLD → WA → SA → ACT → TAS → NT (population-weighted, VIC first on divergence-risk).
+  - **RES-2 (epic structure)**: One bundled epic on the roadmap; per-state test gate inside — each state must pass its own gold-standard suite at 100% before being marked done within E2.
+  - **RES-3 (legislation monitoring)**: Manual, **owner is Tracy personally for all 8 jurisdictions**, **quarterly cadence (1 Mar / 1 Jun / 1 Sep / 1 Dec)** + on-trigger override on gazetted amendments. No automated watch.
+  - **RES-4 (mixed-state bulk timing)**: Mixed-state CSV accepted from v1 (day one). Per-row `state` column is **mandatory**. Row-level validation surfaces unrecognised/empty states as errors; valid rows in the same batch still process.
+  - **RES-5 (cross-jurisdictional advisory heuristic)**: F13 manual nomination remains MUST in v1; F25 heuristic advisory removed from v1 scope and deferred to v2.
+  - **RES-6 (sign-off authority)**: PM-only sign-off per state. **No APA-engaged payroll specialist co-signer.** Per-state launch gate (AC4b) = PM signoff on `test-cases.md` + automated suite 100% green in CI on merge commit.
+- **Phase 1 status (PR #8)**: feature-complete. NSW gold-standard 153/153 byte-identical. State-selector component built behind `NEXT_PUBLIC_STATE_SELECTOR_ENABLED` (not rendered on any page yet — wired in during Phase 3). cash_out trigger scaffold added. CI matrix workflow scaffolded. QA verdict: PASSES WITH NOTES.
+- **Pre-flight blockers**: **None.**
+- **Next action**: merge PR #8, then start Phase 2 (mixed-state bulk CSV) or Phase 3 (VIC engine — gated on T3.0 PM-signed `docs/qa/test-cases-vic.md`).
 
 ### E3 · Audit Upload and Variance Report
 - **Phase**: Phase 1

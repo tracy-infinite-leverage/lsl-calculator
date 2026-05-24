@@ -38,3 +38,21 @@ export class SplitLeaveNotSupportedError extends EngineError {
     this.name = 'SplitLeaveNotSupportedError';
   }
 }
+
+/**
+ * Thrown when a state's rule set does not yet support the `cash_out` trigger variant.
+ *
+ * Default behaviour for every state except VIC (Phase 3) and NT (Phase 9).
+ * Bulk-mode callers see this as a row-level `failed` Result; the form layer
+ * never sends a `cash_out` trigger for an unsupported state because the
+ * trigger UI is gated to states that implement it.
+ */
+export class CashOutNotSupportedError extends EngineError {
+  constructor(state: string) {
+    super(
+      'cash_out_not_supported',
+      `Cashing-out is not supported for ${state} in this version. VIC and NT will implement cashing-out hard-error handling in a later release; other states either disallow cashing-out outright or do not yet have it encoded.`
+    );
+    this.name = 'CashOutNotSupportedError';
+  }
+}

@@ -11,6 +11,7 @@ import type {
   Employee,
   ISODate,
 } from '@/lib/lsl/engine/types';
+import { NSW_SERVICE_PROFILE } from '../continuous-service-rules';
 
 export interface ValueOfWeekResult {
   value: Decimal;
@@ -42,12 +43,14 @@ export function valueOfWeekNSW(
   const dnc12 = computeDaysNotCountedInLookback(
     window12.start,
     window12.end,
-    employee.serviceEvents
+    employee.serviceEvents,
+    NSW_SERVICE_PROFILE
   );
   const dnc5 = computeDaysNotCountedInLookback(
     window5.start,
     window5.end,
-    employee.serviceEvents
+    employee.serviceEvents,
+    NSW_SERVICE_PROFILE
   );
 
   const avg12 = weeklyAverageOverWindow(employee.wageHistory, window12, dnc12);

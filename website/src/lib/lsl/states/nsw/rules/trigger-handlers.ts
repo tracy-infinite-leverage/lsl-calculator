@@ -38,5 +38,10 @@ export function triggerCitations(trigger: Trigger): Citation[] {
           'as-at snapshot per F11 + D20'
         ),
       ];
+    case 'cash_out':
+      // NSW does not encode cashing-out — calculateNSW short-circuits before
+      // calling here. Defensive: return empty citations if the path is ever
+      // reached.
+      return [];
   }
 }
