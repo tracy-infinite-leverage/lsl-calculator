@@ -1,7 +1,7 @@
 # PDF Extraction Calibration — D05 / Task 3.9
 
-**Status**: **SKIPPED in v1** — operator decision 2026-05-24. Default thresholds (aggregate `0.85`, per-field `0.7`) ship as-is. The remainder of this document is retained as historical context if calibration is ever revisited post-launch (trigger: production telemetry showing inappropriate banner behaviour).
-**Owner**: n/a in v1.
+**Status**: **DEFERRED indefinitely (won't fix v1)** — operator decision 2026-05-24. Default thresholds (aggregate `0.85`, per-field `0.7`) ship as-is. Calibration sits in the backlog rather than being discarded; revisit only if real production telemetry shows the confidence banner misbehaving (too often / too rarely). The remainder of this document is retained as the ready-to-go execution plan if that trigger fires.
+**Owner**: backlog (no v1 owner).
 **Linked**: `.specify/features/001-nsw-calculator/tasks.md` §3.9, `dev-findings.md` D05, `impl-plan.md` §4.4, Risk R1, `docs/launch/LAUNCH-GUARD.md` Documented Risk.
 
 ---

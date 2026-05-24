@@ -61,8 +61,9 @@ but it's not a hard gate.
 PDF extraction is shipping with default confidence thresholds
 (aggregate `0.85`, per-field `0.7`) in
 `website/src/lib/lsl/parsers/pdf/confidence.ts`. Operator decided
-2026-05-24 to **skip calibration in v1** — the original task 3.9
-50-PDF calibration set has been dropped.
+2026-05-24 to **defer calibration indefinitely** — task 3.9 sits in
+the backlog, not discarded. The original 50-PDF plan is retained as
+ready-to-execute if the trigger below fires.
 
 Without real-world calibration data the confidence gate is informed
 by synthetic test fixtures only. Both directions of error are
