@@ -47,6 +47,114 @@ jobs:
           ANTHROPIC_API_KEY: build-time-placeholder
         run: npm run build
 
+  # E2 per-state matrix — runs each state's suite in its own shard.
+  # New states append a value to the matrix as they ship.
+  # See E2 impl-plan §P0.3 and tasks.md §T1.9.
+  state-matrix:
+    name: 'State suite · ${{ matrix.state }}'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: website
+    strategy:
+      fail-fast: false
+      matrix:
+        state: [nsw, engine]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Run state suite
+        env:
+          ANTHROPIC_API_KEY: build-time-placeholder
+        run: |
+          if [ "${{ matrix.state }}" = "engine" ]; then
+            npx vitest run src/lib/lsl/engine
+          else
+            npx vitest run src/lib/lsl/states/${{ matrix.state }}
+          fi
+
+      - name: Record shard duration
+        if: always()
+        run: |
+          echo "### State suite · ${{ matrix.state }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Completed at $(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_STEP_SUMMARY"
+
+  # Cross-state regression — engine-touching PRs run ALL state suites and a
+  # quick summary surfaces per-state pass/fail in the step summary.
+  # The path filter on `paths` keeps this off the critical path for non-engine PRs.
+  # See E2 impl-plan §P0.3 / AC22.
+  cross-state-regression:
+    name: Cross-state regression (engine-touching PRs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whether PR touches engine or citations
+        id: filter
+        run: |
+          BASE_SHA=$(git merge-base origin/${{ github.base_ref }} HEAD)
+          CHANGED=$(git diff --name-only "$BASE_SHA" HEAD || true)
+          echo "Changed files:"
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -E '^website/src/lib/lsl/engine/|^website/src/lib/lsl/dispatch\.ts$|^website/src/lib/lsl/states/[^/]+/continuous-service-rules\.ts$'; then
+            echo "engine_touched=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "engine_touched=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        if: steps.filter.outputs.engine_touched == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install
+        if: steps.filter.outputs.engine_touched == 'true'
+        run: npm ci
+
+      - name: Run all state suites and engine suite
+        if: steps.filter.outputs.engine_touched == 'true'
+        env:
+          ANTHROPIC_API_KEY: build-time-placeholder
+        run: |
+          set -e
+          echo "## Cross-state regression results" >> "$GITHUB_STEP_SUMMARY"
+          STATUS_NSW=pass
+          STATUS_ENGINE=pass
+          npx vitest run src/lib/lsl/states/nsw || STATUS_NSW=fail
+          npx vitest run src/lib/lsl/engine || STATUS_ENGINE=fail
+          echo "| Suite | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| NSW | $STATUS_NSW |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| engine | $STATUS_ENGINE |" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$STATUS_NSW" = "fail" ] || [ "$STATUS_ENGINE" = "fail" ]; then
+            exit 1
+          fi
+
+      - name: Skipped (no engine-layer changes)
+        if: steps.filter.outputs.engine_touched != 'true'
+        run: echo "No engine-layer files touched — cross-state regression not required."
+
   playwright:
     name: Playwright (chromium · webkit · firefox · mobile-chrome)
     runs-on: ubuntu-latest
