@@ -52,18 +52,21 @@ If two rows in the PDF look like the same employee at different points in time, 
 
 Pay periods belonging to one employee should go in that employee's wage_history array. Don't mix wage rows across employees.`;
 
+const INSTRUCTION_TEXT_PREAMBLE = `Read the attached payroll-report PDF and emit JSON per the schema. If the PDF has no extractable text (e.g. a flat scan), use vision to read the visible content. If a passage is genuinely unreadable, lower the confidence on the affected fields and note it in "extraction_notes" — never fabricate.`;
+
 /**
  * Build the Anthropic Messages API parameters for a PDF extraction call.
  * System + schema are cached across calls per shared/prompt-caching.md.
  *
- * The PDF arrives as already-extracted text (server-side pdfjs pass). Sending
- * text lets us bypass Anthropic's 100-page `document` content block ceiling
- * and supports up to 200 pages within the model's context window. Page markers
- * (`--- PAGE N ---`) are preserved so Claude can cite by page when relevant.
+ * The PDF is sent as a base64 `document` content block (Anthropic native PDF
+ * support — accepts text-bearing and scanned PDFs up to 32 MB / 100 pages per
+ * document). Our route enforces a stricter 50 page / 50 MB cap upstream; we
+ * additionally reject >32 MB at the route layer because that's Anthropic's
+ * document-block ceiling.
  */
 export function buildExtractionRequest(
   mode: ExtractionMode,
-  pdfText: string,
+  pdfBase64: string,
   modelOverride?: string
 ): {
   model: string;
@@ -73,7 +76,13 @@ export function buildExtractionRequest(
   system: Array<{ type: 'text'; text: string; cache_control?: { type: 'ephemeral' } }>;
   messages: Array<{
     role: 'user';
-    content: Array<{ type: 'text'; text: string }>;
+    content: Array<
+      | {
+          type: 'document';
+          source: { type: 'base64'; media_type: 'application/pdf'; data: string };
+        }
+      | { type: 'text'; text: string }
+    >;
   }>;
 } {
   const userText = mode === 'single' ? SINGLE_MODE_USER_PROMPT : BULK_MODE_USER_PROMPT;
@@ -101,10 +110,21 @@ export function buildExtractionRequest(
     messages: [
       {
         role: 'user',
+        // Document block FIRST, then the text instructions. Anthropic's docs
+        // recommend placing the document before the text when both are sent in
+        // the same user message — improves model attention to the source.
         content: [
           {
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: 'application/pdf',
+              data: pdfBase64,
+            },
+          },
+          {
             type: 'text',
-            text: `Below is the text extracted from a payroll-report PDF. Extract the employee data and emit JSON per the schema.\n\n${userText}\n\n--- PDF TEXT ---\n${pdfText}`,
+            text: `${INSTRUCTION_TEXT_PREAMBLE}\n\n${userText}`,
           },
         ],
       },

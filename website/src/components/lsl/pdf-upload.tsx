@@ -133,7 +133,7 @@ export function PdfUpload({ onConfirmed, onSwitchToCSV }: PdfUploadProps) {
           </p>
 
           <div className="space-y-1.5">
-            <Label htmlFor="pdf-upload">PDF file (max 200 pages / 50 MB)</Label>
+            <Label htmlFor="pdf-upload">PDF file (max 50 pages / 50 MB)</Label>
             <Input
               id="pdf-upload"
               ref={fileRef}

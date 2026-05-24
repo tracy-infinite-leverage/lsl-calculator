@@ -17,18 +17,6 @@
 Everything Tracy needs to action before flipping the NSW LSL Calculator to
 production. The code is done; what's left is human coordination.
 
-## Drafted emails
-
-Copy-paste the bodies (or open in Mail.app on macOS — the `.eml` files
-import directly):
-
-| File | Purpose | Recipient |
-|---|---|---|
-| [`anthropic-no-retention-confirmation.eml`](./anthropic-no-retention-confirmation.eml) | Confirm enterprise no-retention contract is in place for production traffic | Anthropic account team |
-| [`apa-deeplink-coordination.eml`](./apa-deeplink-coordination.eml) | Lock in the portal deep-link URL + any UTM params | APA technical lead |
-
-Both have placeholder `[fill in]` lines for recipient name/email.
-
 ## Pre-cutover checklist
 
 In rough order of dependency:
@@ -48,11 +36,7 @@ In rough order of dependency:
 
 ### Deferred (not blocking launch)
 
-- ~~APA portal deep-link coordination~~ — Tracy will handle this informally
-  after launch. APA can link to the production URL at any time without code
-  changes on our side. The drafted email at
-  `apa-deeplink-coordination.eml` stays on file for reference; ignore unless
-  Tracy escalates.
+_None._
 
 ## Order of operations once everything's confirmed
 
@@ -63,8 +47,7 @@ In rough order of dependency:
 5. Vercel auto-deploys; URL goes live.
 6. Watch Vercel Analytics for first events (page views, custom funnel
    events).
-7. Notify APA — link can go live on the portal.
-8. Soft launch ✅.
+7. Soft launch ✅.
 
 ## What can wait until post-launch
 

@@ -56,6 +56,40 @@ but it's not a hard gate.
 
 ---
 
+## Documented risk — PDF extraction confidence thresholds uncalibrated
+
+PDF extraction is shipping with default confidence thresholds
+(aggregate `0.85`, per-field `0.7`) in
+`website/src/lib/lsl/parsers/pdf/confidence.ts`. Operator decided
+2026-05-24 to **defer calibration indefinitely** — task 3.9 sits in
+the backlog, not discarded. The original 50-PDF plan is retained as
+ready-to-execute if the trigger below fires.
+
+Without real-world calibration data the confidence gate is informed
+by synthetic test fixtures only. Both directions of error are
+possible:
+
+- **False positive**: "high confidence" on wrong data — banner does
+  not appear, user trusts the preview.
+- **False negative**: "low confidence" on correct data — banner
+  appears unnecessarily, users learn to ignore it.
+
+**Why this is not a hard gate**: the CSV-fallback path (AC26) is
+wired and verified, and the editable preview forces user review of
+every extracted field regardless of confidence score. A wrongly-tuned
+threshold cannot ship bad LSL values to a customer — it can only
+mis-decorate the preview.
+
+**Post-launch trigger to revisit**: if real production telemetry
+shows the banner firing inappropriately (too often / too rarely),
+re-open the calibration work then.
+
+**Cross-reference**: `docs/engineering/pdf-extraction-calibration.md`
+for the original execution plan, retained as historical context if
+calibration is ever revisited.
+
+---
+
 ## What changed (history note)
 
 Earlier versions of this guard had a second hard gate requiring

@@ -1,5 +1,24 @@
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * When `PLAYWRIGHT_PRODUCTION_BUILD=1` is set, run the suite against a
+ * production-bundle Next.js server (`next build && next start`) on port 3100
+ * instead of the dev server on 3000.
+ *
+ * Why: some bugs only manifest in the production bundle — most recently
+ * GitHub issue #5, where Turbopack's dev runtime polyfilled `DOMMatrix` for
+ * pdfjs-dist's legacy build but the production bundle didn't, crashing on
+ * Vercel. The default `npm run dev` mode missed it. The production mode
+ * runs the exact bundle Vercel serves, so any DOM-globals / SSR / chunking
+ * difference surfaces locally before it reaches preview.
+ */
+const PRODUCTION_BUILD = process.env.PLAYWRIGHT_PRODUCTION_BUILD === '1';
+const PORT = PRODUCTION_BUILD ? 3100 : 3000;
+const BASE_URL = `http://localhost:${PORT}`;
+const WEB_SERVER_COMMAND = PRODUCTION_BUILD
+  ? `npm run build && npx next start -p ${PORT}`
+  : 'npm run dev';
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -8,7 +27,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: BASE_URL,
     trace: 'on-first-retry',
   },
   // Cross-browser matrix per tasks.md §5.6 / F17.
@@ -25,9 +44,10 @@ export default defineConfig({
         ]
       : [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true,
-    timeout: 60_000,
+    command: WEB_SERVER_COMMAND,
+    url: BASE_URL,
+    reuseExistingServer: !PRODUCTION_BUILD,
+    // Production build needs longer than 60s (compile + start). Dev is fast.
+    timeout: PRODUCTION_BUILD ? 180_000 : 60_000,
   },
 });

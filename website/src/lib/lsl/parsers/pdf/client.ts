@@ -5,8 +5,10 @@
  * Per D03: use pdf.js to read page metadata without rendering.
  */
 
-const MAX_BYTES = 50 * 1024 * 1024; // 50 MB
-const MAX_PAGES = 200;
+import { track } from '@/lib/observability/track';
+
+const MAX_BYTES = 50 * 1024 * 1024; // 50 MB (spec F5 / AC28)
+const MAX_PAGES = 50; // spec F5 / AC28 — bulk-mode P3 ceiling
 
 export interface PDFInspection {
   ok: boolean;
@@ -55,7 +57,14 @@ export async function inspectPDF(file: File): Promise<PDFInspection> {
   }
 
   // pdfjs-dist is browser-only. Dynamic import keeps server bundle clean.
-  const pdfjs = await import('pdfjs-dist');
+  //
+  // We import the explicit `/build/pdf.mjs` subpath (not bare `pdfjs-dist`)
+  // because Turbopack's resolver was rewriting the bare specifier to
+  // `legacy/build/pdf.mjs`, which expects DOMMatrix to be polyfilled and
+  // throws "ReferenceError: DOMMatrix is not defined" in modern Chrome.
+  // The main build assumes a real browser env (DOMMatrix, OffscreenCanvas,
+  // structuredClone), which is what we have client-side.
+  const pdfjs = await import('pdfjs-dist/build/pdf.mjs');
   // The worker is copied to public/ by scripts/copy-pdfjs-worker.cjs (postinstall).
   // pdfjs-dist v5 doesn't support disableWorker in the bundled build — same-origin
   // worker is the portable answer (and dodges the `?url` import pattern that
@@ -72,12 +81,20 @@ export async function inspectPDF(file: File): Promise<PDFInspection> {
     pages = doc.numPages;
     await doc.destroy();
   } catch (err) {
+    // Log the raw technical detail for debugging (observability) but never
+    // surface it to the user — error strings from Turbopack / pdfjs are
+    // not actionable for an end user and have leaked module-internal paths.
+    const technical = err instanceof Error ? err.message : 'unknown error';
+    // eslint-disable-next-line no-console
+    console.error('[inspectPDF] pdfjs.getDocument threw:', technical);
+    track({ event: 'single_pdf_failed', error_code: 'pdfjs_unreadable' });
     return {
       ok: false,
       sizeBytes: file.size,
       error: {
         code: 'unreadable',
-        message: `Couldn't read the PDF (${err instanceof Error ? err.message : 'unknown error'}). Try a different file or switch to CSV.`,
+        message:
+          "Couldn't read this PDF. Try a different file, or upload your wage history as CSV instead.",
       },
     };
   }

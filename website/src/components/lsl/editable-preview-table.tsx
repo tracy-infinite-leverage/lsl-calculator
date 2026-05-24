@@ -226,7 +226,7 @@ export function EditablePreviewTable({
                             updateWageRow(empIdx, rowIdx, { frequency: v as PayFrequency })
                           }
                         >
-                          <SelectTrigger className="text-xs">
+                          <SelectTrigger className="text-xs" aria-label="Frequency">
                             <SelectValue placeholder="Frequency" />
                           </SelectTrigger>
                           <SelectContent>
@@ -297,10 +297,14 @@ function FieldText({
   onChange: (v: string) => void;
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
 }) {
+  const id = React.useId();
   return (
     <div className="space-y-1">
-      <Label className="text-xs">{label}</Label>
+      <Label htmlFor={id} className="text-xs">
+        {label}
+      </Label>
       <Input
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         inputMode={inputMode}
@@ -318,10 +322,18 @@ function FieldDate({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const id = React.useId();
   return (
     <div className="space-y-1">
-      <Label className="text-xs">{label}</Label>
-      <Input type="date" value={value} onChange={(e) => onChange(e.target.value)} />
+      <Label htmlFor={id} className="text-xs">
+        {label}
+      </Label>
+      <Input
+        id={id}
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }
@@ -333,14 +345,17 @@ function FieldEmploymentType({
   value: EmploymentType | null;
   onChange: (v: EmploymentType | null) => void;
 }) {
+  const labelId = React.useId();
   return (
     <div className="space-y-1">
-      <Label className="text-xs">Employment type</Label>
+      <Label id={labelId} className="text-xs">
+        Employment type
+      </Label>
       <Select
         value={value ?? undefined}
         onValueChange={(v: string) => onChange((v as EmploymentType) || null)}
       >
-        <SelectTrigger>
+        <SelectTrigger aria-labelledby={labelId}>
           <SelectValue placeholder="Select..." />
         </SelectTrigger>
         <SelectContent>
