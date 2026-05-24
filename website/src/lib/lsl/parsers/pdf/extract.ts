@@ -40,9 +40,16 @@ const TIMEOUTS: Record<ExtractionMode, number> = {
  *
  * Per impl-plan §4.6: one auto-retry on shape failure with the validation error
  * appended; second failure routes the user to CSV fallback (AC26).
+ *
+ * The PDF arrives as a raw Buffer. We base64-encode it once here and pass the
+ * encoded string to the prompt builder, which emits a `document` content
+ * block. Anthropic's native PDF support handles both text-bearing and scanned
+ * PDFs — no server-side pre-extraction step (which historically pulled in
+ * pdfjs-dist's legacy Node build and crashed on Vercel due to a missing
+ * DOMMatrix global; see GitHub issue #5).
  */
 export async function extractPDF(
-  pdfText: string,
+  pdfBuffer: Buffer,
   mode: ExtractionMode
 ): Promise<ExtractionResult> {
   let client: Anthropic;
@@ -57,11 +64,12 @@ export async function extractPDF(
     };
   }
 
+  const pdfBase64 = pdfBuffer.toString('base64');
   const timeoutMs = TIMEOUTS[mode];
 
   try {
     const firstAttempt = await callWithTimeout(
-      () => callClaude(client, pdfText, mode),
+      () => callClaude(client, pdfBase64, mode),
       timeoutMs
     );
 
@@ -79,7 +87,7 @@ export async function extractPDF(
     try {
       const retry = await callWithTimeout(
         () =>
-          callClaudeWithCorrection(client, pdfText, mode, validated.error.message),
+          callClaudeWithCorrection(client, pdfBase64, mode, validated.error.message),
         timeoutMs
       );
       const validated2 = ExtractionResponseSchema.safeParse(retry.parsed);
@@ -113,10 +121,10 @@ interface RawCallResult {
 
 async function callClaude(
   client: Anthropic,
-  pdfText: string,
+  pdfBase64: string,
   mode: ExtractionMode
 ): Promise<RawCallResult> {
-  const request = buildExtractionRequest(mode, pdfText);
+  const request = buildExtractionRequest(mode, pdfBase64);
   // Cast: Claude SDK types lag the structured-outputs + adaptive-thinking betas.
   // The response is always Message — we never set stream:true.
   const response = (await client.messages.create(
@@ -127,11 +135,11 @@ async function callClaude(
 
 async function callClaudeWithCorrection(
   client: Anthropic,
-  pdfText: string,
+  pdfBase64: string,
   mode: ExtractionMode,
   validationError: string
 ): Promise<RawCallResult> {
-  const request = buildExtractionRequest(mode, pdfText);
+  const request = buildExtractionRequest(mode, pdfBase64);
   // Append a correction note to the user message
   const lastMessage = request.messages[request.messages.length - 1];
   lastMessage.content.push({

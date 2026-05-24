@@ -24,7 +24,7 @@ describe('extractPDF (no API key)', () => {
   });
 
   it('returns anthropic_not_configured (not a thrown error) when the key is missing', async () => {
-    const result = await extractPDF('PDF text body', 'single');
+    const result = await extractPDF(Buffer.from('%PDF-1.4 (stub bytes)'), 'single');
     expect(result.ok).toBe(false);
     if (!result.ok) {
       // Either of these is acceptable — what matters is we DO NOT throw.

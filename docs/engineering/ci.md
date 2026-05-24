@@ -51,3 +51,53 @@ npx tsc --noEmit && npx vitest run && npm run build && PLAYWRIGHT_ALL_BROWSERS=1
 ```
 
 Currently passes in ~30 seconds (`tsc` ~2s, `vitest` ~1s, `build` ~5s, `playwright` ~20s on local hardware).
+
+## Production-build Playwright mode (catches Vercel-only regressions)
+
+`npm run dev` (Turbopack dev server) tolerates issues the production bundle
+does not. The clearest example is GitHub issue #5 — `pdfjs-dist`'s legacy
+build needed a DOMMatrix polyfill the dev runtime supplied automatically;
+the production bundle didn't, so the bug only surfaced on Vercel. Default
+Playwright runs missed it.
+
+A second example follow-up (issue #5 round 2) was server-side: pdfjs-dist's
+Node legacy build crashed in the Vercel runtime because Node 20 has no
+native DOMMatrix. The fix removed server-side pdfjs entirely (PDFs now go
+straight to Anthropic's `document` content block). The production-build
+Playwright mode below would have caught both flavours of the bug locally.
+
+### Run locally
+
+```bash
+cd website
+PLAYWRIGHT_PRODUCTION_BUILD=1 npx playwright test
+```
+
+This invokes `next build && next start -p 3100` instead of `next dev`. The
+e2e suite then drives the same bundle that Vercel serves. Expect ~20-30s of
+extra warm-up on the first run while the production build compiles.
+
+Combine with `PLAYWRIGHT_ALL_BROWSERS=1` to run the full browser matrix
+against the production bundle:
+
+```bash
+cd website
+PLAYWRIGHT_PRODUCTION_BUILD=1 PLAYWRIGHT_ALL_BROWSERS=1 npx playwright test
+```
+
+### When to run it
+
+- Before opening a PR that touches anything in the `/api/` routes,
+  `src/server/`, or any module that uses Node-only or browser-only globals
+  (DOMMatrix, OffscreenCanvas, fs, child_process, etc.).
+- Before merging any PR flagged as a "launch blocker" or production-bundle
+  regression candidate.
+- Manually after any dependency bump for `pdfjs-dist`, `pdf-lib`,
+  `@anthropic-ai/sdk`, or Next.js itself.
+
+### CI inclusion (optional)
+
+The standard Playwright job in `ci.yml` runs against `next dev` for speed.
+A production-build job can be added as a second Playwright workflow gated
+by labels (e.g. `production-build-check`) so it runs only on PRs touching
+risky areas. Not enabled by default to keep CI minutes predictable.

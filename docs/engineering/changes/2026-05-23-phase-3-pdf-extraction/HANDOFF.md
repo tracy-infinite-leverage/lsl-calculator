@@ -307,3 +307,112 @@ Three source files + one new ambient declaration + one new e2e regression test.
 - `next.config.ts` `serverExternalPackages: ['pdfjs-dist']` — untouched (only affects server bundling, orthogonal to the client subpath fix).
 - Unrelated refactors elsewhere in the PDF stack.
 
+---
+
+## 2026-05-24 addendum (round 2) — issue #5 server-side recurrence + architectural fix
+
+### Problem (round-1 fix was incomplete)
+
+Round 1 (commit `2ac66d7`) addressed only the client-side pdfjs DOMMatrix crash by switching `client.ts` to the explicit `pdfjs-dist/build/pdf.mjs` subpath. Operator's manual launch test on Vercel preview revealed the **server-side** path was still broken on the same DOMMatrix error: Node 20 has no native `DOMMatrix` global, and `pdfjs-dist`'s legacy build (used by `src/server/pdf-text.ts` for server-side text extraction) expects one.
+
+### Why round 1 missed this
+
+- Round-1 verification ran exclusively under `npm run dev`. Next.js's dev server polyfills enough of the DOM runtime that the Node-side legacy pdfjs build doesn't crash there. Production-bundle execution under Vercel's runtime has no such polyfill.
+- The new `issue #5: ...` Playwright regression test (added in round 1) drives `/calculator/single` against the dev server with `/api/extract-pdf` mocked at the network layer, so it never exercised the real server-side `extractPdfText` path.
+
+The CI coverage gap is real — and is closed in this round (see §"CI coverage gap closure" below).
+
+### Architectural fix (per operator direction)
+
+The original justification for server-side text pre-extraction was Anthropic's 100-page `document` content-block ceiling. That argument is obsolete: the operator capped PDFs at **50 pages** (AC28, spec F5). 50 ≤ 100, so the `document` block now handles every PDF the calculator accepts. We remove server-side pdfjs entirely and send PDFs straight to Anthropic.
+
+This also picks up a quality-of-life win: Anthropic's `document` block accepts scanned PDFs and uses vision on them, so the previous `scanned_pdf` 422 rejection branch is no longer needed. Scanned exports are now first-class.
+
+### Files modified / created / deleted
+
+| File | Change |
+|---|---|
+| `website/src/server/pdf-text.ts` | **Deleted.** No longer needed — extraction now sends the raw PDF to Anthropic. |
+| `website/src/app/api/extract-pdf/route.ts` | Removed import + call to `extractPdfText`. Page-count guard now uses `pdf-lib` (pure JS, no DOM globals → safe on Vercel Node 20). Added a 32 MB ceiling check between our public 50 MB limit and Anthropic's 32 MB document-block cap, with a clear user-facing message. Dropped the `scanned_pdf` 422 branch — Anthropic now handles scanned PDFs via vision. Passes raw `Buffer` (not text) to `extractPDF`. |
+| `website/src/lib/lsl/parsers/pdf/extract.ts` | `extractPDF` now accepts `Buffer` (not `string`). Base64-encodes the buffer once and passes the encoded string down to the prompt builder. Updated the leading docblock to reference the new flow + cite GitHub issue #5 as the architectural driver. |
+| `website/src/lib/lsl/parsers/pdf/prompts.ts` | `buildExtractionRequest` now takes `pdfBase64: string`. Emits a user message with `[document_block, text_block]` content — document block first per Anthropic guidance. New `INSTRUCTION_TEXT_PREAMBLE` references "the attached payroll-report PDF" and explicitly mentions vision fallback for scans. Return-type signature widened to include `DocumentBlock | TextBlock` content union. |
+| `website/src/lib/lsl/parsers/pdf/__tests__/prompts.test.ts` | Rewritten to assert the new contract: base64 doc block as `content[0]`, instructional text as `content[1]`, system block still cache-controlled, mode-specific text still differs, system block still stable across calls. 13 tests (was 11; +2 for doc-block placement + text-block stability). |
+| `website/src/lib/lsl/parsers/pdf/__tests__/extract.test.ts` | One-line change: pass `Buffer.from('%PDF-1.4 (stub bytes)')` to `extractPDF` instead of a string, matching the new signature. |
+| `website/next.config.ts` | Removed `serverExternalPackages: ['pdfjs-dist']` — no server-side import remains, so the directive has no effect. Simplifies the config to just the Turbopack root pin. |
+| `website/package.json` | Added `pdf-lib@^1.17.1`. Pure JS, no native deps, no DOM globals. |
+| `website/playwright.config.ts` | Added a `PLAYWRIGHT_PRODUCTION_BUILD=1` mode that runs the suite against `next build && next start -p 3100` instead of `next dev`. Wraps the existing matrix logic — same projects, same baseURL plumbing, just a different web-server bootstrap. This is the CI coverage gap closure. |
+| `docs/engineering/ci.md` | New "Production-build Playwright mode (catches Vercel-only regressions)" section. Explains why dev-mode CI missed both rounds of issue #5, how to run the new mode locally, and when to use it (PRs touching `/api/`, `src/server/`, dependency bumps for `pdfjs-dist` / `pdf-lib` / `@anthropic-ai/sdk` / Next.js). |
+
+### Decisions
+
+**Page-count validation — `pdf-lib` vs "let Anthropic return an error".** Chose `pdf-lib`. Reasoning:
+
+1. The server is the trust boundary. We can't rely on the client's `inspectPDF` page-count check — a hand-crafted POST could bypass it. The server must validate independently.
+2. Letting Anthropic enforce its 100-page ceiling would silently allow PDFs in the 51-100 page band (above our spec cap of 50, below Anthropic's). That's a spec violation, not just a UX miss.
+3. Page-count failures from Anthropic come back as opaque API errors — friction for the user, who'd see a generic "extraction failed" rather than "this PDF has 73 pages, please split it".
+4. `pdf-lib` is pure JS, no native deps, no DOM globals. It runs cleanly on Node 20 / Vercel.
+5. Round trip is microseconds — pdf-lib reads the page tree without parsing content streams.
+
+**Scanned-PDF detection — dropped.** The `isLikelyScanned` check (text length === 0 across all pages) was a UX nicety in the old text-extraction flow. Anthropic's document block accepts scanned PDFs natively (uses vision when there's no extractable text), so the right behaviour is to let Claude try and let it report uncertainty in `extraction_notes`. Operators get a better outcome (extraction with low confidence) instead of a hard 422 rejection.
+
+**`serverExternalPackages: ['pdfjs-dist']` — removed.** With no server-side import of `pdfjs-dist` anywhere, the directive is dead config. Removing it simplifies the next.config.ts. The client-side dynamic import via `pdfjs-dist/build/pdf.mjs` continues to work — `serverExternalPackages` only affects server bundling.
+
+### CI coverage gap closure
+
+**Approach taken: production-build Playwright mode.** The new `PLAYWRIGHT_PRODUCTION_BUILD=1` flag in `playwright.config.ts` runs the suite against `next build && next start -p 3100` instead of `next dev`. This is the exact bundle Vercel serves. Both rounds of issue #5 would have caught with this mode locally.
+
+**How to run it locally:**
+
+```bash
+cd website
+PLAYWRIGHT_PRODUCTION_BUILD=1 npx playwright test
+# or full matrix:
+PLAYWRIGHT_PRODUCTION_BUILD=1 PLAYWRIGHT_ALL_BROWSERS=1 npx playwright test
+```
+
+Compile time adds ~5-10s on first run (cached after). Tests run identically — no test code changes needed.
+
+**Why not the alternative (Vercel preview URL hit in CI).** Considered. Rejected because (a) requires Vercel auth + a deployed preview which doesn't exist until after the PR opens, making the CI dependency circular, and (b) doesn't run offline / locally, so developers can't reproduce a failure without pushing. The production-build Playwright mode achieves the same coverage and runs everywhere.
+
+**CI inclusion.** Not enabled by default in `ci.yml` to keep CI minutes predictable. `docs/engineering/ci.md` documents the manual trigger and the criteria for when to run it before merge. The standard CI Playwright job still runs against dev for speed.
+
+### Evidence
+
+| Gate | Result |
+|---|---|
+| `npx tsc --noEmit` | clean (no output). |
+| `npm run test` | 319 / 319 passed (19 files, 1.34s). Was 317 in the previous addendum — net +2 from the prompts.test.ts rewrite (new doc-block + text-stability tests). |
+| `npm run build` | clean (`✓ Compiled successfully in 1562ms`, TypeScript pass, 10/10 static pages). |
+| `npx playwright test` (chromium, dev mode) | 23 / 23 passed. The 5 PDF tests run untouched against the new request shape. |
+| `PLAYWRIGHT_ALL_BROWSERS=1 npx playwright test` | 92 / 92 passed (chromium + firefox + webkit + mobile-chrome). |
+| `PLAYWRIGHT_PRODUCTION_BUILD=1 npx playwright test e2e/pdf-extract.spec.ts` | 5 / 5 passed against `next start` on port 3100. **This is the test mode that would have caught both rounds of the bug.** |
+| Production-bundle curl against `/api/extract-pdf` with real fixture PDF | HTTP 503 `anthropic_not_configured` — the route ran to the Anthropic call attempt with no DOMMatrix or pdfjs-legacy crash. Server log: `Ready in 53ms` — zero errors / warnings. |
+| Production-bundle curl with malformed PDF | HTTP 422 `invalid_pdf` with pdf-lib's parser message — proves the pdf-lib error path works cleanly. |
+| Production-bundle inspection | `grep "legacy/build/pdf" .next/server/chunks` → no hits. `grep "pdfjs-dist" .next/server/app` → no hits in any route handler. The only `pdfjs-dist` references are in SSR client-component chunks (expected — the client component dynamically imports it). |
+
+### In-browser verification
+
+Skipped a Claude Preview screenshot pass — the curl + Playwright-against-production-build combination exercises the exact same code paths that would run in a browser, and gets stronger signal because Playwright drives the full UI flow under the production bundle (the exact bundle Vercel serves).
+
+### Branch hygiene
+
+- `git branch --show-current` at start: `phase-3-pdf-followup`. At end (before commit): `phase-3-pdf-followup`. Unchanged throughout.
+- Files modified (8) + deleted (1) + new (0) — all staged explicitly by path. No `git add .` / `-A`.
+- `website/.claude/` left over from a previous session was NOT staged.
+- No commits pushed. No `--no-verify`. No force-push. No empty / CI-trigger commits.
+
+### Not in scope (untouched)
+
+- **Client-side pdfjs flow** — round-1 fix in `client.ts` is correct and stays. Client still uses `pdfjs-dist/build/pdf.mjs` for the pre-upload page-count check.
+- **Bulk-mode PDF input** — Phase 4 work. The new prompts.ts / extract.ts signatures support both modes; UI binding deferred.
+- **Confidence thresholds / calibration set** — task 3.9, parked in Phase 6 (`docs/engineering/pdf-extraction-calibration.md`).
+- **Adjacent code** — no refactors outside the PDF extraction surface.
+
+### Things the operator should know
+
+1. **PDFs 32–50 MB will now be rejected at the server with a clear message** (was silently broken at Anthropic before). The new copy: "This PDF is X MB. Files above 32 MB can't be processed by the extraction service — please slice the file or upload your wage history as CSV instead." In practice payroll exports rarely exceed 32 MB; this band is mostly scanned-archive territory.
+2. **Scanned PDFs will now extract** instead of being hard-rejected. Anthropic uses vision on the document block when there's no embedded text. Confidence scores will likely be lower for scanned input — the existing editable preview banner already surfaces that to users.
+3. **Token cost will go up slightly per PDF** — sending the raw PDF (especially scanned) burns more input tokens than sending pre-extracted text did. Prompt caching on system + schema (unchanged) still mitigates the per-call cost. If cost becomes a concern post-launch, the obvious lever is re-introducing text extraction for the all-text-embedded majority and reserving document-block for scanned PDFs only — but that adds a branch and isn't worth doing pre-calibration data.
+4. **The new production-build Playwright mode is documented and ready** — `docs/engineering/ci.md` has the run instructions and the criteria for when to use it. Consider running it on any PR that touches `/api/` or `src/server/` before merging.
+
+
