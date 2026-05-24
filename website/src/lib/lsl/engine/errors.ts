@@ -56,3 +56,25 @@ export class CashOutNotSupportedError extends EngineError {
     this.name = 'CashOutNotSupportedError';
   }
 }
+
+/**
+ * Thrown when VIC receives a `cash_out` trigger.
+ *
+ * Cashing-out LSL during ongoing employment is a CRIMINAL OFFENCE under VIC
+ * LSL Act 2018 s.34 (12 penalty units / 60 penalty units body corporate).
+ * Both s.34(1) (employer) and s.34(2) (employee) create offences. The
+ * calculator MUST refuse to produce a numeric result and MUST NOT log input
+ * PII per spec S2.
+ *
+ * Citation s.34 (corrected from APA training PDF's s.67 — TBD-VIC-12).
+ * Lawful alternatives: s.9 termination payout, s.22 half-pay.
+ */
+export class VICCashOutProhibitedError extends EngineError {
+  constructor() {
+    super(
+      'vic_cashout_prohibited',
+      'Cashing out long service leave during employment is a criminal offence in Victoria under section 34 of the Long Service Leave Act 2018. The calculator cannot produce a value for a cash-out scenario. To pay out unused LSL at the end of employment, use the termination trigger instead. To allow an employee to take leave and continue working at a reduced pay, see the half-pay option under section 22.'
+    );
+    this.name = 'VICCashOutProhibitedError';
+  }
+}
