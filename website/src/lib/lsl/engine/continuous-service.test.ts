@@ -4,13 +4,17 @@ import {
   computeContinuousService,
   computeDaysNotCountedInLookback,
 } from './continuous-service';
+import { NSW_SERVICE_PROFILE } from '../states/nsw/continuous-service-rules';
+
+const P = NSW_SERVICE_PROFILE;
 
 describe('computeContinuousService', () => {
   it('clean 10-yr employee (2016-05-21 → 2026-05-21 = 3653 days)', () => {
     const r = computeContinuousService(
       asISODate('2016-05-21'),
       asISODate('2026-05-21'),
-      []
+      [],
+      P
     );
     expect(r.daysOfContinuousService).toBe(3653);
     expect(r.yearsOfContinuousService.toFixed(4)).toBe('10.0014'); // 3653 / 365.25
@@ -26,7 +30,8 @@ describe('computeContinuousService', () => {
           startDate: asISODate('2017-07-01'),
           endDate: asISODate('2018-07-01'),
         },
-      ]
+      ],
+      P
     );
     // elapsed 2014-07-01 → 2025-07-01 inclusive = 4019 days (incl 3 leap days: 2016, 2020, 2024)
     // UPL: 2017-07-01 → 2018-07-01 inclusive = 366 days
@@ -45,7 +50,8 @@ describe('computeContinuousService', () => {
           startDate: asISODate('2026-03-01'),
           endDate: asISODate('2026-03-15'),
         },
-      ]
+      ],
+      P
     );
     expect(r.daysNotCountedInService).toBe(0);
   });
@@ -60,7 +66,8 @@ describe('computeContinuousService', () => {
           startDate: asISODate('2025-11-22'),
           endDate: asISODate('2026-02-22'), // 93-day gap
         },
-      ]
+      ],
+      P
     );
     expect(r.effectiveServiceStart).toBe('2026-02-22');
     // 2026-02-22 → 2026-05-21 inclusive = 89 days
@@ -78,7 +85,8 @@ describe('computeContinuousService', () => {
           startDate: asISODate('2026-03-15'),
           endDate: asISODate('2026-04-12'), // 29-day gap
         },
-      ]
+      ],
+      P
     );
     expect(r.effectiveServiceStart).toBe('2015-04-01');
     // elapsed 2015-04-01 → 2026-05-21 = 4068 days; minus 29 day gap = 4039
@@ -95,7 +103,8 @@ describe('computeContinuousService', () => {
           startDate: asISODate('2026-03-15'),
           endDate: asISODate('2026-05-13'), // 60-day gap inclusive
         },
-      ]
+      ],
+      P
     );
     expect(r.effectiveServiceStart).toBe('2015-04-01');
     expect(r.warnings.some((w) => w.code === 'rehire_gap_at_threshold')).toBe(true);
@@ -105,7 +114,8 @@ describe('computeContinuousService', () => {
     const r = computeContinuousService(
       asISODate('2025-12-01'),
       asISODate('2026-05-21'),
-      []
+      [],
+      P
     );
     expect(r.daysOfContinuousService).toBe(172);
     expect(r.yearsOfContinuousService.toFixed(4)).toBe('0.4709');
@@ -120,7 +130,8 @@ describe('computeContinuousService', () => {
           type: 'transfer_of_business',
           startDate: asISODate('2021-07-01'),
         },
-      ]
+      ],
+      P
     );
     expect(r.daysNotCountedInService).toBe(0);
     // Citation surfaced
@@ -141,7 +152,8 @@ describe('computeContinuousService', () => {
           startDate: asISODate('2024-06-30'),
           endDate: asISODate('2024-10-01'), // 94-day gap
         },
-      ]
+      ],
+      P
     );
     expect(r.effectiveServiceStart).toBe('2018-07-01');
     expect(r.daysNotCountedInService).toBe(94);
@@ -157,7 +169,8 @@ describe('computeContinuousService', () => {
           startDate: asISODate('2020-04-01'),
           endDate: asISODate('2020-09-27'),
         },
-      ]
+      ],
+      P
     );
     expect(r.daysNotCountedInService).toBe(0);
   });
@@ -172,7 +185,8 @@ describe('computeContinuousService', () => {
           startDate: asISODate('2025-06-01'),
           endDate: asISODate('2025-06-08'),
         },
-      ]
+      ],
+      P
     );
     expect(r.daysNotCountedInService).toBe(8);
   });
@@ -187,7 +201,8 @@ describe('computeContinuousService', () => {
           startDate: asISODate('2024-03-01'),
           endDate: asISODate('2024-05-01'), // 62 days
         },
-      ]
+      ],
+      P
     );
     expect(r.daysNotCountedInService).toBe(62);
   });
@@ -204,7 +219,8 @@ describe('computeDaysNotCountedInLookback', () => {
           startDate: asISODate('2026-01-05'),
           endDate: asISODate('2026-01-23'),
         },
-      ]
+      ],
+      P
     );
     expect(days).toBe(0);
   });
@@ -219,7 +235,8 @@ describe('computeDaysNotCountedInLookback', () => {
           startDate: asISODate('2026-03-01'),
           endDate: asISODate('2026-03-14'), // 14 days
         },
-      ]
+      ],
+      P
     );
     expect(days).toBe(14);
   });
@@ -234,7 +251,8 @@ describe('computeDaysNotCountedInLookback', () => {
           startDate: asISODate('2017-07-01'),
           endDate: asISODate('2018-07-01'),
         },
-      ]
+      ],
+      P
     );
     expect(days).toBe(0);
   });
@@ -249,7 +267,8 @@ describe('computeDaysNotCountedInLookback', () => {
           startDate: asISODate('2020-04-01'),
           endDate: asISODate('2020-09-27'),
         },
-      ]
+      ],
+      P
     );
     // 2020-04-01 to 2020-09-27 inclusive
     expect(days).toBe(180);
@@ -265,7 +284,8 @@ describe('computeDaysNotCountedInLookback', () => {
           startDate: asISODate('2026-03-15'),
           endDate: asISODate('2026-04-12'),
         },
-      ]
+      ],
+      P
     );
     expect(days).toBe(29);
   });

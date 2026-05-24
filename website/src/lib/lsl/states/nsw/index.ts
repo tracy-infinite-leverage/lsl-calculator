@@ -10,12 +10,14 @@ import type {
 import { classify } from '@/lib/lsl/engine/classifier';
 import { computeContinuousService } from '@/lib/lsl/engine/continuous-service';
 import { prescribedDate } from '@/lib/lsl/engine/trigger';
-import { JurisdictionBlockedError } from '@/lib/lsl/engine/errors';
+import { CashOutNotSupportedError, JurisdictionBlockedError } from '@/lib/lsl/engine/errors';
 import { computeSystemFormula } from '@/lib/lsl/engine/system-formula';
 import { citation } from '@/lib/lsl/engine/citation';
+import type { StateRuleSet } from '@/lib/lsl/states/StateRuleSet';
 import { valueOfWeekNSW, valueOfDayNSW } from './rules/value-of-week';
 import { accrualNSW } from './rules/accrual-table';
 import { triggerCitations } from './rules/trigger-handlers';
+import { NSW_SERVICE_PROFILE } from './continuous-service-rules';
 
 export const NSW_JURISDICTION = 'NSW' as const;
 
@@ -130,6 +132,13 @@ export function calculateNSW(employee: Employee, trigger: Trigger): Result {
     );
   }
 
+  // ── NSW does not (yet) encode cashing-out. Per E2 R2, default behaviour for any
+  //    state without cash_out handling is to throw `CashOutNotSupportedError`; the
+  //    safe wrapper turns it into a `failed` Result for bulk callers.
+  if (trigger.kind === 'cash_out') {
+    throw new CashOutNotSupportedError('NSW');
+  }
+
   // ── F18: surface bonus-warning if notes mention bonus tokens
   if (notesContainBonusTokens(employee)) {
     result.warnings.push({
@@ -153,11 +162,12 @@ export function calculateNSW(employee: Employee, trigger: Trigger): Result {
     });
   }
 
-  // ── Continuous service
+  // ── Continuous service (NSW profile)
   const service = computeContinuousService(
     employee.startDate,
     psd,
-    employee.serviceEvents
+    employee.serviceEvents,
+    NSW_SERVICE_PROFILE
   );
   result.warnings.push(...service.warnings);
 
@@ -285,6 +295,15 @@ export function calculateNSWSafe(employee: Employee, trigger: Trigger): Result {
         ],
       };
     }
+    if (err instanceof CashOutNotSupportedError) {
+      return {
+        employeeId: employee.id,
+        status: 'failed',
+        trigger,
+        warnings: [],
+        error: { code: err.code, userMessage: err.userMessage },
+      };
+    }
     const code = err instanceof Error ? err.name : 'unknown_error';
     const userMessage =
       err instanceof Error ? err.message : 'An unknown error occurred during calculation.';
@@ -297,3 +316,15 @@ export function calculateNSWSafe(employee: Employee, trigger: Trigger): Result {
     };
   }
 }
+
+/**
+ * NSW rule set — implements the `StateRuleSet` contract from E2.
+ *
+ * Registered in `dispatch.ts`. Existing direct imports of `calculateNSW` / `calculateNSWSafe`
+ * continue to work; this is purely additive.
+ */
+export const NSW_RULE_SET: StateRuleSet = {
+  state: 'NSW',
+  calculate: calculateNSW,
+  calculateSafe: calculateNSWSafe,
+};

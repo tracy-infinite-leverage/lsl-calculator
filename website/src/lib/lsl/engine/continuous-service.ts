@@ -4,95 +4,73 @@ import { dateGT, inclusiveDays, overlapDays } from './dates';
 import { citation } from './citation';
 
 /**
- * Per NSW LSA s.4(11) and research brief §1.4: classification of how each event type
- * affects (a) counting toward service and (b) the lookback denominator.
+ * Per-event treatment classification.
  *
  *   countsAsService: true if the event days count in `years_of_continuous_service`
  *   countsInLookbackDenominator: true if the event days remain in `(window_days - daysNotCounted)`
- *     (i.e., the employee was being paid through this period — only `paid_leave` qualifies)
+ *     (i.e., the employee was being paid through this period)
+ *
+ * The exact rule values are STATE-SPECIFIC and live under
+ * `website/src/lib/lsl/states/{state}/continuous-service-rules.ts`. The shared engine
+ * only knows the SHAPE.
  */
-const SERVICE_EVENT_RULES: Record<
-  ContinuousServiceEvent['type'],
-  { countsAsService: boolean; countsInLookbackDenominator: boolean; section: string; pdfPage?: number; ruleKey: string }
-> = {
-  paid_leave: {
-    countsAsService: true,
-    countsInLookbackDenominator: true,
-    section: 'NSW LSA s.4(11)',
-    pdfPage: 14,
-    ruleKey: 'continuous-service.paid-leave-counts',
-  },
-  workers_comp_absence: {
-    countsAsService: true,
-    countsInLookbackDenominator: false,
-    section: 'NSW LSA s.4(11)',
-    pdfPage: 16,
-    ruleKey: 'continuous-service.workers-comp-counts',
-  },
-  unpaid_parental_leave: {
-    countsAsService: false,
-    countsInLookbackDenominator: false,
-    section: 'NSW LSA s.4(11)',
-    pdfPage: 14,
-    ruleKey: 'continuous-service.upl-excluded',
-  },
-  leave_without_pay: {
-    countsAsService: false,
-    countsInLookbackDenominator: false,
-    section: 'NSW LSA s.4(11)',
-    pdfPage: 15,
-    ruleKey: 'continuous-service.lwop-excluded',
-  },
-  industrial_action: {
-    countsAsService: false,
-    countsInLookbackDenominator: false,
-    section: 'NSW LSA s.4(11)',
-    pdfPage: 14,
-    ruleKey: 'continuous-service.industrial-action-excluded',
-  },
-  employer_stand_down: {
-    countsAsService: false,
-    countsInLookbackDenominator: false,
-    section: 'NSW LSA s.4(11)',
-    pdfPage: 14,
-    ruleKey: 'continuous-service.slackness-no-service-no-break',
-  },
-  jobkeeper_or_covid_standdown: {
-    countsAsService: true,
-    countsInLookbackDenominator: false,
-    section: 'NSW LSA s.4(11)',
-    pdfPage: 15,
-    ruleKey: 'continuous-service.jobkeeper-counts',
-  },
-  // The next three are "structural" — handled separately; their day spans are NOT applied
-  // to elapsed-service-days arithmetic via the same path.
-  transfer_of_business: {
-    countsAsService: true,
-    countsInLookbackDenominator: true,
-    section: 'NSW LSA s.4(6)',
-    pdfPage: 16,
-    ruleKey: 'continuous-service.transfer-of-business-preserves',
-  },
-  employer_initiated_termination_and_rehire: {
-    countsAsService: false,
-    countsInLookbackDenominator: false,
-    section: 'NSW LSA s.4(11)',
-    pdfPage: 16,
-    ruleKey: 'continuous-service.employer-init-rehire',
-  },
-  apprentice_to_tradesperson_transition: {
-    countsAsService: false,
-    countsInLookbackDenominator: false,
-    section: 'NSW LSA s.4(11)',
-    pdfPage: 14,
-    ruleKey: 'continuous-service.apprentice-to-trade-within-12mo',
-  },
-};
+export interface ServiceEventRule {
+  countsAsService: boolean;
+  countsInLookbackDenominator: boolean;
+  section: string;
+  pdfPage?: number;
+  ruleKey: string;
+  /**
+   * Additional citations emitted alongside the primary rule citation when this
+   * event type is encountered. Used by NSW for `transfer_of_business` to emit
+   * both `s.4(6)` (preserves) and `s.4(11)` (deemed-continuous).
+   */
+  extraCitations?: Array<{ section: string; ruleKey: string; pdfPage?: number }>;
+}
 
-/** NSW rehire-gap threshold per F9 + PM clarification #7: inclusive ≤ 60 days. */
-const REHIRE_GAP_DAYS_NSW = 60;
-/** Apprentice-to-tradesperson 12-month preservation cap per PDF p.14. */
-const APPRENTICE_GAP_DAYS_MAX = 365;
+/**
+ * Per-state profile passed into the shared engine arithmetic.
+ *
+ * Every state ships one of these — see `states/nsw/continuous-service-rules.ts`
+ * for the NSW reference. Adding a new state means writing a new profile, not
+ * modifying this file.
+ */
+export interface ContinuousServiceProfile {
+  /** State this profile encodes — for citation provenance only. */
+  state: string;
+  /** Map of every ServiceEventType → its state's classification. */
+  serviceEventRules: Record<ContinuousServiceEvent['type'], ServiceEventRule>;
+  /**
+   * Maximum allowed gap (in inclusive days) for an employer-initiated
+   * termination-and-rehire to preserve prior service. NSW = 60, VIC/QLD/TAS = ~90.
+   */
+  rehireGapDaysMax: number;
+  /**
+   * Maximum allowed apprentice-to-tradesperson transition gap (inclusive days)
+   * for prior service to be preserved.
+   */
+  apprenticeGapDaysMax: number;
+  /**
+   * Citation emitted when an employer-rehire gap exceeds the threshold and
+   * service breaks.
+   */
+  gapExceedsThresholdCitation: { section: string; ruleKey: string; pdfPage?: number };
+  /**
+   * Citation emitted when an employer-rehire gap is within threshold and
+   * service is preserved.
+   */
+  gapWithinThresholdCitation: { section: string; ruleKey: string; pdfPage?: number };
+  /**
+   * User-facing warning message when an employer-rehire gap exceeds the
+   * threshold. Receives `gap` (days) and `thresholdDays` for interpolation.
+   */
+  gapExceedsThresholdMessage: (gap: number, thresholdDays: number) => string;
+  /**
+   * User-facing warning message when a re-hire gap lands exactly on the
+   * threshold. Receives `gap` (days).
+   */
+  gapAtThresholdMessage: (gap: number) => string;
+}
 
 export interface ServiceState {
   effectiveServiceStart: ISODate;
@@ -108,14 +86,18 @@ export interface ServiceState {
 
 /**
  * Compute continuous service days from start to prescribed date, applying:
- *   - employer_initiated_termination_and_rehire gap > 60 days → service breaks; start moves to rehire date
- *   - apprentice_to_tradesperson_transition gap > 365 days → service breaks (rare)
+ *   - employer_initiated_termination_and_rehire gap > threshold → service breaks; start moves to rehire date
+ *   - apprentice_to_tradesperson_transition gap > threshold → service breaks (rare)
  *   - non-counting events subtract from elapsed days
+ *
+ * State-specific rule values (rehire threshold, per-event treatment, citations)
+ * are passed in via `profile`. The arithmetic itself is state-agnostic.
  */
 export function computeContinuousService(
   startDate: ISODate,
   prescribedDate: ISODate,
-  events: ContinuousServiceEvent[]
+  events: ContinuousServiceEvent[],
+  profile: ContinuousServiceProfile
 ): ServiceState {
   const citations: Citation[] = [];
   const warnings: Warning[] = [];
@@ -126,34 +108,34 @@ export function computeContinuousService(
   for (const ev of events) {
     if (ev.type === 'employer_initiated_termination_and_rehire' && ev.endDate) {
       const gap = inclusiveDays(ev.startDate, ev.endDate);
-      if (gap > REHIRE_GAP_DAYS_NSW) {
+      if (gap > profile.rehireGapDaysMax) {
         // Service breaks — move start to rehire date
         if (dateGT(ev.endDate, effectiveStart)) {
           effectiveStart = ev.endDate;
         }
         warnings.push({
           code: 'gap_exceeds_2mo',
-          message: `Employer-initiated re-hire gap of ${gap} days exceeds the NSW 2-month (60-day) preservation cap — prior service not preserved.`,
+          message: profile.gapExceedsThresholdMessage(gap, profile.rehireGapDaysMax),
         });
         citations.push(
           citation(
-            'NSW LSA s.4(11)',
-            'continuous-service.gap-exceeds-2mo-breaks-service',
-            16
+            profile.gapExceedsThresholdCitation.section,
+            profile.gapExceedsThresholdCitation.ruleKey,
+            profile.gapExceedsThresholdCitation.pdfPage
           )
         );
       } else {
         citations.push(
           citation(
-            'NSW LSA s.4(11)',
-            'continuous-service.employer-init-rehire-within-2mo',
-            16
+            profile.gapWithinThresholdCitation.section,
+            profile.gapWithinThresholdCitation.ruleKey,
+            profile.gapWithinThresholdCitation.pdfPage
           )
         );
-        if (gap === REHIRE_GAP_DAYS_NSW) {
+        if (gap === profile.rehireGapDaysMax) {
           warnings.push({
             code: 'rehire_gap_at_threshold',
-            message: `Re-hire gap is exactly ${gap} days — at the NSW preservation threshold.`,
+            message: profile.gapAtThresholdMessage(gap),
           });
         }
       }
@@ -162,34 +144,22 @@ export function computeContinuousService(
       ev.endDate
     ) {
       const gap = inclusiveDays(ev.startDate, ev.endDate);
-      if (gap > APPRENTICE_GAP_DAYS_MAX) {
+      if (gap > profile.apprenticeGapDaysMax) {
         if (dateGT(ev.endDate, effectiveStart)) {
           effectiveStart = ev.endDate;
         }
       } else {
-        citations.push(
-          citation(
-            'NSW LSA s.4(11)',
-            'continuous-service.apprentice-to-trade-within-12mo',
-            14
-          )
-        );
+        const rule = profile.serviceEventRules.apprentice_to_tradesperson_transition;
+        citations.push(citation(rule.section, rule.ruleKey, rule.pdfPage));
       }
     } else if (ev.type === 'transfer_of_business') {
-      citations.push(
-        citation(
-          'NSW LSA s.4(6)',
-          'continuous-service.transfer-of-business-preserves',
-          16
-        )
-      );
-      citations.push(
-        citation(
-          'NSW LSA s.4(11)',
-          'continuous-service.deemed-continuous',
-          16
-        )
-      );
+      const rule = profile.serviceEventRules.transfer_of_business;
+      citations.push(citation(rule.section, rule.ruleKey, rule.pdfPage));
+      if (rule.extraCitations) {
+        for (const ec of rule.extraCitations) {
+          citations.push(citation(ec.section, ec.ruleKey, ec.pdfPage));
+        }
+      }
     }
   }
 
@@ -215,7 +185,7 @@ export function computeContinuousService(
 
   events.forEach((ev, idx) => {
     if (!ev.endDate) return; // structural events without endDate skipped here
-    const rule = SERVICE_EVENT_RULES[ev.type];
+    const rule = profile.serviceEventRules[ev.type];
 
     let countsAsService = rule.countsAsService;
     let ruleKey = rule.ruleKey;
@@ -223,7 +193,7 @@ export function computeContinuousService(
     // Special handling: employer_initiated_termination_and_rehire gap counts depending on threshold
     if (ev.type === 'employer_initiated_termination_and_rehire') {
       const gap = inclusiveDays(ev.startDate, ev.endDate);
-      if (gap <= REHIRE_GAP_DAYS_NSW) {
+      if (gap <= profile.rehireGapDaysMax) {
         // Preserved: gap days don't count toward service (they're excluded time)
         countsAsService = false;
         ruleKey = 'continuous-service.rehire-gap-excluded-from-service';
@@ -234,7 +204,7 @@ export function computeContinuousService(
     }
     if (ev.type === 'apprentice_to_tradesperson_transition') {
       const gap = inclusiveDays(ev.startDate, ev.endDate);
-      if (gap <= APPRENTICE_GAP_DAYS_MAX) {
+      if (gap <= profile.apprenticeGapDaysMax) {
         countsAsService = false;
         ruleKey = 'continuous-service.apprentice-gap-excluded-from-service';
       } else {
@@ -287,16 +257,19 @@ export function computeContinuousService(
 /**
  * Compute days-not-counted in a lookback window: sum of event-days where
  * `countsInLookbackDenominator === false`, intersected with the window.
+ *
+ * State-specific rule values come from `profile`.
  */
 export function computeDaysNotCountedInLookback(
   windowStart: ISODate,
   windowEnd: ISODate,
-  events: ContinuousServiceEvent[]
+  events: ContinuousServiceEvent[],
+  profile: ContinuousServiceProfile
 ): number {
   let total = 0;
   for (const ev of events) {
     if (!ev.endDate) continue;
-    const rule = SERVICE_EVENT_RULES[ev.type];
+    const rule = profile.serviceEventRules[ev.type];
 
     // employer_initiated_termination_and_rehire gap: always excluded from lookback denominator
     // (no income earned in that gap regardless of whether prior service was preserved)
@@ -315,6 +288,3 @@ export function computeDaysNotCountedInLookback(
   }
   return total;
 }
-
-/** Re-export the rules table for callers needing per-event metadata. */
-export const serviceEventRules = SERVICE_EVENT_RULES;

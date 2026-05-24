@@ -62,7 +62,7 @@ export function accrualNSW(
     citation('NSW LSA s.4(2)', 'accrual.years-x-8.6667-over-10', 13)
   );
 
-  let payableWeeks: Decimal;
+  let payableWeeks: Decimal = new Decimal(0);
   let payableIndicator: 'payable' | 'accrued_not_currently_payable' = 'payable';
 
   if (trigger.kind === 'as_at') {
@@ -104,7 +104,12 @@ export function accrualNSW(
     return { grossWeeks, payableWeeks, priorLeaveTakenWeeks, citations, payableIndicator };
   }
 
-  // trigger.kind === 'termination'
+  // trigger.kind === 'termination' (the only remaining variant; calculateNSW
+  // short-circuits 'cash_out' before reaching here)
+  if (trigger.kind !== 'termination') {
+    // Should be unreachable — defensive.
+    return { grossWeeks, payableWeeks, priorLeaveTakenWeeks, citations, payableIndicator };
+  }
   const reason = trigger.reason;
 
   if (yearsOfService.lt(5)) {

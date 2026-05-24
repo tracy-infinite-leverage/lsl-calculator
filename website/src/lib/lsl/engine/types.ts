@@ -41,7 +41,13 @@ export type ServiceEventType =
 export type Trigger =
   | { kind: 'taking_leave'; leaveStartDate: ISODate; leaveWeeks?: number }
   | { kind: 'termination'; terminationDate: ISODate; reason: TerminationReason }
-  | { kind: 'as_at'; asAtDate: ISODate };
+  | { kind: 'as_at'; asAtDate: ISODate }
+  /**
+   * Cashing-out trigger — scaffolded in E2 Phase 1 (impl-plan §R2).
+   * VIC (Phase 3) and NT (Phase 9) implement hard-error handling.
+   * NSW and other states default to `EngineError('cash_out_not_supported')`.
+   */
+  | { kind: 'cash_out'; cashOutDate: ISODate };
 
 export interface WagePeriod {
   periodStart: ISODate;
@@ -74,6 +80,15 @@ export interface Employee {
   priorLeaveTakenWeeks?: Decimal | string | number;
   categoryOverride?: Category;
   categoryOverrideConfirmed?: boolean;
+  /**
+   * State-specific extension inputs.
+   *
+   * Each state documents its own keys under `states/{state}/extra-inputs.ts`.
+   * Examples: ACT casual/part-time overtime hours per pay period (Phase 7).
+   * Keep this loose-typed at the engine boundary; per-state modules parse it.
+   * See E2 impl-plan §P0.6 and DEV-E2-M6.
+   */
+  extraInputs?: Record<string, unknown>;
 }
 
 export interface Citation {
