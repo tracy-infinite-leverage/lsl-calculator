@@ -17,17 +17,6 @@
 Everything Tracy needs to action before flipping the NSW LSL Calculator to
 production. The code is done; what's left is human coordination.
 
-## Drafted emails
-
-Copy-paste the body (or open in Mail.app on macOS — the `.eml` file
-imports directly):
-
-| File | Purpose | Recipient |
-|---|---|---|
-| [`anthropic-no-retention-confirmation.eml`](./anthropic-no-retention-confirmation.eml) | Confirm enterprise no-retention contract is in place for production traffic | Anthropic account team |
-
-Placeholder `[fill in]` lines for recipient name/email.
-
 ## Pre-cutover checklist
 
 In rough order of dependency:

@@ -1,8 +1,12 @@
 # PDF Extraction Calibration — D05 / Task 3.9
 
-**Status**: pending — requires real-world PDFs sourced via APA (PM-facilitated).
-**Owner**: Developer agent (executes), PM (sources fixtures + signs off threshold).
-**Linked**: `.specify/features/001-nsw-calculator/tasks.md` §3.9, `dev-findings.md` D05, `impl-plan.md` §4.4, Risk R1.
+**Status**: **SKIPPED in v1** — operator decision 2026-05-24. Default thresholds (aggregate `0.85`, per-field `0.7`) ship as-is. The remainder of this document is retained as historical context if calibration is ever revisited post-launch (trigger: production telemetry showing inappropriate banner behaviour).
+**Owner**: n/a in v1.
+**Linked**: `.specify/features/001-nsw-calculator/tasks.md` §3.9, `dev-findings.md` D05, `impl-plan.md` §4.4, Risk R1, `docs/launch/LAUNCH-GUARD.md` Documented Risk.
+
+---
+
+## Original plan (retained for reference, not executing in v1)
 
 ## Why this exists
 

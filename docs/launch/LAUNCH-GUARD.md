@@ -60,9 +60,9 @@ but it's not a hard gate.
 
 PDF extraction is shipping with default confidence thresholds
 (aggregate `0.85`, per-field `0.7`) in
-`website/src/lib/lsl/parsers/pdf/confidence.ts`. The 50-PDF
-calibration set (task 3.9 in the original Phase 3 plan) has been
-deferred to Phase 6.
+`website/src/lib/lsl/parsers/pdf/confidence.ts`. Operator decided
+2026-05-24 to **skip calibration in v1** — the original task 3.9
+50-PDF calibration set has been dropped.
 
 Without real-world calibration data the confidence gate is informed
 by synthetic test fixtures only. Both directions of error are
@@ -79,10 +79,13 @@ every extracted field regardless of confidence score. A wrongly-tuned
 threshold cannot ship bad LSL values to a customer — it can only
 mis-decorate the preview.
 
-**Owner**: PM — sourcing labelled real-world payroll PDFs (source TBD; original APA-member-contribution plan was dropped when the calculator was de-integrated from the APA portal).
+**Post-launch trigger to revisit**: if real production telemetry
+shows the banner firing inappropriately (too often / too rarely),
+re-open the calibration work then.
 
 **Cross-reference**: `docs/engineering/pdf-extraction-calibration.md`
-for the full execution plan and the (a) / (b) ship-or-hold trade-off.
+for the original execution plan, retained as historical context if
+calibration is ever revisited.
 
 ---
 
