@@ -1,4 +1,4 @@
-# LSL Calculator · Epic Status · Last updated: 2026-05-24 · E1 NSW SHIPPED (Phases 1+2+3 live on lsl-calculator.vercel.app) · E2 Phase 1 foundation in PR #8
+# LSL Calculator · Epic Status · Last updated: 2026-05-24 · E1 NSW SHIPPED (Phases 1+2+3 live on lsl-calculator.vercel.app) · E2 Phase 1 foundation merged (PR #8 at `56ae5fd`) · E2 Phase 3 T3.0 VIC test-cases drafted (awaiting PM sign-off)
 
 ## Pipeline stages
 
@@ -17,7 +17,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 | Epic | Status | % done (est) | Pipeline | Open bugs | Closed bugs | Notes |
 |------|--------|--------------|----------|-----------|-------------|-------|
 | E1 · NSW Calculator | ✅ done | 100% | ●●●●● | 0 | 6 (Q-01..Q-04 fixed in PR #3; Q-05/Q-06 pre-existing single-mode items, separate cleanup ticket) | **SHIPPED 2026-05-24.** Phases 1+2+3 live on https://lsl-calculator.vercel.app (`lsl.austpayroll.com.au` pending DNS). PR #3 squash-merged at `50061f5`. Architectural fix removed server-side pdfjs (issue #5) in favour of Anthropic document content block. 319 unit tests + 92 Playwright across 4 browsers. Phase 7 (opt-in logins) deferred post-launch. |
-| E2 · All-State Coverage | 🔄 in flight | 20% | ●●○○○ | 0 | 0 | Spec v0.3.0 + impl-plan + tasks committed (10 phases, 76 tasks). **Phase 1 foundation in PR #8** on `e2-phase-1-foundation` (StateRuleSet + dispatcher + telemetry + CI matrix; NSW byte-identical 153/153; 344/344 unit + 23/23 Playwright dev + 23/23 production-bundle). QA PASSES WITH NOTES. Next action: merge PR #8, then start Phase 2 (mixed-state bulk CSV) or Phase 3 (VIC engine). |
+| E2 · All-State Coverage | 🔄 in flight | 25% | ●●○○○ | 0 | 0 | Spec v0.3.0 + impl-plan + tasks committed (10 phases, 76 tasks). **Phase 1 foundation MERGED** (PR #8 at `56ae5fd`). **Phase 3 T3.0 VIC test-cases drafted** at `docs/qa/test-cases-vic.md` (61 cases, 13 TBDs flagged — awaiting PM sign-off to unblock T3.1+). Next action: PM sign off VIC test-cases OR resolve TBD-VIC-01/08/12 first, then start T3.1 (VIC rule-set scaffold). |
 | E3 · Audit Upload and Variance Report | ☐ planned | 0% | ○○○○○ | 0 | 0 | Moved ahead of API integrations on PM direction (2026-05-21). CSV-only ingest. |
 | E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. Depends on E2 having ≥2-3 states encoded. |
 
@@ -59,9 +59,10 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
   - **RES-4 (mixed-state bulk timing)**: Mixed-state CSV accepted from v1 (day one). Per-row `state` column is **mandatory**. Row-level validation surfaces unrecognised/empty states as errors; valid rows in the same batch still process.
   - **RES-5 (cross-jurisdictional advisory heuristic)**: F13 manual nomination remains MUST in v1; F25 heuristic advisory removed from v1 scope and deferred to v2.
   - **RES-6 (sign-off authority)**: PM-only sign-off per state. **No APA-engaged payroll specialist co-signer.** Per-state launch gate (AC4b) = PM signoff on `test-cases.md` + automated suite 100% green in CI on merge commit.
-- **Phase 1 status (PR #8)**: feature-complete. NSW gold-standard 153/153 byte-identical. State-selector component built behind `NEXT_PUBLIC_STATE_SELECTOR_ENABLED` (not rendered on any page yet — wired in during Phase 3). cash_out trigger scaffold added. CI matrix workflow scaffolded. QA verdict: PASSES WITH NOTES.
-- **Pre-flight blockers**: **None.**
-- **Next action**: merge PR #8, then start Phase 2 (mixed-state bulk CSV) or Phase 3 (VIC engine — gated on T3.0 PM-signed `docs/qa/test-cases-vic.md`).
+- **Phase 1 status**: MERGED to `main` at `56ae5fd` (PR #8). NSW gold-standard 153/153 byte-identical. State-selector component built behind `NEXT_PUBLIC_STATE_SELECTOR_ENABLED` (not rendered on any page yet — wired in during Phase 3). cash_out trigger scaffold added. CI matrix workflow scaffolded. QA verdict: PASSES WITH NOTES.
+- **Phase 3 T3.0 status**: VIC test-cases document drafted at `docs/qa/test-cases-vic.md` on branch `pm/vic-test-cases`. 61 test cases (53 single-mode + 3 bulk-mode + 5 transitional + edge cases) covering VIC LSL Act 2018 sections 6–17, 22–23, 34, 57 + 1992 Act provisions preserved via s.57. 13 TBDs flagged for PM decision — TBD-VIC-01 (dual-regime interpretation), TBD-VIC-08 (LWOP cumulative-vs-per-period 52-wk cap), and TBD-VIC-12 (spec citation correction s.67 → s.34) are Severity 1 and MUST be resolved before T3.2.
+- **Pre-flight blockers**: **None.** T3.0 in PM review; T3.1+ gated on PM sign-off of `test-cases-vic.md`.
+- **Next action**: PM resolves Severity-1 TBDs and signs `docs/qa/test-cases-vic.md`, then T3.1 (VIC rule-set scaffold) unblocks. Phase 2 (mixed-state bulk CSV foundation) can run in parallel with VIC work per impl-plan §Effort summary.
 
 ### E3 · Audit Upload and Variance Report
 - **Phase**: Phase 1
