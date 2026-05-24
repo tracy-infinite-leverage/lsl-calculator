@@ -1,12 +1,45 @@
 # VIC LSL Calculator — Gold-Standard Test Cases
 
-**Status**: Draft v1 — awaiting PM sign-off
+**Status**: SIGNED OFF · Tracy Angwin (PM) · 2026-05-24 — Phase 3 T3.1 unblocked
+**Version**: v1.0
 **Date**: 2026-05-24
-**Spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.0
-**Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` Phase 3 (VIC)
-**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T3.0 (blocking)
+**Spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
+**Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` Phase 3 (VIC) — re-scoped per TBD-VIC-01 resolution
+**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T3.0 (SIGNED OFF)
 
-> **Gate**: This file MUST be PM-signed-off before T3.1 (VIC rule-set scaffold) or any other VIC engine work starts. The rules-engine CI suite encodes every case below as a parameterised test; a single failing case in any VIC fixture blocks deploy of VIC rules to production. Per E2 AC4b, the per-state launch gate is (1) PM sign-off on this file + (2) the gold-standard suite passing 100% green on the merge commit. No additional human review is required.
+> **PM sign-off — 2026-05-24 (Tracy)**: all 13 TBDs at the bottom of this file are resolved; resolutions inline below and summarised in the Resolutions section. T3.1 (VIC rule-set scaffold) may proceed. Per E2 AC4b, the per-state launch gate is (1) PM sign-off on this file + (2) the gold-standard suite passing 100% green on the merge commit. No additional human review is required.
+
+**Original draft status**: Draft v1 (HEAD `d7d78ca`, 2026-05-24)
+**Spec at original drafting**: v0.3.0
+
+---
+
+## Resolutions (PM sign-off 2026-05-24)
+
+All 13 TBDs flagged in the original draft are resolved. Resolutions are folded into the relevant test cases above; this section is the audit record. The full TBD register at the bottom of this document is preserved (each item annotated `RESOLVED`) so the rationale remains discoverable.
+
+| TBD | Severity | Resolution |
+|---|---|---|
+| **TBD-VIC-01** — Dual-regime interpretation | 1 | **Single rule set with date-aware continuous-service handling.** PM's reading accepted: VIC LSL Act 2018 s.6 calculates entitlement on the employee's *total* period of continuous employment (singular, undivided). The transitional rules in s.57 affect *which absences count* toward continuous employment, not the entitlement-weeks formula. The "dual rule sets" language in the original impl-plan §3 is re-scoped to "two continuous-service-rule modules feeding the same accrual formula". The pre/post-1-November-2018 split applies to *per-absence rule selection* (absences started pre-1/11/2018 → 1992 Act continuous-service rules; absences started on/after → 2018 Act rules), not to two parallel entitlement engines. See impl-plan v0.3.1 §3. |
+| **TBD-VIC-02** — Casual under-12-wk gap and accrual | 2 | **Hours-based accrual confirmed.** For casuals, the gap preserves continuity (s.12(3)) but does NOT add hours to the s.16 averaging numerator. TC-VIC-006 expected output unchanged. Engine treats the gap as days excluded from accrual but NOT a break of service. |
+| **TBD-VIC-03** — Engine warning code for VIC 12-wk gap | 2 | **State-agnostic code `gap_exceeds_state_tolerance` with state-specific message text.** The existing `gap_exceeds_2mo` enum value in `engine/types.ts` is NSW-specific by name; a small follow-up refactor renames it to `gap_exceeds_state_tolerance` and parameterises the message per state. Tracked as a Phase 1 engine-types refactor task (developer to schedule alongside T3.2). TC-VIC-010 expected `warnings[0].code` updated to `gap_exceeds_state_tolerance`. |
+| **TBD-VIC-04 / TBD-VIC-05** — APA practice activities expected values | 2 | **(a) Accepted as PM-derived gold-standard.** Same model used for NSW Practice 1(C) (Bevan). The gold-standard suite covers the calculation logic, not the APA training's specific worked answer. TC-VIC-012/013/014 expected values stand as PM-derived. Fixture notes already label these "PM-derived" — no additional flagging required. |
+| **TBD-VIC-06** — 7-year boundary inclusivity | 2 | **Inclusive at exactly 7 years 0 days.** PM's reading accepted: "after completing 7 years of continuous employment" is read inclusive of the exact 7-year boundary. The engine threshold is `years_of_continuous_service >= 7.0000`. TC-VIC-016 stands. |
+| **TBD-VIC-07** — Sub-7-year UI advisory for death/illness | 3 | **Yes — non-blocking advisory.** When trigger = death or illness at sub-7-yr tenure, the engine emits a UI advisory: "No LSL entitlement under VIC LSL Act 2018 s.6. Review applicable industrial instrument, EA, or contract — these may provide more favourable terms than the statutory minimum." Implemented in T3.5 (UI integration). TC-VIC-018 expected output gains a `warnings[]` entry with code `sub_7yr_review_industrial_instrument`. |
+| **TBD-VIC-08** — LWOP 52-wk cap scope | 1 | **Per LWOP period.** PM accepts the plain-text reading of s.13(1)(b): "if a period of unpaid leave is less than or is 52 weeks, that period [counts]" — each `leave_without_pay` event treated independently. No WIV phone consultation needed; the Act text is sufficient. TC-VIC-035 stands at `days_excluded_from_service: 0`. **TC-VIC-036 expected output corrected**: under per-period interpretation, all four LWOP periods are individually under 52 wks → `days_excluded_from_service: 0` (was `189` under the cumulative reading). |
+| **TBD-VIC-09** — Olivia day-precise vs month-rounded arithmetic | 3 | **Day-precise arithmetic accepted.** Engine computes `days_excluded_from_service` from explicit start/end dates; APA's "first 6 months" wording is shorthand for the day-precise calculation. TC-VIC-037 stands. |
+| **TBD-VIC-10** — 1992 Act citation precision | 2 | **APA training pages accepted as practical source-of-truth.** The 1992 Act is repealed; APA training (`docs/features/LSL-training.pdf` p.34-35) is the operational compendium. Engine emits citations of the shape `{ section: "VIC LSL Act 1992 s.62(2)(g)", rule: "...", pdfPage: 35, note: "Per APA LSL Masterclass; legacy provision preserved via 2018 Act s.57" }`. If a direct 1992 Act extract is needed later (e.g. for a tribunal-grade citation), it can be added in a follow-up without changing engine code. |
+| **TBD-VIC-11** — s.15 vs s.16 rate computation when hours have changed | 2 | **PM's two-case reading accepted.** For employees *without* a fixed ordinary time rate of pay (varied-rate, commission, piece), apply s.15(2) directly on weekly gross. For employees *with* a fixed rate but varied hours, apply s.16 to compute average weekly hours, then multiply by the fixed rate to derive value-of-week. The classifier in `calculateVIC` makes this distinction by inspecting whether the employee's wage history has stable per-hour gross (fixed-rate path) or volatile gross (varied-rate path). TC-VIC-044 (fixed rate + varied hours) keeps the s.16+s.15(2)(c) citation pair. |
+| **TBD-VIC-12** — E2 spec citation correction (s.67 → s.34) | 1 | **Spec corrected.** E2 spec v0.3.1 amends every reference from "LSL Act 2018 (Vic) s.67" to "LSL Act 2018 (Vic) s.34" (Part 3 Division 3 — Offences, the cashing-out prohibition). The APA training PDF p.47 also incorrectly cites s.67; the engine MUST cite s.34. TC-VIC-050 → TC-VIC-053 citation blocks stand (already use s.34 — they were ahead of the spec). See note below re. APA training PDF correction. |
+| **TBD-VIC-13** — s.8 leave in advance and s.22 half-pay | 3 | **Both deferred from v1.** Engine recognises these triggers exist (citation note in the cash-out hard error suggests s.22 as a lawful alternative) but does NOT compute scenarios involving them. Trigger types `leave_in_advance` and `half_pay` are out of v1 scope — any such request returns an `unsupported_in_v1` error. Re-evaluate in v2. |
+
+### External: APA training PDF correction
+
+The APA LSL Masterclass PDF (`docs/features/LSL-training.pdf` p.47) incorrectly cites the cashing-out prohibition as "s.67" of the *Long Service Leave Act 2018* (Vic). The authorised Act text places this provision at **s.34** (Part 3 Division 3 — Offences). This document and the engine cite s.34 (the correct section); the APA training PDF is the external source of the error.
+
+**Action**: Surface this to APA's training team for correction in the next PDF revision. **Not a launch blocker** for the calculator — the engine cites s.34 correctly. Tracked here so the operator can forward the correction to APA when convenient.
+
+---
 
 **Sources of legal truth**:
 - *Long Service Leave Act 2018* (Vic) No. 12 of 2018 — authorised consolidation, current at 12 Dec 2025. Cited as **"VIC LSL Act 2018 s.N"**.
@@ -73,6 +106,8 @@ Each test case has:
 
 ## Dual-regime handling — what "pre/post 1 November 2018" actually means
 
+> **Resolved interpretation (TBD-VIC-01, PM 2026-05-24)**: ONE rule set with date-aware continuous-service handling. The 2018 Act governs the *current entitlement calculation for all ongoing employees* via s.6. The 1992 Act rules survive only via s.57 of the 2018 Act and affect *which absences count* toward continuous employment — NOT the entitlement-weeks formula. Impl-plan §3 is re-scoped accordingly (one rule set with two continuous-service-rule modules selected by absence start date).
+
 The E2 spec calls VIC a "dual-regime" state. After full research the model is more nuanced than two parallel rule sets running in parallel. The 2018 Act governs the **current entitlement calculation for all ongoing employees**. The 1992 Act rules survive only via the transitional provision in s.57 of the 2018 Act, which has two effects:
 
 1. **s.57(1)** — An absence from work that **started before 1 November 2018** and which was treated as an interruption (i.e. broke continuous employment) under s.62(2), s.62(3), or s.62A(1) of the 1992 Act remains an interruption under the 2018 Act. The 2018 Act's more permissive rules (e.g. up to 52 weeks unpaid leave counting as service) do NOT retrospectively rescue continuity that was already broken under the 1992 Act.
@@ -87,11 +122,9 @@ The E2 spec calls VIC a "dual-regime" state. After full research the model is mo
 
 The engine therefore does NOT split entitlement weeks between two regimes (the 1/60 ratio is unchanged across both Acts — the APA training is explicit, p.32 and p.45). What the engine DOES do is apply the correct continuous-employment rule to each historical absence based on **the date that absence started**.
 
-The "dual rule sets `rules-pre-2018/` and `rules-post-2018/`" referred to in impl-plan §3 / T3.2–T3.3 is therefore not two parallel entitlement engines but two **continuous-service rule sets**: one applies the s.62/62A/63 rules of the 1992 Act to pre-1/11/2018 absences, the other applies the s.12/13/14 rules of the 2018 Act to post-1/11/2018 absences. Both feed the same s.6 accrual formula.
+The two **continuous-service rule modules** referenced in impl-plan v0.3.1 §3 are therefore not two parallel entitlement engines: one module applies the s.62/62A/63 rules of the 1992 Act to pre-1/11/2018 absences, the other applies the s.12/13/14 rules of the 2018 Act to post-1/11/2018 absences. Both feed the same s.6 accrual formula in a single VIC rule set.
 
-This interpretation is reflected in the test cases below — the regime split is in `serviceEvents` interpretation, not in entitlement-weeks calculation.
-
-> **TBD-VIC-01** flagged for operator: confirm this transitional interpretation before T3.2/T3.3 implementation. The alternative reading (two entitlement formulas applied to two segments of service, summed) is not supported by the 2018 Act's plain text (s.6 applies to the total period of continuous employment, not segments) but a contrary practice note may exist that we have not surfaced.
+This interpretation is reflected in the test cases below — the regime split is in `serviceEvents` interpretation, not in entitlement-weeks calculation. **RESOLVED 2026-05-24 — TBD-VIC-01.**
 
 ---
 
@@ -406,7 +439,7 @@ expected_citations:
 
 APA p.35 verbatim: "Jennifer is a casual waitress at the local pub. She is going away to Europe for 2 months. As the absence is under 12 weeks then her service will be deemed continuous."
 
-The unpaid-2-month leave is treated as unpaid leave UNDER 52 weeks → counts as service per s.13(1)(b). But because it's a worker-initiated absence under 12 wks for a casual specifically, the alternate framing in s.12(3) (casual continuity) also applies. The result is the same: continuous service, accrual continues. **Practitioner note**: APA p.33 lists this as "unpaid leave up to 52 weeks — does count". The expected `days_excluded_from_service: 61` figure assumes the gap is *not* paid leave and the engine still applies the standard "absent unpaid days don't generate accrual on a casual hours basis". TBD-VIC-02 flagged.
+The unpaid-2-month leave is treated as unpaid leave UNDER 52 weeks → counts as service per s.13(1)(b). But because it's a worker-initiated absence under 12 wks for a casual specifically, the alternate framing in s.12(3) (casual continuity) also applies. The result is the same: continuous service, accrual continues. **Practitioner note**: APA p.33 lists this as "unpaid leave up to 52 weeks — does count". The expected `days_excluded_from_service: 61` figure assumes the gap is *not* paid leave and the engine still applies the standard "absent unpaid days don't generate accrual on a casual hours basis" — **RESOLVED 2026-05-24 (TBD-VIC-02)**: for casuals, accrual is hours-based per s.16; the gap preserves continuity but adds no hours to the numerator.
 
 ---
 
@@ -590,7 +623,7 @@ total_entitlement_weeks: 0.2918
 value_of_week: 2000.00
 total_entitlement_dollars: 583.51
 warnings:
-  - { code: gap_exceeds_2mo, message: "Re-hire gap exceeded VIC's 12-week limit — prior service not preserved per VIC LSL Act 2018 s.12(6)(a)." }
+  - { code: gap_exceeds_state_tolerance, message: "Re-hire gap exceeded VIC's 12-week limit — prior service not preserved per VIC LSL Act 2018 s.12(6)(a)." }
 expected_citations:
   - { section: VIC LSL Act 2018 s.12(6)(a), rule: continuous-service.gap-exceeds-12wks-breaks-service, pdfPage: 36 }
 ```
@@ -599,7 +632,7 @@ expected_citations:
 
 APA p.36 Example 3: "Liam has been terminated due to redundancy. The employer offers to hire him back in another role 4 months later. For Long Service Leave purposes, his prior service is not recognised as he is returning after 12 weeks." Direct contrast pair with TC-VIC-008/TC-VIC-009.
 
-Warning code reused from NSW for now (`gap_exceeds_2mo`) — engine MUST add a VIC-specific code in T3.2 (`gap_exceeds_12wks_vic`) since the wording and threshold differ. TBD-VIC-03 flagged.
+**RESOLVED 2026-05-24 (TBD-VIC-03)**: state-agnostic warning code `gap_exceeds_state_tolerance` with state-specific message text. The NSW `gap_exceeds_2mo` enum value in `engine/types.ts` is renamed to `gap_exceeds_state_tolerance` in a small engine-types refactor scheduled alongside T3.2. NSW message preserves "2 months" wording; VIC message uses "12 weeks". Both states refer to the same enum.
 
 ---
 
@@ -748,7 +781,7 @@ expected_citations:
 
 APA p.45 Practice 2(B) is a blank-template exercise. The 1.5-yr UPL is all post-1/11/2018 (start 2023-01-01) so the 2018 Act rules apply with no transitional split. Year-count calc: total elapsed = 12.1 yrs, minus 26 wks UPL excluded = 0.4986 yrs → 11.6014 yrs (rounding here approximates). Fixture above uses 11.5973 to reflect day-precise arithmetic — engine should compute from dates directly.
 
-> **TBD-VIC-04** — APA's blank-template practice activities do not state expected answers. PM to confirm independently computed values OR mark these as "engine-output trust" fixtures (the test asserts shape and citation block, but the numeric value is not validated against an APA-stated number).
+**RESOLVED 2026-05-24 (TBD-VIC-04)**: PM-derived values accepted as gold-standard. Same model used for NSW Practice 1(C) (Bevan). The gold-standard suite covers the calculation logic; APA's blank templates do not constrain the expected numeric output.
 
 ---
 
@@ -809,7 +842,7 @@ APA p.46 is again a blank-template exercise. Expected `value_of_week = $1,330.00
 
 The 9.2-wk leave previously taken comes verbatim from the practice statement. Engine subtracts weeks, not dollars (same convention as NSW TC-NSW-002).
 
-> **TBD-VIC-05** — APA does not publish the answer to Practice 2(C). PM to validate the 260-wk-avg calculation. The fixture should be marked "PM-derived" not "APA-verbatim".
+**RESOLVED 2026-05-24 (TBD-VIC-05)**: PM-derived values accepted as gold-standard. Fixture is labelled "PM-derived" — the 260-wk average calculation (`8645 / 260 × $40 = $1,330/wk`) is verbatim formula application from APA-published rules.
 
 ---
 
@@ -897,9 +930,7 @@ expected_citations:
 
 **Notes**
 
-The Act language "after completing 7 years" is treated as inclusive at the 7-yr exact boundary. The APA training matrix p.43 confirms: "After 7 years, all accrual is entitlement." Engine MUST treat `years_of_continuous_service >= 7` as the threshold.
-
-> **TBD-VIC-06** — should the inclusive boundary be `>= 7.0000` (7 full years to the day) or `> 7.0000` (one day after)? The Act says "after completing" which in plain reading is inclusive at the exact moment. PM to confirm.
+The Act language "after completing 7 years" is treated as inclusive at the 7-yr exact boundary. The APA training matrix p.43 confirms: "After 7 years, all accrual is entitlement." Engine MUST treat `years_of_continuous_service >= 7` as the threshold. **RESOLVED 2026-05-24 (TBD-VIC-06)** — inclusive at exactly 7 years 0 days.
 
 ---
 
@@ -970,6 +1001,8 @@ years_of_continuous_service: 6.5000
 total_entitlement_weeks: 0.0000
 total_entitlement_dollars: 0.00
 payment_recipient: "estate, on request"     # remains documented even at $0
+warnings:
+  - { code: sub_7yr_review_industrial_instrument, message: "No LSL entitlement under VIC LSL Act 2018 s.6. Review applicable industrial instrument, EA, or contract — these may provide more favourable terms than the statutory minimum." }
 expected_citations:
   - { section: VIC LSL Act 2018 s.6,  rule: accrual.sub-7yr-no-entitlement-any-reason, pdfPage: 43 }
   - { section: VIC LSL Act 2018 s.10, rule: trigger.termination.death.estate-payable, pdfPage: 43, note: "Estate would receive payment IF entitlement existed; below 7yr threshold yields nil" }
@@ -979,7 +1012,7 @@ expected_citations:
 
 VIC LSL Act 2018 has no equivalent of NSW LSA s.4(2)(iii)(d) (5-yr pro-rata on death). The 7-yr qualifying period is absolute regardless of termination reason. The s.10 citation is shown to make explicit the engine recognised the death-trigger and the recipient is the estate (the question of "would there be an estate payment" is recorded in the citation block even when the dollar amount is zero).
 
-> **TBD-VIC-07** — should the engine emit a UI advisory when termination = death at sub-7-yr tenure: "no LSL entitlement under VIC LSL Act 2018 s.6; review applicable industrial instrument or contract which may provide more favourable terms"? Some EAs and awards top up below the statutory minimum.
+**RESOLVED 2026-05-24 (TBD-VIC-07)**: engine emits a non-blocking advisory warning (`sub_7yr_review_industrial_instrument`) when trigger is death or illness at sub-7-yr tenure. The calculator's role ends at statute; the user is best served by being reminded that statutory may not be the full picture. Implemented in T3.5 (UI integration).
 
 ---
 
@@ -1284,37 +1317,37 @@ expected_citations:
   - { section: VIC LSL Act 2018 s.13(1)(d)(ii), rule: continuous-service.unpaid-leave-written-agreement-uncapped, pdfPage: 33 }
 ```
 
-### TC-VIC-035 — Multiple short LWOP totalling 51 wks across 12 mo (still under 52 wk cap)
+### TC-VIC-035 — Multiple short LWOP totalling 51 wks across 12 mo (all count, per-period)
 
 ```yaml
 serviceEvents:
   - { type: leave_without_pay, startDate: 2025-01-01, endDate: 2025-04-30, note: "17 wks LWOP" }
   - { type: leave_without_pay, startDate: 2025-08-01, endDate: 2025-12-15, note: "20 wks LWOP" }
-  - { type: leave_without_pay, startDate: 2026-02-01, endDate: 2026-04-15, note: "14 wks LWOP — cumulative 51 wks" }
+  - { type: leave_without_pay, startDate: 2026-02-01, endDate: 2026-04-15, note: "14 wks LWOP" }
 expected:
-  days_excluded_from_service: 0           # cumulative still under 52 wks → all counts
+  days_excluded_from_service: 0           # each period independently under 52 wks → all count per s.13(1)(b)
 ```
 
 **Notes**
 
-> **TBD-VIC-08** — The Act is silent on cumulative aggregation of multiple short unpaid-leave periods. Does s.13(1)(b) apply to each unpaid-leave period separately (so 3 × 17-wk LWOP all count), OR does the 52-week cap apply cumulatively across the whole period of continuous employment? PM to confirm. Engine MUST be told which interpretation to apply BEFORE T3.2.
+**RESOLVED 2026-05-24 (TBD-VIC-08)**: per-period interpretation accepted. s.13(1)(b) reads "if a period of unpaid leave is less than or is 52 weeks, that period [counts]" — each `leave_without_pay` event is treated independently. All three periods here are individually under 52 wks → all count as service.
 
-### TC-VIC-036 — Multiple LWOP totalling 78 wks across 4 yrs (one beyond cumulative cap)
+### TC-VIC-036 — Multiple LWOP totalling 79 wks across 4 yrs (all count, per-period)
 
 ```yaml
 serviceEvents:
   - { type: leave_without_pay, startDate: 2022-01-01, endDate: 2022-04-15 }  # 15 wks
   - { type: leave_without_pay, startDate: 2023-01-01, endDate: 2023-04-15 }  # 15 wks
   - { type: leave_without_pay, startDate: 2024-01-01, endDate: 2024-08-30 }  # 35 wks
-  - { type: leave_without_pay, startDate: 2025-09-01, endDate: 2025-12-08 }  # 14 wks — cumulative 79 wks
+  - { type: leave_without_pay, startDate: 2025-09-01, endDate: 2025-12-08 }  # 14 wks
 expected:
   status: computed
-  days_excluded_from_service: 189    # 27 wks excess over 52-wk cap if cumulative interpretation
+  days_excluded_from_service: 0    # each period independently under 52 wks → all count per s.13(1)(b) (per-period interpretation, TBD-VIC-08)
 ```
 
 **Notes**
 
-Tied to TBD-VIC-08. If cumulative: 27 wks excluded. If per-period: 0 wks excluded (each period under 52 wks). PM decision required.
+**RESOLVED 2026-05-24 (TBD-VIC-08)**: under the per-period interpretation, all four LWOP periods here are individually under the 52-week cap (max is 35 wks) → all count as service. `days_excluded_from_service: 0`. If a future case has a single period exceeding 52 wks, only the excess of *that period* is excluded (consistent with TC-VIC-003 Olivia treatment).
 
 ---
 
@@ -1365,7 +1398,7 @@ expected_citations:
 
 This case implements the APA p.33 reading. Critical: in the 1992 Act, UPL did not count as service at all; only on/after 1 November 2018 does the 52-wk-counts rule apply (and applies to the portion of the absence post-1/11/2018). APA training is explicit on this Olivia example.
 
-> **TBD-VIC-09** — APA's exact numerics on p.33 don't quite match this fixture's because APA's note says "the first 6 months are excluded" but a precise calc shows 184 days = 6.07 months. PM to verify the engine's day-precise arithmetic is acceptable vs. APA's month-rounded explanation.
+**RESOLVED 2026-05-24 (TBD-VIC-09)**: day-precise arithmetic accepted. The engine computes `days_excluded_from_service` from explicit start/end dates; APA's "first 6 months" wording is shorthand for the day-precise calculation. 184 days ≈ 6.07 months is within rounding tolerance.
 
 ### TC-VIC-038 — Employee with all pre-2018 service that was subject to 1992 break-rules
 
@@ -1405,7 +1438,7 @@ expected_citations:
 
 **Notes**
 
-> **TBD-VIC-10** — The exact 1992 Act provisions governing LWOP / non-illness-injury unpaid leave are not fully extracted in this document. The fixture assumes the 1992 Act treated non-illness unpaid leave above some threshold as breaking continuity (it did — generally treated as a break unless agreement was in place). PM to confirm or supply the precise 1992 Act section for the legacy break rule. The engine code path is correct (apply 1992 rules to pre-2018-started absences); the citation specifics may need adjustment.
+**RESOLVED 2026-05-24 (TBD-VIC-10)**: APA training pages (`docs/features/LSL-training.pdf` p.34-35) accepted as the practical source-of-truth for legacy 1992 Act provisions preserved via s.57. The 1992 Act is repealed; APA training is the operational compendium. Citations of the form `{ section: "VIC LSL Act 1992 s.62(2)(g)", rule: "...", pdfPage: 35, note: "Per APA LSL Masterclass; legacy provision preserved via 2018 Act s.57" }` are accepted. If a tribunal-grade direct extract is needed later, it can be added without changing engine code.
 
 ### TC-VIC-039 — Pre-2018 illness > 48 weeks in any year (1992 Act cap)
 
@@ -1508,7 +1541,7 @@ expected_citations:
 
 **Notes**
 
-> **TBD-VIC-11** — APA p.41 says "if hours have changed in the last 2 years, then refer to casual calculation below" — this suggests the engine uses the s.16 hours-averaging formulas. But s.15(2) is parallel (avg weekly rate, not avg weekly hours). The actual rate-of-pay calc is: avg-hours × current-hourly-rate? Or avg-weekly-pay-as-earned? APA training is ambiguous. PM should validate against legal counsel or WIV guidance before T3.2.
+**RESOLVED 2026-05-24 (TBD-VIC-11)**: two-case reading accepted. For employees *without* a fixed ordinary time rate of pay (varied-rate, commission, piece), apply s.15(2) directly on weekly gross. For employees *with* a fixed rate but varied hours (this case), apply s.16 to compute average weekly hours, then multiply by the fixed hourly rate to derive value-of-week. The classifier in `calculateVIC` distinguishes these by wage-history characteristics (stable per-hour gross → fixed-rate path; volatile gross → varied-rate path). TC-VIC-044 keeps the s.16+s.15(2)(c) citation pair.
 
 ### TC-VIC-045 — Casual, hours always varied → s.16(2) all three averages computed
 
@@ -1654,7 +1687,7 @@ page_event:
 
 **Notes**
 
-CRITICAL: APA training PDF p.47 cites this as "s.67" but the **authorised Act text** (Section 34 of the 2018 Act, in Part 3 Division 3 — Offences) is the correct citation. APA's citation is wrong. Engine MUST cite s.34. This is also raised as a recommended fix to the E2 spec: AC5 / F5 reference "s.67" which is incorrect. **TBD-VIC-12** flagged for operator.
+CRITICAL: APA training PDF p.47 cites this as "s.67" but the **authorised Act text** (Section 34 of the 2018 Act, in Part 3 Division 3 — Offences) is the correct citation. APA's citation is wrong. Engine MUST cite s.34. **RESOLVED 2026-05-24 (TBD-VIC-12)**: E2 spec v0.3.1 corrects every "s.67" reference to "s.34". The APA training PDF on disk still has the s.67 error and is surfaced to APA's training team as an external correction request (see "External: APA training PDF correction" in the Resolutions section above). Not a launch blocker for the calculator.
 
 The page-event payload MUST be null — the spec's S2 requires that no input PII is logged for hard-error cases. Engine MUST emit `vic_cashout_hard_error` with `payload: null` only.
 
@@ -1977,11 +2010,11 @@ The s.34 hard error MUST be per-row, not batch-aborting. Bulk users may have a m
 
 ---
 
-# Items flagged `TBD-VIC-NN` — open questions requiring operator decision before T3.2
+# Items flagged `TBD-VIC-NN` — ✅ RESOLVED by PM 2026-05-24
 
-These TBDs are listed in order of severity. **Severity 1** items must be resolved before VIC engine code is written; **Severity 2** items can be resolved during T3.2/T3.3 with engine-level placeholders; **Severity 3** items are documentation-only refinements.
+All 13 items below are resolved. Resolutions are folded into the relevant test cases above and summarised in the **Resolutions** section at the top of this file. This section is preserved as the audit record of the questions originally raised.
 
-### TBD-VIC-01 — [Severity 1] Dual-regime interpretation
+### TBD-VIC-01 — [Severity 1] Dual-regime interpretation — ✅ RESOLVED 2026-05-24
 
 **Question**: Does the VIC "dual regime" actually mean two parallel entitlement-formula engines (one applying 1992 Act, one applying 2018 Act, summed across the employee's tenure)? Or does it mean a single 2018 Act entitlement formula with per-absence rule selection (1992 rules for absences started pre-1/11/2018, 2018 rules for absences started on/after)?
 
@@ -1991,7 +2024,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: T3.1 (rule-set scaffold).
 
-### TBD-VIC-02 — [Severity 2] Casual under-12-wk gap and accrual
+### TBD-VIC-02 — [Severity 2] Casual under-12-wk gap and accrual — ✅ RESOLVED 2026-05-24
 
 **Question**: For TC-VIC-006 (Jennifer, casual on 2-mo holiday), does the gap count toward accrual? APA p.33 says unpaid leave up to 52 wks "does count" — implying it counts as service AND adds to accrual. But casual accrual is typically based on hours worked (s.16), which would be zero during a holiday gap. Is the engine accruing on calendar time or on hours worked?
 
@@ -1999,7 +2032,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: T3.2.
 
-### TBD-VIC-03 — [Severity 2] Engine warning code for VIC 12-wk gap
+### TBD-VIC-03 — [Severity 2] Engine warning code for VIC 12-wk gap — ✅ RESOLVED 2026-05-24
 
 **Question**: TC-VIC-010 reuses NSW's `gap_exceeds_2mo` warning code. Should the engine introduce a VIC-specific code like `gap_exceeds_12wks_vic`, or keep a state-agnostic `gap_breaks_continuity` code with state-specific message?
 
@@ -2007,7 +2040,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: T3.2 + a small engine-types refactor task.
 
-### TBD-VIC-04 / TBD-VIC-05 — [Severity 2] APA practice activities expected values
+### TBD-VIC-04 / TBD-VIC-05 — [Severity 2] APA practice activities expected values — ✅ RESOLVED 2026-05-24
 
 **Question**: APA Practice 2(A)/(B)/(C) are blank-template exercises. The expected values in TC-VIC-012/013/014 are PM-derived, not APA-verbatim. Should these be (a) accepted as PM-derived gold-standard, (b) computed by an independent VIC payroll specialist for cross-validation, or (c) marked as "engine-output trust" fixtures with shape-only assertions?
 
@@ -2015,7 +2048,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: PM sign-off of this document.
 
-### TBD-VIC-06 — [Severity 2] 7-year boundary inclusivity
+### TBD-VIC-06 — [Severity 2] 7-year boundary inclusivity — ✅ RESOLVED 2026-05-24
 
 **Question**: Is "after completing 7 years of continuous employment" (s.6) inclusive at exactly 7 years 0 days, or does it require strictly more than 7 years?
 
@@ -2023,7 +2056,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: T3.2.
 
-### TBD-VIC-07 — [Severity 3] Sub-7-year UI advisory for death/illness
+### TBD-VIC-07 — [Severity 3] Sub-7-year UI advisory for death/illness — ✅ RESOLVED 2026-05-24
 
 **Question**: When trigger = death/illness at sub-7-yr tenure (TC-VIC-018), should the engine emit a UI advisory pointing the user to potential award/EA top-ups?
 
@@ -2031,7 +2064,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: T3.5 (UI integration).
 
-### TBD-VIC-08 — [Severity 1] LWOP cumulative vs per-period 52-wk cap
+### TBD-VIC-08 — [Severity 1] LWOP cumulative vs per-period 52-wk cap — ✅ RESOLVED 2026-05-24
 
 **Question**: Does the s.13(1)(b) 52-wk-counts-as-service cap apply (a) per LWOP period, (b) cumulatively across all LWOP periods in a calendar/service year, or (c) cumulatively across the entire period of continuous employment?
 
@@ -2041,7 +2074,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: T3.2 (this is in the core continuous-service rule set).
 
-### TBD-VIC-09 — [Severity 3] Olivia day-precise vs month-rounded arithmetic
+### TBD-VIC-09 — [Severity 3] Olivia day-precise vs month-rounded arithmetic — ✅ RESOLVED 2026-05-24
 
 **Question**: APA p.33 says "6 months excluded" for Olivia. Day-precise arithmetic gives 184 days = 6.07 months. Acceptable rounding difference?
 
@@ -2049,7 +2082,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: PM sign-off.
 
-### TBD-VIC-10 — [Severity 2] 1992 Act citation precision for break-of-service
+### TBD-VIC-10 — [Severity 2] 1992 Act citation precision for break-of-service — ✅ RESOLVED 2026-05-24
 
 **Question**: The exact 1992 Act sections governing pre-2018 LWOP and break-of-service are paraphrased from APA training (p.34–35) rather than quoted from the 1992 Act directly. Is APA's account accepted as authoritative for citation purposes, or should the engine cite the 1992 Act sections directly (which would require pulling the 1992 Act text — not done in this research pass)?
 
@@ -2057,7 +2090,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: T3.2.
 
-### TBD-VIC-11 — [Severity 2] s.15 vs s.16 — rate computation when hours have changed
+### TBD-VIC-11 — [Severity 2] s.15 vs s.16 — rate computation when hours have changed — ✅ RESOLVED 2026-05-24
 
 **Question**: When hours have changed within the last 104 weeks (s.16(1)(b)), is the rate-of-pay computed as (a) `avg_hours × current_hourly_rate`, or (b) the greater of three averages of weekly gross pay computed using s.15(2)? APA p.41 and p.42 give different examples.
 
@@ -2065,7 +2098,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: T3.2 (this distinction drives the engine's classifier logic for VIC).
 
-### TBD-VIC-12 — [Severity 1] E2 spec citation correction — cashing-out section number
+### TBD-VIC-12 — [Severity 1] E2 spec citation correction — cashing-out section number — ✅ RESOLVED 2026-05-24
 
 **Question**: E2 spec v0.3.0 (`.specify/features/002-all-state-coverage/spec.md`) at AC5 / F5 cites cashing-out as "LSL Act 2018 (Vic) s.67". The authorised Act text in fact places the cashing-out prohibition at **s.34** (Part 3 Division 3 — Offences). The APA training PDF also incorrectly cites s.67 (p.47).
 
@@ -2073,7 +2106,7 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 
 **Decision needed by**: Immediately — spec correction.
 
-### TBD-VIC-13 — [Severity 3] s.8 leave in advance and s.22 half-pay — v1 scope
+### TBD-VIC-13 — [Severity 3] s.8 leave in advance and s.22 half-pay — v1 scope — ✅ RESOLVED 2026-05-24
 
 **Question**: Are s.8 (leave in advance) and s.22 (half-pay) in v1 scope, or deferred?
 
@@ -2100,11 +2133,11 @@ These TBDs are listed in order of severity. **Severity 1** items must be resolve
 ## Signature line
 
 ```
-Signed: Tracy (PM) — YYYY-MM-DD
+Signed: Tracy Angwin (PM) — 2026-05-24
 ```
 
-> PM-only sign-off per E2 spec RES-6 / AC4. No APA-specialist co-signer required. Signature here completes T3.0 and unblocks T3.1 (rule-set scaffold).
+> PM-only sign-off per E2 spec RES-6 / AC4. No APA-specialist co-signer required. Signature here completes T3.0 and unblocks T3.1 (rule-set scaffold). All 13 TBDs resolved — see Resolutions section at top.
 
 ---
 
-*End of test-cases-vic.md v1.0 — awaiting PM sign-off.*
+*End of test-cases-vic.md v1.0 — PM-signed-off 2026-05-24.*
