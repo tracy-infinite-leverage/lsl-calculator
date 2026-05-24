@@ -1,0 +1,29 @@
+{
+  "name": "TC-VIC-025",
+  "title": "9 yrs FT death → estate receives full payout (s.10(3)(b) 52-wk avg)",
+  "source": "VIC LSL Act 2018 s.10",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-025",
+      "startDate": "2017-05-24",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-24", "periodEnd": "2026-05-24", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "death" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6",         "rule": "accrual.qualifying-period-7yr-plus" },
+      { "section": "VIC LSL Act 2018 s.10",        "rule": "trigger.termination.death.estate-payable" },
+      { "section": "VIC LSL Act 2018 s.10(3)(b)",  "rule": "ordinary-pay.death-52wk-avg-immediately-before-death" }
+    ]
+  }
+}

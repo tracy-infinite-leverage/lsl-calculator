@@ -1,0 +1,80 @@
+{
+  "name": "TC-VIC-BULK-001",
+  "title": "5-employee VIC-only mixed-pattern fixture, all under 2018 Act",
+  "source": "spec F17 + AC16; impl-plan Phase 2",
+  "input": {
+    "employees": [
+      {
+        "id": "V01",
+        "startDate": "2014-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1884.62",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "98000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "V02",
+        "startDate": "2018-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "78000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "V03",
+        "startDate": "2017-05-24",
+        "employmentType": "part_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "750.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "39000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "V04",
+        "startDate": "2015-05-24",
+        "employmentType": "casual",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1057.69",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "55000.00", "frequency": "other", "periodDays": 365 }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "V05",
+        "startDate": "2020-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "78000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      }
+    ],
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "summary": { "computed": 5, "blocked": 0, "failed": 0 },
+    "rowStatuses": {
+      "V01": "computed",
+      "V02": "computed",
+      "V03": "computed",
+      "V04": "computed",
+      "V05": "computed"
+    }
+  }
+}

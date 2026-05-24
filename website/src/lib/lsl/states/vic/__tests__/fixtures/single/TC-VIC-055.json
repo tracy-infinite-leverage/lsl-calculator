@@ -1,0 +1,29 @@
+{
+  "name": "TC-VIC-055",
+  "title": "5 yrs as-at snapshot → reports 4.33 wks accrued",
+  "source": "F11 + D20 from E1 spec — as-at bypasses qualifying threshold",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-055",
+      "startDate": "2021-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-24", "periodEnd": "2026-05-24", "grossPay": "390000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["accrued_not_currently_payable"],
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6", "rule": "accrual.snapshot.no-pro-rata-threshold" }
+    ]
+  }
+}

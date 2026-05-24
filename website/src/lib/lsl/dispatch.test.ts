@@ -124,4 +124,30 @@ describe('dispatch — calculateSafe', () => {
     const r = calculateSafe(employee, asAtTrigger());
     expect(r.status).toBe('blocked_cross_jurisdiction');
   });
+
+  it('VIC cash_out returns failed Result with vic_cashout_prohibited (TC-VIC-050 path)', () => {
+    const employee = baseEmployee({
+      statesOfService: ['VIC'],
+      governingJurisdiction: 'VIC',
+      startDate: asISODate('2018-05-24'),
+    });
+    const trigger: Trigger = { kind: 'cash_out', cashOutDate: asISODate('2026-05-21') };
+    const r = calculateSafe(employee, trigger);
+    expect(r.status).toBe('failed');
+    expect(r.error?.code).toBe('vic_cashout_prohibited');
+  });
+
+  it('VIC + NSW with governing=NSW routes to NSW engine (TC-VIC-057)', () => {
+    const employee = baseEmployee({
+      statesOfService: ['VIC', 'NSW'],
+      governingJurisdiction: 'NSW',
+      startDate: asISODate('2018-05-22'),
+    });
+    const r = calculateSafe(employee, asAtTrigger());
+    expect(r.status).toBe('computed');
+    // NSW engine emits a cross-jurisdiction advisory warning
+    expect(
+      r.warnings.some((w) => w.code === 'cross_jurisdiction_pending')
+    ).toBe(true);
+  });
 });

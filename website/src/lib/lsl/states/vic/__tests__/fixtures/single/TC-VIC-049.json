@@ -1,0 +1,32 @@
+{
+  "name": "TC-VIC-049",
+  "title": "WC pre-injury rate LOWER → current rate used (s.17(2) current wins)",
+  "source": "VIC LSL Act 2018 s.17(2)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-049",
+      "startDate": "2016-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-24", "periodEnd": "2026-05-24", "grossPay": "700000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2025-08-01" }
+      ],
+      "extraInputs": {
+        "preInjuryWeeklyRate": "1200.00"
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.17(2)", "rule": "ordinary-pay.workers-comp-higher-of-rates-current-wins" }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "TC-VIC-016",
+  "title": "Exactly 7 yrs 0 days FT resignation → full payout",
+  "source": "VIC LSL Act 2018 s.6 — 'after completing 7 years' inclusive",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-016",
+      "legalName": "ExactlySevenYearsFixture",
+      "startDate": "2019-05-24",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2019-05-24", "periodEnd": "2026-05-24", "grossPay": "546000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6",       "rule": "accrual.qualifying-period-7yr-plus" },
+      { "section": "VIC LSL Act 2018 s.9(1)(b)", "rule": "trigger.termination.payable-on-day-of-termination" }
+    ]
+  }
+}

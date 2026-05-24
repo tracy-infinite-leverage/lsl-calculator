@@ -1,0 +1,28 @@
+{
+  "name": "TC-VIC-028",
+  "title": "Carer's leave (paid) counts as service",
+  "source": "VIC LSL Act 2018 s.12(2)(e), s.13(1)(a)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-028",
+      "startDate": "2017-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-24", "periodEnd": "2026-05-24", "grossPay": "702000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2025-11-01", "endDate": "2025-11-22" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.13(1)(a)", "rule": "continuous-service.paid-leave-counts" }
+    ]
+  }
+}

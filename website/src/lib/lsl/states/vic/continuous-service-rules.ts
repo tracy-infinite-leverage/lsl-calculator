@@ -8,6 +8,9 @@ import type {
   ISODate,
   Warning,
 } from '@/lib/lsl/engine/types';
+import type { VICExtraInputs } from './extra-inputs';
+
+export type { VICExtraInputs };
 
 /**
  * VIC continuous-service handling — date-aware per TBD-VIC-01.
@@ -89,14 +92,6 @@ export interface VICContinuousServiceState {
   yearsOfContinuousService: Decimal;
   citations: Citation[];
   warnings: Warning[];
-}
-
-export interface VICExtraInputs {
-  /**
-   * Written agreement (employer + employee, pre-leave) allowing unpaid leave
-   * over 52 weeks to count as service per s.13(1)(d)(ii). Defaults to false.
-   */
-  unpaidLeaveWrittenAgreement?: boolean;
 }
 
 /**

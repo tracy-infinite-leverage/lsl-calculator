@@ -1,0 +1,29 @@
+{
+  "name": "TC-VIC-030",
+  "title": "Stand-down due to slackness — continuous but not service (s.12(7) + s.14(c))",
+  "source": "VIC LSL Act 2018 s.12(7)(c), s.14(c)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-030",
+      "startDate": "2017-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-24", "periodEnd": "2026-05-24", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "employer_stand_down", "startDate": "2024-08-01", "endDate": "2024-10-01" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.12(7)(c)", "rule": "continuous-service.stand-down-slackness-continuous" },
+      { "section": "VIC LSL Act 2018 s.14(c)",    "rule": "continuous-service.stand-down-excluded-from-accrual" }
+    ]
+  }
+}

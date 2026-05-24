@@ -1,0 +1,29 @@
+{
+  "name": "TC-VIC-044",
+  "title": "FT hours changed within last 104 wks → s.16(1)(b) triggers averaging",
+  "source": "VIC LSL Act 2018 s.16(1)(b), s.15(2)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-044",
+      "startDate": "2017-05-24",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2025-03-01", "periodEnd": "2026-05-24", "grossPay": "36000.00",  "frequency": "weekly" },
+        { "periodStart": "2017-05-24", "periodEnd": "2025-02-28", "grossPay": "597100.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": { "hoursChangedInLast104Weeks": true }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.16(1)(b)", "rule": "ordinary-pay.hours-changed-in-last-104wks" }
+    ]
+  }
+}

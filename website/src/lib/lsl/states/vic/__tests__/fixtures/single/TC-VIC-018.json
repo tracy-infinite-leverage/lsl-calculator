@@ -1,0 +1,32 @@
+{
+  "name": "TC-VIC-018",
+  "title": "6.5 yrs death of employee → $0 (no sub-7-yr exception)",
+  "source": "VIC LSL Act 2018 s.10 + s.6",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-018",
+      "legalName": "SubThresholdDeathFixture",
+      "startDate": "2019-11-24",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2019-11-24", "periodEnd": "2026-05-24", "grossPay": "574600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "death" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["sub_7yr_review_industrial_instrument"],
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6",  "rule": "accrual.sub-7yr-no-entitlement-any-reason" },
+      { "section": "VIC LSL Act 2018 s.10", "rule": "trigger.termination.death.estate-payable" }
+    ]
+  }
+}

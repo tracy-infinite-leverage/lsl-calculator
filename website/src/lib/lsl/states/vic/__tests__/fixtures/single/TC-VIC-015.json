@@ -1,0 +1,31 @@
+{
+  "name": "TC-VIC-015",
+  "title": "6.98 yrs FT redundancy → $0 (sub-7-yr no entitlement)",
+  "source": "VIC LSL Act 2018 s.6; APA p.43 matrix",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-015",
+      "legalName": "SubThresholdRedundancyFixture",
+      "startDate": "2019-06-01",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2019-06-01", "periodEnd": "2026-05-24", "grossPay": "653400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6", "rule": "accrual.sub-7yr-no-entitlement-any-reason" }
+    ]
+  }
+}

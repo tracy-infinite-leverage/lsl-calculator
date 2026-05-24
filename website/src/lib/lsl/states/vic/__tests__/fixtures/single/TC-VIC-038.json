@@ -1,0 +1,28 @@
+{
+  "name": "TC-VIC-038",
+  "title": "All pre-2018 service subject to 1992 break-rules (LWOP > 48 wks)",
+  "source": "VIC LSL Act 2018 s.57(1); VIC LSL Act 1992 s.62 preserved",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-038",
+      "startDate": "2012-05-01",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2012-05-01", "periodEnd": "2026-05-24", "grossPay": "1100000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2016-01-01", "endDate": "2016-12-31" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 1992 s.62", "rule": "transitional.legacy.pre-2018-upl-excluded" }
+    ]
+  }
+}

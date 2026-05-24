@@ -1,0 +1,29 @@
+{
+  "name": "TC-VIC-024",
+  "title": "9 yrs FT serious misconduct → STILL full payout (no VIC forfeiture)",
+  "source": "VIC LSL Act 2018 s.9; Sprintlaw + Business Vic guidance",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-024",
+      "startDate": "2017-05-24",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-24", "periodEnd": "2026-05-24", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6",       "rule": "accrual.qualifying-period-7yr-plus" },
+      { "section": "VIC LSL Act 2018 s.9(1)(b)", "rule": "trigger.termination.any-reason-incl-misconduct" }
+    ]
+  }
+}

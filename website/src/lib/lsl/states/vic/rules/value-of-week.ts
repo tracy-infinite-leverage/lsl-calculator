@@ -5,7 +5,8 @@ import {
   weeklyAverageOverWindow,
 } from '@/lib/lsl/engine/lookback';
 import { inclusiveDays } from '@/lib/lsl/engine/dates';
-import { computeVICDaysNotCountedInLookback, type VICExtraInputs } from '../continuous-service-rules';
+import { computeVICDaysNotCountedInLookback } from '../continuous-service-rules';
+import type { VICExtraInputs } from '../extra-inputs';
 import type {
   Citation,
   Employee,
@@ -46,12 +47,7 @@ export interface ValueOfWeekResult {
   citations: Citation[];
 }
 
-interface VICExtraInputsValueOfWeek extends VICExtraInputs {
-  /** s.17(2) — pre-injury weekly rate for workers-comp ordinary-pay determination. */
-  preInjuryWeeklyRate?: number | string;
-  /** s.17(2) — pre-injury hours-per-week (for diagnostics only; v1 uses rate directly). */
-  preInjuryWeeklyHours?: number;
-}
+type VICExtraInputsValueOfWeek = VICExtraInputs;
 
 function readExtras(employee: Employee): VICExtraInputsValueOfWeek {
   return (employee.extraInputs ?? {}) as VICExtraInputsValueOfWeek;
@@ -60,40 +56,31 @@ function readExtras(employee: Employee): VICExtraInputsValueOfWeek {
 /**
  * Decide if the employee should be on the s.15(2) 3-tier averaging path.
  *
- * Per TBD-VIC-11:
+ * Per TBD-VIC-11 — the LEGAL question is whether the employee has a fixed
+ * ordinary time rate of pay:
  *   - Casual employees → varied-rate (s.16 hours averaging, applied as
  *     s.15(2) on gross because hours are not collected in v1).
- *   - Wage history with gross variation > threshold → varied-rate (s.15(2)
- *     direct on gross). Catches commission, piece-work, and hours-changed
- *     within 104 weeks for fixed-rate employees (s.16(1)(b)).
- *   - Otherwise → fixed-rate (s.15(1)) — uses currentWeeklyGross.
+ *   - `categoryOverride: 'C'` (user-confirmed) → varied-rate. Used for
+ *     commission, piece-work, and other genuinely varied-rate employees.
+ *   - `extraInputs.hoursChangedInLast104Weeks: true` → varied-rate via
+ *     s.16(1)(b). Used for fixed-rate FT/PT employees whose HOURS changed.
+ *   - Otherwise FT/PT → fixed-rate (s.15(1)) using `currentWeeklyGross`.
+ *     RATE changes alone do not trigger averaging; the current fixed rate
+ *     applies. Hours changes do — but require explicit signal.
  *
- * The wage-history variation check uses a simple coefficient-of-variation
- * heuristic: compute per-period weekly-normalised gross, then std/mean.
+ * v1 doesn't collect hours, so we cannot distinguish "rate changed" from
+ * "hours changed" by wage history alone. A gross-CV heuristic would conflate
+ * the two (e.g., Walid's apprentice→tradesperson rate change would be
+ * mistaken for hours change). The explicit `hoursChangedInLast104Weeks`
+ * flag is the form-layer signal.
  */
 function isVariedRate(employee: Employee): boolean {
   if (employee.employmentType === 'casual') return true;
   if (employee.categoryOverride === 'C' && employee.categoryOverrideConfirmed)
     return true;
-  if (employee.wageHistory.length < 2) return false;
-  // Compute weekly-normalised gross for each period.
-  const weeklies = employee.wageHistory.map((p) => {
-    const days =
-      p.periodDays ??
-      inclusiveDays(p.periodStart, p.periodEnd);
-    if (days === 0) return new Decimal(0);
-    return d(p.grossPay).times(7).dividedBy(days);
-  });
-  const mean = weeklies.reduce<Decimal>((a, b) => a.plus(b), new Decimal(0)).dividedBy(
-    weeklies.length
-  );
-  if (mean.isZero()) return false;
-  const variance = weeklies
-    .reduce<Decimal>((a, v) => a.plus(v.minus(mean).pow(2)), new Decimal(0))
-    .dividedBy(weeklies.length);
-  const stddev = variance.sqrt();
-  const cv = stddev.dividedBy(mean);
-  return cv.gt('0.05');
+  const extras = readExtras(employee);
+  if (extras.hoursChangedInLast104Weeks === true) return true;
+  return false;
 }
 
 /**

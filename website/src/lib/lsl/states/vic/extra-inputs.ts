@@ -38,4 +38,17 @@ export interface VICExtraInputs {
    * confirms.
    */
   publicHolidaysInWindow?: ISODate[];
+
+  /**
+   * True if the employee's normal hours of work have changed within the last
+   * 104 weeks — triggers s.16(1)(b) averaging path per TBD-VIC-11. Without
+   * this signal, the VIC engine defaults FT/PT employees to the s.15(1)
+   * fixed-rate path (rate changes alone do not trigger averaging; hours
+   * changes do).
+   *
+   * For casual employees, varied-hours averaging always applies — this flag
+   * is ignored. For commission/piece/varied-rate employees, set
+   * `categoryOverride: 'C'` + `categoryOverrideConfirmed: true`.
+   */
+  hoursChangedInLast104Weeks?: boolean;
 }

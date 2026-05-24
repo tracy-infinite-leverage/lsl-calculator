@@ -1,0 +1,80 @@
+{
+  "name": "TC-VIC-BULK-002",
+  "title": "Mixed NSW + VIC batch via dispatcher — all valid rows compute",
+  "source": "spec F17 RES-4; AC16 (engine-layer subset — case normalisation is parser-layer)",
+  "input": {
+    "employees": [
+      {
+        "id": "NV01",
+        "startDate": "2014-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["NSW"],
+        "governingJurisdiction": "NSW",
+        "currentWeeklyGross": "1900.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "98800.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "NV02",
+        "startDate": "2018-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "78000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "NV04",
+        "startDate": "2017-05-24",
+        "employmentType": "part_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "750.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "39000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "NV05",
+        "startDate": "2020-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["NSW"],
+        "governingJurisdiction": "NSW",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "78000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "NV06",
+        "startDate": "2014-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1900.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "98800.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      }
+    ],
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "summary": { "computed": 5, "blocked": 0, "failed": 0 },
+    "rowStatuses": {
+      "NV01": "computed",
+      "NV02": "computed",
+      "NV04": "computed",
+      "NV05": "computed",
+      "NV06": "computed"
+    }
+  }
+}

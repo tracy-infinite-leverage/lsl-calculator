@@ -1,0 +1,30 @@
+{
+  "name": "TC-VIC-054",
+  "title": "Public holiday during LSL window — does not consume LSL day (s.7)",
+  "source": "VIC LSL Act 2018 s.7; APA p.37",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-054",
+      "startDate": "2014-01-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2014-01-24", "periodEnd": "2024-01-24", "grossPay": "780000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "publicHolidaysInWindow": ["2024-01-26"]
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2024-01-24", "leaveWeeks": 1 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.18", "rule": "trigger.taking-leave.request" }
+    ]
+  }
+}

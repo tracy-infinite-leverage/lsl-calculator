@@ -1,0 +1,31 @@
+{
+  "name": "TC-VIC-011",
+  "title": "Ria — transfer of business preserves service (s.11(3))",
+  "source": "APA p.36 (Ria); VIC LSL Act 2018 s.11(3)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-011",
+      "legalName": "Ria",
+      "startDate": "2014-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-24", "periodEnd": "2026-05-24", "grossPay": "936000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "transfer_of_business", "startDate": "2021-07-01" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.11(3)", "rule": "continuous-service.transfer-of-business-preserves-from-original-start" },
+      { "section": "VIC LSL Act 2018 s.6",     "rule": "accrual.snapshot.no-pro-rata-threshold" }
+    ]
+  }
+}
