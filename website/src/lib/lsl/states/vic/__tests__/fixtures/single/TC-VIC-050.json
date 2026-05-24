@@ -1,0 +1,25 @@
+{
+  "name": "TC-VIC-050",
+  "title": "Cash-out attempt on 8-yr employee → HARD ERROR (s.34)",
+  "source": "VIC LSL Act 2018 s.34; spec F5 + AC5",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-050",
+      "legalName": "CashOutAttemptFixture",
+      "startDate": "2018-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2018-05-24", "periodEnd": "2026-05-24", "grossPay": "707200.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "failed",
+    "errorCode": "vic_cashout_prohibited"
+  }
+}

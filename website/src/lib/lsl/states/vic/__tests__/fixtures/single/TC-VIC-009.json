@@ -1,0 +1,31 @@
+{
+  "name": "TC-VIC-009",
+  "title": "Mohammed — poor-performance dismissal + 2-mo gap (s.12(6)(a) preserves)",
+  "source": "APA p.36 (Mohammed); VIC LSL Act 2018 s.12(6)(a)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-009",
+      "legalName": "Mohammed",
+      "startDate": "2017-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1750.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-24", "periodEnd": "2026-02-01", "grossPay": "770000.00", "frequency": "weekly" },
+        { "periodStart": "2026-04-01", "periodEnd": "2026-05-24", "grossPay": "13750.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "employer_initiated_termination_and_rehire", "startDate": "2026-02-01", "endDate": "2026-04-01" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1750.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.12(6)(a)", "rule": "continuous-service.employer-initiated-rehire-within-12wks" }
+    ]
+  }
+}

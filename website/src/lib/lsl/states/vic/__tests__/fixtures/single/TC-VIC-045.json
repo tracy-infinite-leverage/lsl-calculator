@@ -1,0 +1,29 @@
+{
+  "name": "TC-VIC-045",
+  "title": "Casual hours always varied → s.16(2) all three averages (alias for TC-VIC-014)",
+  "source": "VIC LSL Act 2018 s.16; cross-references TC-VIC-014 (Biljana)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-045",
+      "legalName": "Biljana-Casual-Hours-Varied",
+      "startDate": "2017-05-24",
+      "endDate": "2026-05-24",
+      "employmentType": "casual",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1200.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "62400.00",  "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2017-05-24", "periodEnd": "2025-05-24", "grossPay": "440000.00", "frequency": "other", "periodDays": 2922 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.16", "rule": "ordinary-pay.varied-hours-casual" }
+    ]
+  }
+}

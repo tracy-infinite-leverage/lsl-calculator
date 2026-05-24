@@ -29,13 +29,13 @@ const asAtTrigger = (date = '2026-05-21'): Trigger => ({
 });
 
 describe('dispatch — ENCODED_STATES', () => {
-  it('contains only NSW today (Phase 1)', () => {
-    expect(ENCODED_STATES).toEqual(['NSW']);
+  it('contains NSW and VIC after Phase 3', () => {
+    expect(ENCODED_STATES.slice().sort()).toEqual(['NSW', 'VIC']);
   });
 
-  it('isStateEncoded returns true for NSW, false for unshipped states', () => {
+  it('isStateEncoded returns true for shipped states, false for unshipped', () => {
     expect(isStateEncoded('NSW')).toBe(true);
-    expect(isStateEncoded('VIC')).toBe(false);
+    expect(isStateEncoded('VIC')).toBe(true);
     expect(isStateEncoded('QLD')).toBe(false);
     expect(isStateEncoded('NT')).toBe(false);
   });
@@ -61,14 +61,25 @@ describe('dispatch — calculate', () => {
 
   it('blocks unshipped governing state with cross_jurisdiction_pending', () => {
     const employee = baseEmployee({
-      statesOfService: ['VIC'],
-      governingJurisdiction: 'VIC',
+      statesOfService: ['QLD'],
+      governingJurisdiction: 'QLD',
     });
     const r = calculate(employee, asAtTrigger());
     expect(r.status).toBe('blocked_cross_jurisdiction');
     expect(r.warnings[0].code).toBe('cross_jurisdiction_pending');
-    expect(r.warnings[0].message).toContain('VIC');
+    expect(r.warnings[0].message).toContain('QLD');
     expect(r.warnings[0].message).toContain('NSW'); // lists what's supported
+  });
+
+  it('routes VIC-only employee to VIC orchestrator', () => {
+    const employee = baseEmployee({
+      statesOfService: ['VIC'],
+      governingJurisdiction: 'VIC',
+      // 12-year tenure for VIC to satisfy 7-yr qualifying period
+      startDate: asISODate('2014-05-22'),
+    });
+    const r = calculate(employee, asAtTrigger());
+    expect(r.status).toBe('computed');
   });
 
   it('blocks single non-NSW state (no governing nominated) too', () => {
@@ -112,5 +123,31 @@ describe('dispatch — calculateSafe', () => {
     expect(() => calculateSafe(employee, asAtTrigger())).not.toThrow();
     const r = calculateSafe(employee, asAtTrigger());
     expect(r.status).toBe('blocked_cross_jurisdiction');
+  });
+
+  it('VIC cash_out returns failed Result with vic_cashout_prohibited (TC-VIC-050 path)', () => {
+    const employee = baseEmployee({
+      statesOfService: ['VIC'],
+      governingJurisdiction: 'VIC',
+      startDate: asISODate('2018-05-24'),
+    });
+    const trigger: Trigger = { kind: 'cash_out', cashOutDate: asISODate('2026-05-21') };
+    const r = calculateSafe(employee, trigger);
+    expect(r.status).toBe('failed');
+    expect(r.error?.code).toBe('vic_cashout_prohibited');
+  });
+
+  it('VIC + NSW with governing=NSW routes to NSW engine (TC-VIC-057)', () => {
+    const employee = baseEmployee({
+      statesOfService: ['VIC', 'NSW'],
+      governingJurisdiction: 'NSW',
+      startDate: asISODate('2018-05-22'),
+    });
+    const r = calculateSafe(employee, asAtTrigger());
+    expect(r.status).toBe('computed');
+    // NSW engine emits a cross-jurisdiction advisory warning
+    expect(
+      r.warnings.some((w) => w.code === 'cross_jurisdiction_pending')
+    ).toBe(true);
   });
 });

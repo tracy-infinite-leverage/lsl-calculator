@@ -1,0 +1,35 @@
+{
+  "name": "TC-VIC-014",
+  "title": "Biljana — 16.4-yr casual resignation, 9.2 wks prior LSL taken",
+  "source": "APA p.46 Practice Activity 2(C); VIC LSL Act 2018 s.6, s.15(2)(b), s.16(1)(b), s.9(1)(b)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-014",
+      "legalName": "Biljana",
+      "startDate": "2009-11-24",
+      "endDate": "2026-05-24",
+      "employmentType": "casual",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1280.00",
+      "priorLeaveTakenWeeks": "9.2",
+      "wageHistory": [
+        { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "66560.00",  "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2021-05-25", "periodEnd": "2025-05-24", "grossPay": "279240.00", "frequency": "other", "periodDays": 1461 },
+        { "periodStart": "2009-11-24", "periodEnd": "2021-05-24", "grossPay": "730480.00", "frequency": "other", "periodDays": 4200 }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2022-08-01", "endDate": "2022-10-09" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6",        "rule": "accrual.qualifying-period-7yr-plus" },
+      { "section": "VIC LSL Act 2018 s.16",       "rule": "ordinary-pay.varied-hours-casual" },
+      { "section": "VIC LSL Act 2018 s.9(1)(b)",  "rule": "trigger.termination.payable-on-day-of-termination" }
+    ]
+  }
+}

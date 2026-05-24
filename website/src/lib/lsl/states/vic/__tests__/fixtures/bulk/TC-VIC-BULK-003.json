@@ -1,0 +1,73 @@
+{
+  "name": "TC-VIC-BULK-003",
+  "title": "VIC cash-out attempt mid-batch → row-level hard error, batch continues",
+  "source": "spec F5 + RES-4",
+  "input": {
+    "employees": [
+      {
+        "id": "CO01",
+        "startDate": "2014-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1700.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "88400.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "CO02",
+        "startDate": "2018-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1700.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "88400.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "cash_out", "cashOutDate": "2026-05-24" }
+      },
+      {
+        "id": "CO03",
+        "startDate": "2014-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["NSW"],
+        "governingJurisdiction": "NSW",
+        "currentWeeklyGross": "1900.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "98800.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "CO04",
+        "startDate": "2014-05-24",
+        "endDate": "2026-05-24",
+        "employmentType": "full_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1700.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "88400.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "voluntary_resignation" }
+      }
+    ],
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "summary": { "computed": 3, "blocked": 0, "failed": 1 },
+    "rowStatuses": {
+      "CO01": "computed",
+      "CO02": "failed",
+      "CO03": "computed",
+      "CO04": "computed"
+    },
+    "rowErrors": {
+      "CO02": "vic_cashout_prohibited"
+    }
+  }
+}

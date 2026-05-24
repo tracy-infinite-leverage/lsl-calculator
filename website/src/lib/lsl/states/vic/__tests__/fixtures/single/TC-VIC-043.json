@@ -1,0 +1,28 @@
+{
+  "name": "TC-VIC-043",
+  "title": "PT fixed-rate 25h/wk 8 yrs → s.15(1)",
+  "source": "VIC LSL Act 2018 s.15(1)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-043",
+      "startDate": "2018-05-24",
+      "endDate": "2026-05-24",
+      "employmentType": "part_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "750.00",
+      "wageHistory": [
+        { "periodStart": "2018-05-24", "periodEnd": "2026-05-24", "grossPay": "312000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "750.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.15(1)", "rule": "ordinary-pay.fixed-rate" }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "TC-VIC-005",
+  "title": "Walid — apprentice → tradesperson re-employed within 52 wks (93-day gap)",
+  "source": "APA p.34 (Walid); VIC LSL Act 2018 s.12(6)(c) + s.13(2)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-005",
+      "legalName": "Walid",
+      "startDate": "2018-07-01",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1900.00",
+      "wageHistory": [
+        { "periodStart": "2018-07-01", "periodEnd": "2024-06-30", "grossPay": "374400.00", "frequency": "weekly" },
+        { "periodStart": "2024-10-01", "periodEnd": "2026-05-24", "grossPay": "165300.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "apprentice_to_tradesperson_transition", "startDate": "2024-07-01", "endDate": "2024-10-01" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1900.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.12(6)(c)", "rule": "continuous-service.apprentice-to-trade-within-52wks" },
+      { "section": "VIC LSL Act 2018 s.13(2)",    "rule": "continuous-service.apprenticeship-counts-as-service" },
+      { "section": "VIC LSL Act 2018 s.6",        "rule": "accrual.snapshot.no-pro-rata-threshold" }
+    ]
+  }
+}

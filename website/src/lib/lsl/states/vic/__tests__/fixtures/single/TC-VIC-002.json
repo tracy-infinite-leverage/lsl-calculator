@@ -1,0 +1,32 @@
+{
+  "name": "TC-VIC-002",
+  "title": "Alicia — 8 yrs FT redundancy, full pro-rata 6.9333 weeks",
+  "source": "APA p.32 Example 2; VIC LSL Act 2018 s.6, s.9",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-002",
+      "legalName": "Alicia",
+      "startDate": "2018-05-24",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2018-05-24", "periodEnd": "2026-05-24", "grossPay": "624000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1500.00",
+    "valueOfDay": "300.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6",       "rule": "accrual.qualifying-period-7yr-plus" },
+      { "section": "VIC LSL Act 2018 s.9(1)(b)", "rule": "trigger.termination.payable-on-day-of-termination" }
+    ]
+  }
+}

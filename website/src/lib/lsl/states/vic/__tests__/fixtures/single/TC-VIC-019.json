@@ -1,0 +1,30 @@
+{
+  "name": "TC-VIC-019",
+  "title": "4 yrs FT termination any reason → $0",
+  "source": "VIC LSL Act 2018 s.6",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-019",
+      "legalName": "FourYearFixture",
+      "startDate": "2022-05-24",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2022-05-24", "periodEnd": "2026-05-24", "grossPay": "312000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6", "rule": "accrual.sub-7yr-no-entitlement-any-reason" }
+    ]
+  }
+}

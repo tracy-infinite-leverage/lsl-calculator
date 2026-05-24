@@ -1,0 +1,35 @@
+{
+  "name": "TC-VIC-046",
+  "title": "Allan — commission-only FT, s.15(2) 3-tier on gross",
+  "source": "VIC LSL Act 2018 s.15(2)(a); APA p.42",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-046",
+      "legalName": "Allan",
+      "startDate": "2017-05-24",
+      "endDate": "2025-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1730.77",
+      "categoryOverride": "C",
+      "categoryOverrideConfirmed": true,
+      "wageHistory": [
+        { "periodStart": "2024-05-25", "periodEnd": "2025-05-24", "grossPay": "90000.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2023-05-25", "periodEnd": "2024-05-24", "grossPay": "85000.00", "frequency": "other", "periodDays": 366 },
+        { "periodStart": "2022-05-25", "periodEnd": "2023-05-24", "grossPay": "90000.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2021-05-25", "periodEnd": "2022-05-24", "grossPay": "95000.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2020-05-25", "periodEnd": "2021-05-24", "grossPay": "70000.00", "frequency": "other", "periodDays": 365 },
+        { "periodStart": "2017-05-24", "periodEnd": "2020-05-24", "grossPay": "245000.00", "frequency": "other", "periodDays": 1097 }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2025-05-24", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.15(2)(a)", "rule": "ordinary-pay.greater-of-52wk-avg" }
+    ]
+  }
+}

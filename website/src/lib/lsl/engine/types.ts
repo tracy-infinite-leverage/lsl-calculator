@@ -105,7 +105,9 @@ export interface Warning {
     | 'cross_jurisdiction_pending'
     | 'extraction_low_confidence'
     | 'bonus_in_notes_v1_out_of_scope'
-    | 'gap_exceeds_2mo'
+    | 'gap_exceeds_state_tolerance'
+    | 'sub_7yr_review_industrial_instrument'
+    | 'pre_2018_service_broken'
     | 'rehire_gap_at_threshold'
     | 'accrued_not_currently_payable';
   message: string;

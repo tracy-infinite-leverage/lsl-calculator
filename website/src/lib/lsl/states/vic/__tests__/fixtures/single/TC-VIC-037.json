@@ -1,0 +1,31 @@
+{
+  "name": "TC-VIC-037",
+  "title": "Olivia's UPL straddling 1/11/2018 — 184 days pre-cutoff excluded",
+  "source": "APA p.33 (Olivia straddling variant); VIC LSL Act 2018 s.57(2) + s.13(1)(b)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-037",
+      "legalName": "Olivia-Straddling",
+      "startDate": "2014-07-01",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2014-07-01", "periodEnd": "2026-05-24", "grossPay": "892500.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "unpaid_parental_leave", "startDate": "2018-05-01", "endDate": "2019-10-31" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.57(2)",    "rule": "transitional.absence-straddling-1nov2018" },
+      { "section": "VIC LSL Act 1992 s.62",       "rule": "transitional.legacy.pre-2018-upl-excluded" },
+      { "section": "VIC LSL Act 2018 s.13(1)(b)", "rule": "continuous-service.unpaid-leave-52wk-counts" }
+    ]
+  }
+}

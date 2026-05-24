@@ -1,0 +1,33 @@
+{
+  "name": "TC-VIC-001",
+  "title": "Will — 10 yrs FT resignation, full entitlement 8.6667 weeks",
+  "source": "APA p.32 Example 1; VIC LSL Act 2018 s.6",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-001",
+      "legalName": "Will",
+      "startDate": "2016-05-24",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-24", "periodEnd": "2026-05-24", "grossPay": "936000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "category": "A",
+    "valueOfWeek": "1800.00",
+    "valueOfDay": "360.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6",        "rule": "accrual.qualifying-period-7yr-plus" },
+      { "section": "VIC LSL Act 2018 s.15(1)",    "rule": "ordinary-pay.fixed-rate" },
+      { "section": "VIC LSL Act 2018 s.9(1)(b)",  "rule": "trigger.termination.payable-on-day-of-termination" }
+    ]
+  }
+}

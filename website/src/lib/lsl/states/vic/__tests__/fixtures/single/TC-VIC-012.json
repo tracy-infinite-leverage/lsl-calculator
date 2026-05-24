@@ -1,0 +1,32 @@
+{
+  "name": "TC-VIC-012",
+  "title": "Angela — 12.6 yrs FT, taking 3 wks at $2,300/wk",
+  "source": "APA p.44 Practice Activity 2(A); VIC LSL Act 2018 s.6, s.15(1), s.18, s.20",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-012",
+      "legalName": "Angela",
+      "startDate": "2013-11-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "2300.00",
+      "wageHistory": [
+        { "periodStart": "2013-11-24", "periodEnd": "2026-05-24", "grossPay": "1507000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-05-25", "leaveWeeks": 3 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2300.00",
+    "valueOfDay": "460.00",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6",       "rule": "accrual.qualifying-period-7yr-plus" },
+      { "section": "VIC LSL Act 2018 s.15(1)",   "rule": "ordinary-pay.fixed-rate" },
+      { "section": "VIC LSL Act 2018 s.18",      "rule": "trigger.taking-leave.request" },
+      { "section": "VIC LSL Act 2018 s.20",      "rule": "trigger.taking-leave.payment-timing" }
+    ]
+  }
+}

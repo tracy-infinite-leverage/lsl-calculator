@@ -1,0 +1,28 @@
+{
+  "name": "TC-VIC-056",
+  "title": "8 yrs as-at snapshot → 6.9333 wks (above qualifying threshold)",
+  "source": "VIC LSL Act 2018 s.6",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-056",
+      "startDate": "2018-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2018-05-24", "periodEnd": "2026-05-24", "grossPay": "624000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6", "rule": "accrual.snapshot.no-pro-rata-threshold" }
+    ]
+  }
+}

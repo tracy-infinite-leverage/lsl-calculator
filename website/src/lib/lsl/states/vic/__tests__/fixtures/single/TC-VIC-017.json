@@ -1,0 +1,31 @@
+{
+  "name": "TC-VIC-017",
+  "title": "6 yrs 364 days FT resignation → $0",
+  "source": "VIC LSL Act 2018 s.6 boundary",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-017",
+      "legalName": "OneDayShortFixture",
+      "startDate": "2019-05-26",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2019-05-26", "periodEnd": "2026-05-24", "grossPay": "545700.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.6", "rule": "accrual.sub-7yr-no-entitlement-any-reason" }
+    ]
+  }
+}

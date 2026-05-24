@@ -1,0 +1,30 @@
+{
+  "name": "TC-VIC-035",
+  "title": "Multiple short LWOP totalling 51 wks across 12 mo (all count, per-period)",
+  "source": "VIC LSL Act 2018 s.13(1)(b) — per-period interpretation (TBD-VIC-08)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-035",
+      "startDate": "2017-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-24", "periodEnd": "2026-05-24", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2025-01-01", "endDate": "2025-04-30" },
+        { "type": "leave_without_pay", "startDate": "2025-08-01", "endDate": "2025-12-15" },
+        { "type": "leave_without_pay", "startDate": "2026-02-01", "endDate": "2026-04-15" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.13(1)(b)", "rule": "continuous-service.unpaid-leave-52wk-counts" }
+    ]
+  }
+}

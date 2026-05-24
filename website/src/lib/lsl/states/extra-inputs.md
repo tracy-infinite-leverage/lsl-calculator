@@ -24,6 +24,7 @@ See E2 impl-plan §P0.6 / DEV-E2-M6.
 
 | State | Keys | Reason | Phase |
 |-------|------|--------|-------|
+| VIC   | `hoursChangedInLast104Weeks?: boolean` | VIC LSL Act 2018 s.16 averaging path (vs s.15 default) depends on whether hours changed in the last 104 weeks. v1 cannot infer this from wage history alone — form layer sets the flag when the user confirms. Defaults to `false`. See TBD-VIC-11 resolution in `docs/qa/test-cases-vic.md`. | Phase 3 |
 | ACT   | `overtimeHoursByPeriod: Array<{ periodStart, periodEnd, hours }>` | ACT LSL Act 1976 s.4 includes overtime in ordinary-pay for part-time/casual employees | Phase 7 |
 
 Other states have not declared extra inputs yet.

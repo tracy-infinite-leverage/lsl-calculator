@@ -1,0 +1,29 @@
+{
+  "name": "TC-VIC-007",
+  "title": "Johan — fruit picker, seasonal absence > 12 wks (LWOP within cap)",
+  "source": "APA p.35 (Johan); VIC LSL Act 2018 s.12(3)(c)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-007",
+      "legalName": "Johan",
+      "startDate": "2018-05-24",
+      "employmentType": "casual",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1200.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-25", "periodEnd": "2026-05-24", "grossPay": "39000.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2025-11-01", "endDate": "2026-03-15" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.13(1)(b)", "rule": "continuous-service.unpaid-leave-52wk-counts" }
+    ]
+  }
+}

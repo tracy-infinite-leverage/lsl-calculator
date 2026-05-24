@@ -1,0 +1,23 @@
+{
+  "name": "TC-VIC-058",
+  "title": "VIC + QLD service, governing NOT nominated → BLOCKED",
+  "source": "VIC LSL Act 2018 + spec F13",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-058",
+      "startDate": "2018-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC", "QLD"],
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2018-05-24", "periodEnd": "2026-05-24", "grossPay": "748800.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "blocked_cross_jurisdiction",
+    "warnings": ["cross_jurisdiction_pending"]
+  }
+}

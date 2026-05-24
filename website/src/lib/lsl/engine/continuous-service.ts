@@ -114,7 +114,7 @@ export function computeContinuousService(
           effectiveStart = ev.endDate;
         }
         warnings.push({
-          code: 'gap_exceeds_2mo',
+          code: 'gap_exceeds_state_tolerance',
           message: profile.gapExceedsThresholdMessage(gap, profile.rehireGapDaysMax),
         });
         citations.push(

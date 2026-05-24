@@ -1,0 +1,28 @@
+{
+  "name": "TC-VIC-033",
+  "title": "Illness/injury unpaid leave > 52 wks counts (s.13(1)(d)(iii))",
+  "source": "VIC LSL Act 2018 s.13(1)(d)(iii) — illness/injury uncapped",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-033",
+      "startDate": "2017-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-24", "periodEnd": "2026-05-24", "grossPay": "702000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2023-06-01", "endDate": "2025-06-01" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.13(1)(d)(iii)", "rule": "continuous-service.illness-injury-unpaid-leave-uncapped" }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "TC-VIC-034",
+  "title": "Written agreement allows unpaid leave > 52 wks to count (s.13(1)(d)(ii))",
+  "source": "VIC LSL Act 2018 s.13(1)(d)(ii)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-034",
+      "startDate": "2017-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-24", "periodEnd": "2026-05-24", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2023-06-01", "endDate": "2025-12-01" }
+      ],
+      "extraInputs": { "unpaidLeaveWrittenAgreement": true }
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.13(1)(d)(ii)", "rule": "continuous-service.unpaid-leave-written-agreement-uncapped" }
+    ]
+  }
+}

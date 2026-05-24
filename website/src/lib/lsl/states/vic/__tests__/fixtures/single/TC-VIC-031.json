@@ -1,0 +1,29 @@
+{
+  "name": "TC-VIC-031",
+  "title": "Industrial action — continuous but not service (s.12(8) + s.14(d))",
+  "source": "VIC LSL Act 2018 s.12(8), s.14(d)",
+  "input": {
+    "employee": {
+      "id": "TC-VIC-031",
+      "startDate": "2017-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["VIC"],
+      "governingJurisdiction": "VIC",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-24", "periodEnd": "2026-05-24", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "industrial_action", "startDate": "2025-06-01", "endDate": "2025-06-08" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-24" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "VIC LSL Act 2018 s.12(8)", "rule": "continuous-service.industrial-action-continuous" },
+      { "section": "VIC LSL Act 2018 s.14(d)", "rule": "continuous-service.industrial-action-excluded-from-accrual" }
+    ]
+  }
+}
