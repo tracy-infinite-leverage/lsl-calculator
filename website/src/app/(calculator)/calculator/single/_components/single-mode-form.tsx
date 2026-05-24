@@ -21,8 +21,11 @@ import { ContinuousServiceList } from '@/components/lsl/continuous-service-list'
 import { ResultPanel } from '@/components/lsl/result-panel';
 import { ClassifierConfirmModal } from '@/components/lsl/classifier-confirm-modal';
 import { PdfUpload } from '@/components/lsl/pdf-upload';
+import { StateSelector } from '@/components/lsl/state-selector';
 import type { ExtractedEmployee } from '@/lib/lsl/parsers/pdf/schema';
-import { calculateNSW, classify, type Result, type State } from '@/lib/lsl/engine';
+import { classify, type Result, type State } from '@/lib/lsl/engine';
+import { calculate } from '@/lib/lsl/dispatch';
+import { trackStateEvent } from '@/lib/observability/track';
 import {
   emptyFormState,
   STATE_OPTIONS,
@@ -116,8 +119,18 @@ export function SingleModeForm() {
     }
 
     try {
-      const r = calculateNSW(employee, trigger);
+      const r = calculate(employee, trigger);
       setResult(r);
+      // ── B1: fire VIC cash-out hard-error page event when the engine returns
+      // a failed Result with the VIC-specific prohibition code. null payload
+      // per spec S2 (no PII). See E2 QA finding B1 — only firable here in the
+      // UI, not in the engine (engine has no DOM / analytics).
+      if (
+        r.status === 'failed' &&
+        r.error?.code === 'vic_cashout_prohibited'
+      ) {
+        trackStateEvent('VIC', 'cashout_hard_error', {});
+      }
       // Scroll into view after render tick
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -322,9 +335,38 @@ export function SingleModeForm() {
         <CardHeader>
           <CardTitle>Jurisdiction</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="state-selector" className="text-sm font-medium">
+              Governing jurisdiction
+            </Label>
+            <StateSelector
+              id="state-selector"
+              value={state.governingJurisdiction || undefined}
+              onChange={(s) => {
+                update('governingJurisdiction', s);
+                // Keep states-of-service in sync with the primary picker for
+                // single-state employees — preserves cross-jurisdiction
+                // detection when the user later ticks an additional state.
+                setState((cur) => {
+                  if (cur.statesOfService.length <= 1) {
+                    return { ...cur, governingJurisdiction: s, statesOfService: [s] };
+                  }
+                  return { ...cur, governingJurisdiction: s };
+                });
+              }}
+            />
+            {fieldErrors.governingJurisdiction && (
+              <p className="text-xs text-destructive">{fieldErrors.governingJurisdiction}</p>
+            )}
+          </div>
+
           <div>
             <Label className="text-sm font-medium">States the employee has worked in</Label>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Tick every state where the employee has performed work. Used to detect
+              cross-jurisdiction service.
+            </p>
             <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
               {STATE_OPTIONS.map((opt) => (
                 <label key={opt.value} className="flex items-center gap-2 text-sm cursor-pointer">
@@ -341,51 +383,16 @@ export function SingleModeForm() {
             )}
           </div>
 
-          {state.statesOfService.length > 1 && (
-            <Field
-              label="Governing jurisdiction"
-              htmlFor="governingJurisdiction"
-              hint="v1 supports NSW only. Selecting any other state will block the calculation."
-              error={fieldErrors.governingJurisdiction}
-            >
-              <Select
-                value={state.governingJurisdiction || undefined}
-                onValueChange={(v: string) => update('governingJurisdiction', v as State)}
-              >
-                <SelectTrigger id="governingJurisdiction">
-                  <SelectValue placeholder="Select governing state..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {state.statesOfService.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          )}
-
-          {state.statesOfService.length > 1 && state.governingJurisdiction === 'NSW' && (
+          {state.statesOfService.length > 1 && state.governingJurisdiction && (
             <Alert variant="info">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Non-NSW service treated as NSW per nomination. Verify that this matches the
-                employee&apos;s contractual jurisdiction.
+                Multi-state service detected. Calculated under {state.governingJurisdiction}{' '}
+                rules per the governing-jurisdiction nomination above. Verify that this matches
+                the employee&apos;s contractual jurisdiction.
               </AlertDescription>
             </Alert>
           )}
-          {state.statesOfService.length === 1 &&
-            state.statesOfService[0] !== 'NSW' && (
-              <Alert variant="warning">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>v1 supports NSW only</AlertTitle>
-                <AlertDescription>
-                  Calculation will be blocked. Add NSW to the states-of-service list (or wait for
-                  E2 for {state.statesOfService[0]}).
-                </AlertDescription>
-              </Alert>
-            )}
         </CardContent>
       </Card>
 

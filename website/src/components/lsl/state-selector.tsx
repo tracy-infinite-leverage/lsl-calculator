@@ -43,14 +43,13 @@ interface StateSelectorProps {
  *
  * Behaviour:
  * - Renders the full 8-state list. Only states present in `ENCODED_STATES`
- *   (currently `['NSW']`) are selectable.
+ *   (currently `['NSW', 'VIC']`) are selectable.
  * - Persists the last 3 picks to `localStorage` under `RECENT_STATES_STORAGE_KEY`
  *   as an LRU array — newest first.
  * - Renders the last 3 picks as quick-pick chip buttons above the select.
  *
- * Feature-flag gating happens at the call site, not here. The component is
- * accessibility-clean on its own (focus-visible, ARIA labels, keyboard nav
- * via Radix Select).
+ * The component is accessibility-clean on its own (focus-visible, ARIA labels,
+ * keyboard nav via Radix Select).
  *
  * See E2 impl-plan §P0.7 / DEV-E2-L1 and tasks.md §T1.6.
  */
@@ -150,17 +149,3 @@ export function StateSelector({
     </div>
   );
 }
-
-/**
- * Feature flag for the state selector UI.
- *
- * When `false` (default), the multi-state picker stays hidden — only NSW is
- * effectively selectable through the existing checkbox list, matching v1 behaviour.
- *
- * When `true`, the state selector renders. Used as the gate before VIC ships.
- *
- * Read via `process.env.NEXT_PUBLIC_STATE_SELECTOR_ENABLED === 'true'`.
- */
-export const STATE_SELECTOR_ENABLED =
-  typeof process !== 'undefined' &&
-  process.env.NEXT_PUBLIC_STATE_SELECTOR_ENABLED === 'true';

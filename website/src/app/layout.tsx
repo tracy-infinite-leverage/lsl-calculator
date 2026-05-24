@@ -15,9 +15,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'NSW LSL Calculator',
+  title: 'LSL Calculator',
   description:
-    'Compute long-service-leave entitlement for NSW employees with every output citation-backed to the NSW Long Service Leave Act 1955.',
+    'Defensible long-service-leave calculator for Australian payroll. NSW and VIC available — QLD, WA, SA, ACT, TAS, NT coming soon. Every output is citation-backed to the source statute.',
+  openGraph: {
+    title: 'LSL Calculator',
+    description:
+      'Defensible long-service-leave calculator for Australian payroll. NSW and VIC available — QLD, WA, SA, ACT, TAS, NT coming soon.',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({

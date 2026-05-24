@@ -64,7 +64,7 @@ test.describe('Single-mode calculator', () => {
 
   test('Landing page links to single-mode', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: /defensible LSL calculator/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Australian LSL calculator/i })).toBeVisible();
     await page.getByRole('link', { name: /Calculate for one employee/i }).click();
     await expect(page).toHaveURL(/\/calculator\/single/);
   });

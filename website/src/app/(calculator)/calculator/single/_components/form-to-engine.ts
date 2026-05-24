@@ -32,6 +32,10 @@ export function validateForm(state: FormState): FormValidation {
   if (state.statesOfService.length === 0) {
     fieldErrors.statesOfService = 'Select at least one state of service.';
   }
+  // Governing jurisdiction is required only when more than one state-of-service
+  // is selected; single-state employees auto-resolve in formToEngine. This
+  // preserves backwards compatibility with users whose persisted form state
+  // pre-dates the explicit state selector.
   if (state.statesOfService.length > 1 && !state.governingJurisdiction) {
     fieldErrors.governingJurisdiction =
       'Nominate the governing jurisdiction when multiple states are selected.';

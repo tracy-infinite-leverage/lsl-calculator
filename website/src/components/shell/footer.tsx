@@ -5,8 +5,10 @@ export function Footer() {
     <footer className="border-t bg-background mt-auto">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>
-          NSW LSL Calculator. Citations refer to the{' '}
-          <span className="font-medium text-foreground">Long Service Leave Act 1955 (NSW)</span>.
+          LSL Calculator. Citations refer to the source long-service-leave statute for each
+          governing jurisdiction —{' '}
+          <span className="font-medium text-foreground">LSL Act 1955 (NSW)</span> and{' '}
+          <span className="font-medium text-foreground">LSL Act 2018 (VIC)</span>.
         </p>
         <nav aria-label="Footer" className="flex items-center gap-4">
           <Link href="/privacy" className="hover:text-foreground underline-offset-2 hover:underline">

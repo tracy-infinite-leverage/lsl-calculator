@@ -146,6 +146,11 @@ function LSLReportDocument({ payload }: { payload: ExportPayload }) {
     ...payload.citations.dollars,
   ]);
 
+  // Derive the governing jurisdiction from the citation section prefixes the
+  // engine emitted — keeps the header truthful for NSW vs VIC without the
+  // form/payload having to thread state through explicitly.
+  const jurisdictionLine = deriveJurisdictionLine(allCitations);
+
   let triggerLine = `Kind: ${payload.trigger.kind}`;
   if (payload.trigger.kind === 'taking_leave' && payload.trigger.leaveStartDate) {
     triggerLine += ` · Leave start: ${payload.trigger.leaveStartDate}`;
@@ -158,9 +163,9 @@ function LSLReportDocument({ payload }: { payload: ExportPayload }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.h1}>NSW Long Service Leave Report</Text>
+        <Text style={styles.h1}>Long Service Leave Report</Text>
         <Text style={styles.subhead}>
-          Generated {new Date().toISOString().slice(0, 10)} — Long Service Leave Act 1955 (NSW)
+          Generated {new Date().toISOString().slice(0, 10)} — {jurisdictionLine}
         </Text>
 
         <Text style={styles.sectionTitle}>Employee</Text>
@@ -265,8 +270,8 @@ function LSLReportDocument({ payload }: { payload: ExportPayload }) {
         )}
 
         <Text style={styles.footer} fixed>
-          This report computes the legislated LSL value per the NSW Long Service Leave Act 1955.
-          Not legal advice. Verify edge cases against the source statute.
+          This report computes the legislated LSL value against the relevant state statute (see
+          citations above). Not legal advice. Verify edge cases against the source statute.
         </Text>
       </Page>
     </Document>
@@ -283,4 +288,25 @@ function dedup(cits: Citation[]): Citation[] {
     out.push(c);
   }
   return out;
+}
+
+/**
+ * Inspect the emitted citations to figure out which state's statute drove this
+ * calculation, then return a human-readable header line for the report.
+ *
+ * The engine prefixes section labels with the state code (e.g. "NSW LSA s.4(5)(b)"
+ * or "VIC LSL Act 2018 s.6"), so we can detect jurisdictions without threading
+ * state through the PDF payload schema.
+ */
+function deriveJurisdictionLine(cits: Citation[]): string {
+  const seen = new Set<string>();
+  for (const c of cits) {
+    if (c.section.startsWith('NSW')) seen.add('NSW');
+    if (c.section.startsWith('VIC')) seen.add('VIC');
+  }
+  if (seen.size === 0) return 'Long Service Leave Act';
+  const parts: string[] = [];
+  if (seen.has('NSW')) parts.push('Long Service Leave Act 1955 (NSW)');
+  if (seen.has('VIC')) parts.push('Long Service Leave Act 2018 (VIC)');
+  return parts.join(' · ');
 }

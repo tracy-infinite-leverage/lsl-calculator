@@ -9,7 +9,7 @@ import type {
 
 /**
  * Wire-shape: what the form holds. Strings throughout for input control.
- * Coerced to engine types before calling calculateNSW().
+ * Coerced to engine types before calling dispatch.calculate().
  */
 export interface ServiceEventDraft {
   id: string;
@@ -72,8 +72,11 @@ export function emptyFormState(): FormState {
     employmentType: '',
     categoryOverride: '',
     categoryOverrideConfirmed: false,
+    // Default to NSW for safety — preserves the v1 NSW-only flow for any user
+    // who doesn't touch the state selector. Selector + the per-state list
+    // both drive this single field.
     statesOfService: ['NSW'],
-    governingJurisdiction: '',
+    governingJurisdiction: 'NSW',
     currentWeeklyGross: '',
     priorLeaveTakenWeeks: '',
     wageHistory: [],
