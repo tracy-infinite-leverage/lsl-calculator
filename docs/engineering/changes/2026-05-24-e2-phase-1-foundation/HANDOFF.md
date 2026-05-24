@@ -170,15 +170,14 @@ This is intentional. Adding the selector to the form right now would either (a) 
 ## Commits on this branch
 
 ```
-<paste from `git log --oneline main..HEAD` at PR open>
+9c831b3 feat(E2 Phase 1): per-state telemetry + CI matrix + handoff doc
+02268ec feat(E2 Phase 1): state dispatcher + selector UI + form wiring
+73a6764 feat(E2 Phase 1): StateRuleSet contract + per-state service profile
+e70e7b3 docs(product): E2 impl-plan + tasks — 10 phases, 76 tasks    (cherry-picked from 002-all-state-coverage)
+1173286 docs(product): scaffold E2 all-state coverage epic — spec v0.3.0   (cherry-picked from 002-all-state-coverage)
 ```
 
-Cherry-picked from the original `002-all-state-coverage` branch (which carried 38 noisy pre-squash NSW commits that are already in main via PR #1 + PR #3):
-
-- `5dc7fd5` — docs(product): scaffold E2 all-state coverage epic — spec v0.3.0
-- `ef0bb47` — docs(product): E2 impl-plan + tasks — 10 phases, 76 tasks
-
-Plus Phase 1 implementation commits authored on this branch.
+The two cherry-picked commits came from the original `002-all-state-coverage` branch (which carried 38 noisy pre-squash NSW commits that are already in main via PR #1 + PR #3, so the branch itself was unsuitable for a clean PR diff).
 
 ---
 
