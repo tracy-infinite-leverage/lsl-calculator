@@ -1,8 +1,9 @@
 # Spec: All-State LSL Coverage (E2)
 
-**Version**: 0.3.0
-**Status**: Draft — all clarifications resolved, ready for plan + tasks
-**Date**: 2026-05-23
+**Version**: 0.3.1
+**Status**: Draft — all clarifications resolved; VIC cashing-out citation corrected per `docs/qa/test-cases-vic.md` TBD-VIC-12
+**Date**: 2026-05-24
+**Previous version**: 0.3.0 (2026-05-23 — same content; cashing-out section number was incorrectly cited as s.67 throughout)
 **Owner**: Tracy (PM)
 **Branch**: `002-all-state-coverage`
 **Source**:
@@ -16,7 +17,9 @@
 
 ---
 
-## Clarification Summary (v0.3.0)
+## Clarification Summary (v0.3.1)
+
+**v0.3.1 amendment (2026-05-24)** — content-preserving citation correction. Every reference to "LSL Act 2018 (Vic) **s.67**" in v0.3.0 (cashing-out criminal offence) is corrected to "LSL Act 2018 (Vic) **s.34**" (Part 3 Division 3 — Offences). The s.67 wording in v0.3.0 came from the APA training PDF p.47, which itself cites the section incorrectly; the authorised Act text places the cashing-out prohibition at s.34. No other content changes between v0.3.0 and v0.3.1. See `docs/qa/test-cases-vic.md` § Resolutions → TBD-VIC-12 for the audit record. The APA training PDF still on disk has the s.67 error and is surfaced for external correction to APA's training team (not a launch blocker).
 
 All six v0.1.0 open questions have been resolved across two operator clarification rounds (2026-05-23). The resolutions are applied throughout this spec; this section is the source-of-record for the decisions, ordered RES-1 through RES-6.
 
@@ -46,7 +49,7 @@ This is the customer-base-expansion epic. After E2, the LSL Calculator is no lon
 
 The expansion carries encoding risk that NSW did not. Three states diverge from NSW in ways that are dangerous to mis-encode:
 
-- **VIC** criminalises cashing out (LSL Act 2018 (Vic) s.67) and operates two continuous-service regimes either side of 1 November 2018.
+- **VIC** criminalises cashing out (LSL Act 2018 (Vic) s.34) and operates two continuous-service regimes either side of 1 November 2018.
 - **ACT** counts overtime hours for part-time/casual ordinary-pay calculation, *inverting* NSW's rule. A NSW-trained mental model produces wrong answers in ACT.
 - **WA** operates two continuous-service regimes either side of 20 June 2022, and Workers Comp counts as service only from 1 July 2024. A single WA employee whose tenure spans 2022 may have both regimes applied across different segments of their service.
 
@@ -62,7 +65,7 @@ E1 ships an NSW-only calculator. A payroll manager whose company operates in mul
 
 Each remaining state has its own LSL Act with structural differences from NSW that prevent a "tweak the constants" approach. Specific known divergences (sourced from `docs/features/LSL-training.pdf` and each state's Act):
 
-- **VIC** (LSL Act 2018 (Vic); PDF pp.32–48): 7-year qualifying period (vs NSW 10), 12-week break tolerance (vs NSW 2 months), **cashing out is a criminal offence** (s.67) — must surface as a hard error on any user attempt; pre- and post-November 2018 continuous-service regimes for employees with service straddling that date.
+- **VIC** (LSL Act 2018 (Vic); PDF pp.32–48): 7-year qualifying period (vs NSW 10), 12-week break tolerance (vs NSW 2 months), **cashing out is a criminal offence** (s.34) — must surface as a hard error on any user attempt; pre- and post-November 2018 continuous-service regimes for employees with service straddling that date.
 
 - **QLD** (Industrial Relations Act 2016 (Qld) Ch.2 Pt.3 Div.9; PDF pp.49–64): 10-year qualifying period, restricted cashing out (requires award/enterprise agreement permission OR Queensland Industrial Relations Commission approval), 3-month break tolerance.
 
@@ -132,7 +135,7 @@ Most Australian employers also operate across more than one state. Cross-jurisdi
 
 #### State-specific hard rules
 
-- **F5.** When the active state is **VIC** and the user attempts to compute a cashing-out scenario (trigger = `cash_out` if added in v2, or any user action implying cashing out without leave being taken), the system MUST display a hard error citing LSL Act 2018 (Vic) s.67 and MUST NOT produce a numeric result. Cashing out in VIC is a criminal offence; the calculator MUST NOT compute a value that could be used to facilitate one.
+- **F5.** When the active state is **VIC** and the user attempts to compute a cashing-out scenario (trigger = `cash_out` if added in v2, or any user action implying cashing out without leave being taken), the system MUST display a hard error citing LSL Act 2018 (Vic) s.34 and MUST NOT produce a numeric result. Cashing out in VIC is a criminal offence; the calculator MUST NOT compute a value that could be used to facilitate one.
 
 - **F6.** When the active state is **NT** and the user attempts cashing out, the system MUST display a hard error citing LSL Act 1981 (NT) s.12 and MUST NOT produce a numeric result.
 
@@ -325,7 +328,7 @@ Most Australian employers also operate across more than one state. Cross-jurisdi
 
 ### State-specific hard rules
 
-- **AC5.** Attempting a cashing-out scenario with `state = VIC` returns a hard error citing LSL Act 2018 (Vic) s.67. No numeric result is produced. Page event `vic_cashout_hard_error` is logged with no input PII.
+- **AC5.** Attempting a cashing-out scenario with `state = VIC` returns a hard error citing LSL Act 2018 (Vic) s.34. No numeric result is produced. Page event `vic_cashout_hard_error` is logged with no input PII.
 
 - **AC6.** Attempting a cashing-out scenario with `state = NT` returns a hard error citing LSL Act 1981 (NT) s.12. No numeric result is produced.
 
