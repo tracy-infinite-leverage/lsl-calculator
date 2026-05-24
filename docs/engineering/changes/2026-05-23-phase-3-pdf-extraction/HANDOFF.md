@@ -239,3 +239,71 @@ The new Playwright a11y test runs the **same axe-core 4.11.x rule set** QA used 
 - Phase 3 PDF logic (route, prompts, schema, confidence gate, client.ts): not touched — Q-03 was a pure test-coverage gap, not a code change.
 - QA-REPORT.md: not touched (QA owns that document).
 
+---
+
+## 2026-05-24 addendum — issue #5 fix (P1 launch blocker)
+
+### Problem
+
+During manual launch testing of PR #3 on the Vercel preview deployment, dropping a real payroll PDF on `/calculator/single` (Chrome latest, macOS) returned this user-visible error in place of the confirm-extracted-data dialog:
+
+> Couldn't read the PDF (Failed to load external module pdfjs-dist-3fb29ab2c6bc5604/legacy/build/pdf.mjs: ReferenceError: DOMMatrix is not defined). Try a different file or upload your wage history as CSV instead.
+
+CI was green on the same commit. Tracked in GitHub issue #5.
+
+### Root cause
+
+Two bugs, one cause:
+
+**Bug A — Turbopack resolved bare `pdfjs-dist` to the legacy build on the client.**
+`pdfjs-dist@5.7.284`'s `package.json` declares `"main": "build/pdf.mjs"` (the main build) with no `module`, no `browser` entry override, and no `exports` map. Despite that, Next.js 16.2.6 + Turbopack rewrote the client-side `await import('pdfjs-dist')` to `legacy/build/pdf.mjs`. The legacy build assumes DOMMatrix is polyfilled; modern Chrome has DOMMatrix as a native global, so the polyfill bridge in the legacy bundle throws "ReferenceError: DOMMatrix is not defined" at module-load time. The bug was masked in `npm run dev` (the dev-mode chunking happened to resolve to the main build) and only surfaced in the production-style build that Vercel serves.
+
+Verified post-fix by inspecting `.next/static/chunks/*.js` — the production client bundle now references only `pdfjs-dist/build/pdf.mjs` and contains no `legacy/build` reference. The `.next/server/chunks/[externals]_pdfjs-dist_legacy_build_pdf_mjs_*.js` remaining server-side chunk is expected and correct (`src/server/pdf-text.ts` explicitly uses the legacy build for Node-side text extraction; that path has always been intentional).
+
+**Bug B — raw `err.message` was interpolated into the user-facing alert.**
+`src/lib/lsl/parsers/pdf/client.ts`'s catch branch built the error string as `` `Couldn't read the PDF (${err.message}). Try a different file or switch to CSV.` ``. When Bug A fired, `err.message` was the Turbopack module-loader stack ("Failed to load external module pdfjs-dist-3fb29ab2c6bc5604/legacy/build/pdf.mjs..."), which leaked through to the alert. End users should never see Turbopack chunk paths.
+
+### Fix
+
+Three source files + one new ambient declaration + one new e2e regression test.
+
+| File | Change |
+|---|---|
+| `website/src/lib/lsl/parsers/pdf/client.ts` | (a) Import the explicit subpath: `await import('pdfjs-dist/build/pdf.mjs')` (was bare `'pdfjs-dist'`). (b) Replace the raw-err-message alert with a static friendly message; log the technical detail via `console.error('[inspectPDF] pdfjs.getDocument threw:', ...)` and fire `track({ event: 'single_pdf_failed', error_code: 'pdfjs_unreadable' })`. (c) Added explanatory comment block documenting the subpath rationale so future readers don't undo the fix. |
+| `website/src/lib/lsl/parsers/pdf/pdfjs-subpath.d.ts` | New 1-module ambient declaration: `declare module 'pdfjs-dist/build/pdf.mjs' { export * from 'pdfjs-dist'; }`. The pdfjs-dist package only ships types for its bare entry; this re-exports them at the subpath we now import from. Keeps the import fully typed with zero `any`-cast at the call site. |
+| `website/src/lib/lsl/parsers/pdf/__tests__/client.test.ts` | Updated the `vi.doMock` target from `'pdfjs-dist'` to `'pdfjs-dist/build/pdf.mjs'` to match the new import path. Added a 3-line comment explaining the link to issue #5. |
+| `website/e2e/pdf-extract.spec.ts` | New regression test `issue #5: client-side pdfjs loads without DOMMatrix crash on real PDF`. Uses the existing `sample-payroll.pdf` fixture, stubs `/api/extract-pdf` with the happy response (the bug is purely client-side), asserts (1) the "Couldn't read this PDF" alert never appears, (2) the preview dialog opens, (3) no `DOMMatrix is not defined` or `pdfjs-dist…legacy…pdf.mjs` string appears in any captured console error or pageerror. This is the CI coverage gap that let the bug slip through. |
+
+### Why this design
+
+- **Explicit subpath over conditional load.** Detecting DOMMatrix at runtime and switching between main / legacy builds works but adds branching, a second pdfjs bundle, and a real risk of choosing the wrong one. The main build runs on every browser our Playwright matrix targets (verified below); legacy is only needed for genuinely ancient environments we do not support. One path, one chunk, less surface area.
+- **Ambient module declaration over `as unknown` cast.** A 1-line `declare module` keeps the call site fully typed and signals intent clearly. The cast pattern would have worked but degrades discoverability.
+- **Telemetry over re-throw.** The catch branch still returns the typed `unreadable` result (so the existing flow — alert + CSV-fallback button — keeps working), but now also fires an analytics event and logs to console. The technical detail reaches Vercel's runtime logs without ever touching the UI.
+- **Playwright regression test stubs `/api/extract-pdf`.** The bug is purely client-side (pdfjs module load). Stubbing the route lets the test run hermetically with no Anthropic key and still exercises the exact failure surface.
+
+### Evidence
+
+| Gate | Result |
+|---|---|
+| `npm run test` | 317 / 317 passed (19 files, 1.59s). No new unit test added — the gap was at the integration level, fixed via Playwright. |
+| `npx tsc --noEmit` | clean (no output). |
+| `npm run build` | clean (`✓ Compiled successfully in 1952ms`, TypeScript pass, 10/10 static pages). |
+| `npx playwright test e2e/pdf-extract.spec.ts` (chromium) | 5 / 5 passed (was 4 / 4 — the new issue #5 regression test is the +1). |
+| `PLAYWRIGHT_ALL_BROWSERS=1 npx playwright test e2e/pdf-extract.spec.ts` | 20 / 20 passed across chromium + firefox + webkit + mobile-chrome. Main build works on every CI browser target. |
+| Production bundle inspection | `grep "legacy/build/pdf" .next/static` → no hits. `grep "pdfjs-dist" .next/static/chunks/*.js` → one hit, value `pdfjs-dist/build/pdf.mjs`. Confirmed at the artifact level that the legacy build is no longer linked into the client bundle. |
+| Live browser verification (Claude Preview, `npm run dev`) | Dropped a real PDF into `#pdf-upload`. Result: no "Couldn't read this PDF" alert, no `DOMMatrix is not defined` text leaked to the page, no console errors. The extraction flow proceeded past `inspectPDF` to the upload step and surfaced the expected friendly server-side error ("scanned image, no extractable text" — expected because the synthetic test PDF has no text). End-to-end client-side pdfjs path verified working in a real browser. |
+
+### Branch hygiene
+
+- `git branch --show-current` at start: `phase-3-pdf-followup`. Unchanged throughout — no `switch`, no `checkout`, no merge.
+- Files modified (4) + new (2) — all explicit `git add` by path. No `git add .` / `-A`.
+- `website/.claude/launch.json` left over from a previous MCP session was NOT staged.
+- No commits pushed. No `--no-verify`. No force-push. No empty / CI-trigger commits.
+
+### Not in scope (untouched)
+
+- Server-side `/api/extract-pdf` route — the bug was client-side only.
+- Server-side `src/server/pdf-text.ts` legacy-build import — intentional for Node compatibility; works correctly.
+- `next.config.ts` `serverExternalPackages: ['pdfjs-dist']` — untouched (only affects server bundling, orthogonal to the client subpath fix).
+- Unrelated refactors elsewhere in the PDF stack.
+
