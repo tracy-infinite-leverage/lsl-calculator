@@ -23,10 +23,12 @@ const WARNING_LABELS: Record<string, { label: string; tone: 'info' | 'warning' }
   classifier_ambiguous: { label: 'Pay-pattern category is borderline', tone: 'warning' },
   cross_jurisdiction_pending: { label: 'Cross-jurisdiction service', tone: 'info' },
   bonus_in_notes_v1_out_of_scope: { label: 'Bonus / incentive in notes', tone: 'warning' },
-  gap_exceeds_2mo: { label: 'Rehire gap > 2 months — prior service not preserved', tone: 'warning' },
-  rehire_gap_at_threshold: { label: 'Rehire gap exactly at 2-month threshold', tone: 'info' },
+  gap_exceeds_state_tolerance: { label: 'Rehire gap exceeded state tolerance — prior service not preserved', tone: 'warning' },
+  rehire_gap_at_threshold: { label: 'Rehire gap exactly at state tolerance threshold', tone: 'info' },
   accrued_not_currently_payable: { label: 'Accrued, not currently payable', tone: 'info' },
   extraction_low_confidence: { label: 'Low confidence on PDF extraction', tone: 'warning' },
+  sub_7yr_review_industrial_instrument: { label: 'Sub-7-year tenure — review industrial instrument / EA for top-up', tone: 'info' },
+  pre_2018_service_broken: { label: 'Service before 2018 broken under 1992 Act', tone: 'warning' },
 };
 
 export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPanelProps) {

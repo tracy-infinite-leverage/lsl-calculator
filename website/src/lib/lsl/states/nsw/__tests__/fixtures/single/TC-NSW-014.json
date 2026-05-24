@@ -31,7 +31,7 @@
     "expected_citations": [
       { "section": "NSW LSA s.4(11)", "rule": "continuous-service.gap-exceeds-2mo-breaks-service" }
     ],
-    "warnings": ["gap_exceeds_2mo", "accrued_not_currently_payable"],
+    "warnings": ["gap_exceeds_state_tolerance", "accrued_not_currently_payable"],
     "payableIndicator": "accrued_not_currently_payable"
   }
 }

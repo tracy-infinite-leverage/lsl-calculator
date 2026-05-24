@@ -72,7 +72,7 @@ describe('computeContinuousService', () => {
     expect(r.effectiveServiceStart).toBe('2026-02-22');
     // 2026-02-22 → 2026-05-21 inclusive = 89 days
     expect(r.daysOfContinuousService).toBe(89);
-    expect(r.warnings.some((w) => w.code === 'gap_exceeds_2mo')).toBe(true);
+    expect(r.warnings.some((w) => w.code === 'gap_exceeds_state_tolerance')).toBe(true);
   });
 
   it('employer rehire gap ≤ 60 days preserves service; gap days excluded', () => {
