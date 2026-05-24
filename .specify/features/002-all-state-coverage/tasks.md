@@ -1,10 +1,12 @@
 # Tasks — All-State Coverage (E2)
 
-**Source plan**: `.specify/features/002-all-state-coverage/impl-plan.md`
+**Source plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.1
 **Branch**: `002-all-state-coverage`
-**Date**: 2026-05-23
+**Date**: 2026-05-24 (last updated)
 **Sizing legend**: S (≤ 4h), M (½ – 1.5 days), L (2–4 days), XL (> 4 days, split before starting)
 **[P] marker**: task can run in parallel with sibling tasks in the same phase (no shared file mutation, no dependency)
+
+**2026-05-24 update**: T3.0 SIGNED OFF (PM Tracy Angwin). T3.1-T3.4 re-scoped per `docs/qa/test-cases-vic.md` TBD-VIC-01 resolution — one VIC rule set with date-aware continuous-service handling instead of two parallel rule sets. F5 citation corrected s.67 → s.34 per TBD-VIC-12.
 
 Per AC4a, **Phases 3 through 9 (per-state encoding) execute strictly sequentially** in the order VIC → QLD → WA → SA → ACT → TAS → NT. Phases 1 and 2 run before Phase 3 and can overlap with each other (different code paths). Phase 10 runs after Phase 9 ships.
 
@@ -145,54 +147,56 @@ Document Phase 2 completion in HANDOFF.md. NSW-only CSV still processes byte-ide
 
 ## Phase 3 — VIC (RES-1 #1, dual-regime, hard-error)
 
-### T3.0 · [BLOCKING] PM-signed test-cases-vic.md (M) — AC4, AC4a, AC4b
+### T3.0 · [BLOCKING] PM-signed test-cases-vic.md (M) — AC4, AC4a, AC4b — ✅ SIGNED OFF 2026-05-24
 
-Author `docs/qa/test-cases-vic.md` with:
-- Every VIC-specific worked example from `docs/features/LSL-training.pdf` pp.32–48.
-- ≥ 5 VIC-unique edge cases including: pre-Nov-2018 employee, post-Nov-2018 employee, straddling employee with sufficient data, straddling employee with insufficient data (single-regime fallback), cashing-out attempt.
-- ≥ 1 bulk-mode multi-employee fixture (≥ 5 employees) mixing NSW + VIC.
-- Signature line `Signed: Tracy (PM) — YYYY-MM-DD`.
+`docs/qa/test-cases-vic.md` v1.0 — PM-signed-off 2026-05-24 by Tracy Angwin on branch `pm/vic-test-cases`. 61 test cases (single-mode 53 + bulk-mode 3 + transitional 5 — case IDs TC-VIC-001 through TC-VIC-058 + TC-VIC-BULK-001 through TC-VIC-BULK-003). All 13 TBDs resolved (see Resolutions section in the document). T3.1 onwards unblocked.
 
-**Blocks**: T3.1 onwards may NOT start before this is committed and PM-signed.
+### T3.1 · VIC rule-set scaffold (S) — AC1 — re-scoped 2026-05-24 (TBD-VIC-01)
 
-### T3.1 · VIC rule-set scaffold (S) — AC1
-
-Create:
+Create (one rule set with date-aware continuous-service handling per impl-plan v0.3.1 P0.2):
 ```
 website/src/lib/lsl/states/vic/
-├── index.ts                            (stub)
-├── rules-pre-2018/{accrual-table,value-of-week,trigger-handlers,continuous-service-rules}.ts (stubs)
-├── rules-post-2018/{accrual-table,value-of-week,trigger-handlers,continuous-service-rules}.ts (stubs)
-└── __tests__/{gold-standard.test.ts, fixtures/}
+├── index.ts                                       (stub)
+├── rules/
+│   ├── accrual-table.ts                           (stub — s.6 single accrual table)
+│   ├── value-of-week.ts                           (stub — s.15 fixed-rate + s.15(2) 3-tier averaging + s.16)
+│   ├── trigger-handlers.ts                        (stub — incl. F5 cashing-out hard error)
+│   └── continuous-service/
+│       ├── index.ts                               (stub — date-aware module selector)
+│       ├── rules-pre-1nov2018.ts                  (stub — 1992 Act rules)
+│       └── rules-post-1nov2018.ts                 (stub — 2018 Act rules)
+└── __tests__/{gold-standard.test.ts, fixtures/{post-2018, straddling, transitional}/}
 ```
 
-### T3.2 · VIC pre-2018 rules (L) — F2, F12, AC10
+### T3.2 · VIC continuous-service-rule modules (M) — F2, F12, AC10 — re-scoped 2026-05-24
 
-Encode `rules-pre-2018/`:
-- Accrual: pre-2018 LSL Act 1992 (Vic) accrual rates and pro-rata thresholds (per APA PDF pp.32–48).
-- Value-of-week per pre-2018 Act.
-- Trigger handlers + citations.
-- Continuous-service profile (break tolerance, rehire gap per pre-2018 Act).
-- Unit tests for each module against the PM-signed test-cases.
+Encode the two date-aware continuous-service modules:
+- `rules/continuous-service/rules-post-1nov2018.ts`: 2018 Act s.12 / s.13 / s.14 rules — 12-week break tolerance, 52-wk UPL cap **per-period** (TBD-VIC-08), 52-wk casual seasonal allowance, s.13(1)(b)/(c) unpaid-leave-counts rules, s.14(a)/(b)/(c) excluded-from-accrual rules.
+- `rules/continuous-service/rules-pre-1nov2018.ts`: 1992 Act s.62 / s.62A / s.63 rules preserved via s.57 — 12-mo apprentice cap, 3-mo dismissal/rehire cap, 48-wk illness cap, UPL-doesn't-count-at-all rule.
+- `rules/continuous-service/index.ts`: walks `serviceEvents` and selects the appropriate module per `absence.startDate` vs `2018-11-01`. For absences straddling the cutoff, split into two date segments and apply each module to its segment.
 
-### T3.3 · VIC post-2018 rules (L) — F2, F12, AC10
+Also: small `engine/types.ts` refactor — rename `gap_exceeds_2mo` warning code → `gap_exceeds_state_tolerance` per TBD-VIC-03; preserve NSW message wording.
 
-Encode `rules-post-2018/` from LSL Act 2018 (Vic):
-- 7-year qualifying period.
-- 12-week break tolerance.
-- Accrual table.
-- Value-of-week.
-- Trigger handlers.
+### T3.3 · VIC accrual + value-of-week + trigger-handlers (M) — F2, F12, AC10 — re-scoped 2026-05-24
 
-### T3.4 · VIC orchestrator + regime selector (L) — F5, F12, AC5, AC10
+Encode the single VIC rule set (no pre/post split at this layer — s.6 entitlement formula is undivided):
+- `rules/accrual-table.ts`: VIC LSL Act 2018 s.6 — 7-year qualifying threshold (inclusive at exactly 7.0000 per TBD-VIC-06); accrual ratio 8.6667/10 per year of continuous employment.
+- `rules/value-of-week.ts`: s.15(1) fixed-rate path; s.15(2)(a)/(b)/(c) three-tier averaging for varied-rate employees; s.16 hours-changed-in-last-104wks averaging; s.17 workers-comp higher-of-rates. Classifier branches by wage-history characteristics per TBD-VIC-11.
+- `rules/trigger-handlers.ts`: s.9 termination (any reason ≥ 7 yrs); s.10 death (52-wk avg per s.10(3)(b) overrides s.15(2) 3-tier); s.18+s.20 taking_leave; sub-7-yr advisory warning per TBD-VIC-07. **F5 cashing-out hard error** stays in this module.
 
-Implement `calculateVIC(employee, trigger)`:
-- Compute effective service start under post-2018 break tolerance (12 weeks).
-- Regime split logic per impl-plan P0.2: single pre-2018, single post-2018, or straddle.
-- Sufficient-granularity check for straddling employees; emit `vic_regime_split_data_insufficient` warning + single-regime fallback when needed.
-- Implement F5 cashing-out hard error: detect cashing-out trigger (new `cash_out` Trigger variant or sentinel field — see risk R2). Return `status: 'failed'` with citation `LSL Act 2018 (Vic) s.67`. Emit `vic_cashout_hard_error` page event.
+### T3.4 · VIC orchestrator (M) — F5, F12, AC5, AC10 — re-scoped 2026-05-24
+
+Implement `calculateVIC(employee, trigger)` per impl-plan v0.3.1 P0.2:
+1. Compute effective service start with VIC 12-week break tolerance.
+2. Walk `serviceEvents`; route each absence through the date-aware continuous-service module (sum `days_excluded_from_service`).
+3. Compute years of continuous service = (elapsed since effective start) − sum(days_excluded).
+4. Apply s.6 accrual once (no regime sum — single formula across total period of continuous employment).
+5. Apply value-of-week per the employee's classification.
+6. Apply trigger handler. F5 cashing-out hard error: return `status: 'failed'` with citation `LSL Act 2018 (Vic) s.34` (corrected from s.67 per TBD-VIC-12), `error.code = 'vic_cashout_prohibited'`, no numeric outputs. Emit `vic_cashout_hard_error` page event.
 
 Add `calculateVICSafe` wrapper. Export `VIC_RULE_SET: StateRuleSet`.
+
+**Note**: no `vic_regime_split_data_insufficient` warning path is needed — VIC's date-aware handling operates on known absence start dates, not on wage-history granularity. WA retains this warning (different architecture).
 
 ### T3.5 · VIC fixtures (M) — F3, AC2, AC3
 

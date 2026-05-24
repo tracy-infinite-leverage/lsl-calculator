@@ -1,10 +1,15 @@
 # Impl Plan — All-State Coverage (E2)
 
-**Source spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.0
+**Source spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
+**Version**: 0.3.1 (2026-05-24)
 **Branch**: `002-all-state-coverage`
-**Date**: 2026-05-23
+**Date**: 2026-05-24
 **Owner**: developer agent
 **Status**: Draft — ready for `speckit-tasks` to convert into `tasks.md`
+
+**v0.3.1 change log (2026-05-24)**:
+1. **Phase 3 (VIC) re-scoped** per `docs/qa/test-cases-vic.md` TBD-VIC-01 resolution. The "two parallel rule sets (`rules-pre-2018/` + `rules-post-2018/`)" model is replaced by **one VIC rule set with date-aware continuous-service handling**. Two continuous-service-rule *modules* (selected by absence start date) feed the same s.6 accrual formula. P0.2 decision and Phase 3 effort estimate revised. ~2 dev-days saved (8 → 6).
+2. **F5 citation corrected**: `LSL Act 2018 (Vic) s.67` → `LSL Act 2018 (Vic) s.34` (Part 3 Division 3 — Offences) per TBD-VIC-12. Mirrors spec v0.3.1.
 
 ---
 
@@ -57,46 +62,55 @@ This is **the contract**. Every new state implements this shape. The dispatcher 
 
 ---
 
-### P0.2 — DEV-E2-M2 · Dual-regime state encoding (VIC, WA) (RESOLVED)
+### P0.2 — DEV-E2-M2 · Dual-regime state encoding (VIC, WA) (RESOLVED — re-scoped 2026-05-24)
+
+**VIC re-scope (TBD-VIC-01, 2026-05-24)**: the original v0.3.0 plan called for two parallel rule sets per state (`vic-pre-2018/` and `vic-post-2018/`). Per the resolution recorded in `docs/qa/test-cases-vic.md` TBD-VIC-01, this is replaced by **one VIC rule set with date-aware continuous-service handling**. VIC LSL Act 2018 s.6 calculates entitlement on the employee's *total* period of continuous employment — singular, undivided. The transitional rules in s.57 affect *which absences count* toward continuous employment, not the entitlement-weeks formula. The pre/post-1/11/2018 split therefore applies to *per-absence rule selection* (which continuous-service-rule module to invoke for each historical absence) and NOT to two parallel entitlement engines.
 
 **Three candidate patterns** evaluated against the criterion "testability of each regime in isolation":
 
 - (a) Engine-level `selectRuleSetByDate(state, employee)` per segment, engine sums segments. Rejected: forces the engine to know about state-specific regime cutoffs, leaks state knowledge into shared code.
-- (b) Per-state dispatcher module that internally branches between `vic-pre-2018/` and `vic-post-2018/` rule sets. **Selected.**
-- (c) Single rule set per dual-regime state with explicit `if (date < threshold)` branching inside each rule. Rejected: scatters cutoff logic across every rule file; hard to test pre-cutoff and post-cutoff in isolation.
+- (b) Per-state dispatcher module that internally branches between two parallel rule sets selected by date. Rejected for VIC after TBD-VIC-01: the s.6 entitlement formula applies to total continuous employment, not segments, so two parallel entitlement engines is the wrong model.
+- (c) **VIC: one rule set with two continuous-service-rule modules selected by absence start date. Selected.**
+- WA: pattern (b) remains correct — WA's 2022 amendment is structurally different (changed accrual structure, not just continuous-service treatment). WA layout unchanged.
 
-**Decision: pattern (b) — per-state dispatcher with two sibling sub-rule-sets, selected by date.**
+**Decision (VIC): one rule set; absence-start-date-aware continuous-service rule selection.**
 
 VIC layout:
 ```
 website/src/lib/lsl/states/vic/
-├── index.ts                            # calculateVIC orchestrator — picks regime, sums segments
-├── rules-pre-2018/
-│   ├── accrual-table.ts
-│   ├── value-of-week.ts
-│   ├── trigger-handlers.ts
-│   └── continuous-service-rules.ts
-├── rules-post-2018/
-│   ├── (same shape as pre-2018)
+├── index.ts                            # calculateVIC orchestrator — single entitlement path
+├── rules/
+│   ├── accrual-table.ts                # 2018 Act s.6 accrual — applies to all VIC employees
+│   ├── value-of-week.ts                # s.15 fixed-rate + s.15(2) 3-tier averaging + s.16 hours-changed
+│   ├── trigger-handlers.ts             # incl. F5 cashing-out hard error (s.34)
+│   └── continuous-service/
+│       ├── index.ts                    # selects pre-2018 or post-2018 module per absence start date
+│       ├── rules-pre-1nov2018.ts       # 1992 Act s.62/62A/63 rules — applies to absences starting before 1 Nov 2018
+│       └── rules-post-1nov2018.ts      # 2018 Act s.12/13/14 rules — applies to absences starting on/after 1 Nov 2018
 └── __tests__/
-    ├── gold-standard.test.ts          # all VIC fixtures across both regimes
+    ├── gold-standard.test.ts           # all VIC fixtures
     └── fixtures/
-        ├── pre-2018/
-        ├── post-2018/
-        └── straddling/                # employees whose service crosses 2018-11-01
+        ├── post-2018/                  # employees entirely post-1/11/2018
+        ├── straddling/                 # employees whose service crosses 1/11/2018 (absences span the cutoff)
+        └── transitional/               # pre-2018-started absences governed by 1992 Act rules per s.57
 ```
 
 `calculateVIC(employee, trigger)`:
-1. Determine effective service start (post NSW-style rehire/apprentice gap logic, but with **VIC 12-week break tolerance** instead of NSW's 60-day).
-2. If effective service start ≥ 2018-11-01 → single-regime: invoke `rules-post-2018` end to end.
-3. If trigger PSD ≤ 2018-10-31 → single-regime: invoke `rules-pre-2018` end to end.
-4. Else employee straddles: compute continuous service days in each regime separately, accrue weeks per the respective accrual table, sum with citations from both. Value-of-week computed under the regime that owns the trigger date (the legislative convention — verify against APA-PDF worked examples in test-cases.md).
+1. Determine effective service start (with **VIC 12-week break tolerance** instead of NSW's 60-day).
+2. Walk `employee.serviceEvents`; for each absence, select the continuous-service rule module by `absence.startDate < 2018-11-01` (→ `rules-pre-1nov2018`) or `>= 2018-11-01` (→ `rules-post-1nov2018`). For absences that themselves straddle 1/11/2018 (e.g. Olivia, TC-VIC-037), split into two segments by date and apply each module to its segment.
+3. Sum days_excluded_from_service across all absences.
+4. Compute total period of continuous employment = (elapsed since effective service start) − sum(days_excluded).
+5. Apply s.6 accrual formula once: `years_of_continuous_service × (8.6667 / 10)` weeks. The accrual ratio is unchanged across both Acts (APA training is explicit, p.32 and p.45).
+6. Apply s.15 / s.16 to compute value-of-week.
+7. Emit citations from each continuous-service-rule module that fired, plus the single s.6 accrual citation.
 
-WA layout follows the same pattern with cutoff = 2022-06-20 (`rules-pre-2022` / `rules-post-2022`). WA Workers Comp counting only from 2024-07-01 (F8) is encoded inside `rules-post-2022/continuous-service-rules.ts` — that's a third sub-cutoff within the post-2022 regime, handled by a date-aware override in the WA service-rules table (not a third regime; one rule's effective date differs).
+This is simpler than the original (b) pattern: one accrual table, one value-of-week, one trigger-handlers module — only the continuous-service handling is date-aware. Effort estimate revised downward by ~2 days (8 → 6).
+
+**WA layout unchanged** — follows the original pattern (b) with cutoff = 2022-06-20 (`rules-pre-2022` / `rules-post-2022`). WA's 2022 amendment changed the accrual structure itself, so two parallel rule sets remain the right model. WA Workers Comp counting only from 2024-07-01 (F8) is encoded inside `rules-post-2022/continuous-service-rules.ts` as a date-aware override.
 
 **Single-regime states** (QLD, SA, TAS, ACT, NT) have no `rules-pre-X / rules-post-X` split; their `rules/` directory mirrors NSW's flat structure.
 
-**Ambiguity surfacing (F7, F12 / AC8)**: when wage-history granularity is insufficient to allocate segments (e.g., monthly pay periods that straddle the cutoff), the orchestrator emits a `regime_split_data_insufficient` warning and falls back to single-regime computation using the regime that owns the trigger date. The fallback path is the explicit `single-regime fallback used` caveat in the citation block, mandated by F7.
+**Ambiguity surfacing (F7, F12 / AC8)**: WA's regime split requires data-granularity checks (e.g., monthly pay periods that straddle the cutoff). VIC does NOT — the date-aware continuous-service handling operates on `serviceEvent.startDate`, which is always known. VIC fixture coverage therefore does not require a `regime_split_data_insufficient` warning path; the WA orchestrator retains that warning per F7.
 
 ---
 
@@ -254,16 +268,20 @@ The seven phases below share an identical shape; they vary only in legislation s
 - **Step 11 — CI matrix shard**. Add `{state}` to the matrix in `.github/workflows/`.
 - **Step 12 — Per-state launch gate (AC4b)**. PM-signed test-cases.md + automated suite 100% green in CI on merge commit. Deploy to prod. Update `epic-status.md` with state moving to Stage 5 (Shipped). **THEN** the next state in sequence may start.
 
-### Phase 3 — VIC (RES-1 #1)
+### Phase 3 — VIC (RES-1 #1) — re-scoped 2026-05-24 per TBD-VIC-01
 
-**Effort estimate**: L (5–8 days) — first state, also dual-regime + hard-error + criminal-offence framing means high QA bar.
+**Effort estimate**: M–L (4–6 days) — revised down from L (5–8 days) following TBD-VIC-01 resolution. Architectural simplification: one VIC rule set with date-aware continuous-service handling (not two parallel rule sets). Hard-error + criminal-offence framing still warrants a high QA bar; the saving is on duplicated accrual / value-of-week / trigger-handler scaffolding.
 
 State-specific work beyond the generic shape:
-- Two sub-rule-sets `rules-pre-2018/` and `rules-post-2018/` per P0.2.
-- F5 cashing-out hard error path: `calculateVIC` checks trigger metadata for cashing-out intent (TBD shape — likely a new `Trigger` variant in v2; for v1, any explicit `cashOut: true` flag in trigger payload). Hard error returns `status: 'failed'` with `error.code = 'vic_cashout_prohibited'`, citation `LSL Act 2018 (Vic) s.67`, no numeric outputs. Page event `vic_cashout_hard_error` emitted.
-- Regime-split fixture matrix: pre-2018 straddling, post-2018 straddling, mid-2018 straddling (PSD ≥ cutoff, employee start ≤ cutoff).
-- 12-week break tolerance replaces NSW's 60-day in `continuous-service-rules.ts`.
-- VIC docs page emphasises cashing-out prohibition + regime-split UX.
+- **One VIC rule set** with two continuous-service-rule modules (`rules/continuous-service/rules-pre-1nov2018.ts` and `rules-post-1nov2018.ts`) selected by absence start date per P0.2 (re-scoped).
+- F5 cashing-out hard error path: `calculateVIC` checks trigger metadata for cashing-out intent (TBD shape — likely a new `Trigger` variant in v2; for v1, any explicit `cashOut: true` flag in trigger payload). Hard error returns `status: 'failed'` with `error.code = 'vic_cashout_prohibited'`, citation `LSL Act 2018 (Vic) s.34` (corrected from s.67 per TBD-VIC-12), no numeric outputs. Page event `vic_cashout_hard_error` emitted.
+- Absence-split fixture coverage: post-2018 only, pre-2018 (transitional) only, straddling-1/11/2018 absences (e.g. Olivia, TC-VIC-037) split into two date segments.
+- 12-week break tolerance replaces NSW's 60-day in the orchestrator's effective-service-start logic.
+- Small `engine/types.ts` refactor: rename `gap_exceeds_2mo` warning code → `gap_exceeds_state_tolerance` per TBD-VIC-03. Touches NSW message wiring (preserved as "2 months") and VIC message wiring (new: "12 weeks"). Same enum value, parameterised message.
+- LWOP cap interpretation: **per-period** per TBD-VIC-08. Each `leave_without_pay` event evaluated against the 52-wk cap independently.
+- 7-year qualifying threshold inclusive at exactly 7 years (TBD-VIC-06): `years_of_continuous_service >= 7.0000`.
+- Sub-7-yr advisory warning (TBD-VIC-07): when trigger is death/illness at sub-7-yr tenure, emit `sub_7yr_review_industrial_instrument` non-blocking warning.
+- VIC docs page emphasises cashing-out prohibition + transitional s.57 handling.
 
 ### Phase 4 — QLD (RES-1 #2)
 
@@ -357,7 +375,7 @@ After NT ships, the closeout phase finalises cross-cutting acceptance criteria t
 |---|---|---|
 | 1 | Shared foundation | M (3–4 days) |
 | 2 | Bulk CSV mixed-state foundation | M (2–3 days) |
-| 3 | VIC | L (5–8 days) |
+| 3 | VIC | M–L (4–6 days) — revised 2026-05-24 per TBD-VIC-01 (was 5–8 days) |
 | 4 | QLD | M (3–5 days) |
 | 5 | WA | L (5–8 days) |
 | 6 | SA | M (3–5 days) |
@@ -365,7 +383,7 @@ After NT ships, the closeout phase finalises cross-cutting acceptance criteria t
 | 8 | TAS | M (3–4 days) |
 | 9 | NT | M (4–5 days) |
 | 10 | E2 closeout | S–M (2–3 days) |
-| **Total** | | **35–52 dev-days** |
+| **Total** | | **34–50 dev-days** (was 35–52; ~2 days saved on VIC re-scope) |
 
 Effort is sequential (per AC4a) — phases 3 through 9 cannot parallelise without operator override. Phases 1 and 2 can overlap (different code paths). Phase 10 starts when NT (Phase 9) ships.
 
