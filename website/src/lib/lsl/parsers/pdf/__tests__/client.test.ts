@@ -90,8 +90,12 @@ describe('inspectPDF — pdfjs-mocked page-count branch', () => {
     // Mock pdfjs-dist so we can drive `numPages` deterministically without
     // needing a browser env. This is Q-03's "option (a)" — a hermetic test
     // that mocks pdfjs.getDocument(...).numPages.
+    //
+    // Mock target matches the explicit subpath the client imports — bare
+    // `pdfjs-dist` was reaching the legacy build in Turbopack and crashing
+    // Chrome with "DOMMatrix is not defined" (issue #5).
     const destroy = vi.fn().mockResolvedValue(undefined);
-    vi.doMock('pdfjs-dist', () => ({
+    vi.doMock('pdfjs-dist/build/pdf.mjs', () => ({
       GlobalWorkerOptions: { workerSrc: '' },
       getDocument: vi.fn(() => ({
         promise: Promise.resolve({ numPages: 51, destroy }),
@@ -123,7 +127,7 @@ describe('inspectPDF — pdfjs-mocked page-count branch', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     } finally {
       globalThis.fetch = originalFetch;
-      vi.doUnmock('pdfjs-dist');
+      vi.doUnmock('pdfjs-dist/build/pdf.mjs');
       vi.resetModules();
     }
   });

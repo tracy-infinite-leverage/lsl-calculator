@@ -154,6 +154,55 @@ test.describe('PDF extraction', () => {
     await expect(page.getByText(/Upload wage history CSV/i)).toBeVisible();
   });
 
+  test('issue #5: client-side pdfjs loads without DOMMatrix crash on real PDF', async ({
+    page,
+  }) => {
+    // Regression guard for the Vercel-preview crash where Turbopack rewrote
+    // bare `pdfjs-dist` to the legacy build, which expects DOMMatrix to be
+    // polyfilled and threw "ReferenceError: DOMMatrix is not defined" in
+    // modern Chrome. The existing tests stub /api/extract-pdf but still run
+    // the client-side inspectPDF → pdfjs.getDocument() path — that path
+    // must succeed against a real PDF for the dialog flow to start.
+    //
+    // We mock /api/extract-pdf with a minimal happy response so the test
+    // can run hermetically without an Anthropic key — the fix we care
+    // about is exclusively client-side (the pdfjs subpath swap).
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') consoleErrors.push(msg.text());
+    });
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+
+    await page.route('**/api/extract-pdf', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(HAPPY_RESPONSE),
+      });
+    });
+
+    await page.goto('/calculator/single');
+    expect(fs.existsSync(FIXTURE_PDF), `Fixture missing: ${FIXTURE_PDF}`).toBe(true);
+    await page.setInputFiles('#pdf-upload', FIXTURE_PDF);
+
+    // If pdfjs crashes on load, inspectPDF returns ok:false with the
+    // unreadable code and the alert "Couldn't read this PDF" shows up.
+    // We must NOT see that — and we must see the preview dialog open
+    // (which only happens after inspectPDF succeeds).
+    await expect(page.getByText("Couldn't read this PDF")).not.toBeVisible({
+      timeout: 5_000,
+    });
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 15_000 });
+
+    // Belt-and-braces: no DOMMatrix / pdfjs-legacy errors leaked to
+    // the page or console. Tolerate unrelated noise (e.g. React dev
+    // warnings) by matching only the known bad strings.
+    const allErrors = [...consoleErrors, ...pageErrors].join('\n');
+    expect(allErrors).not.toMatch(/DOMMatrix is not defined/i);
+    expect(allErrors).not.toMatch(/pdfjs-dist.*legacy.*pdf\.mjs/i);
+  });
+
   test('AC26: 503 from extraction service surfaces fallback within 10s', async ({ page }) => {
     await page.route('**/api/extract-pdf', async (route) => {
       await route.fulfill({
