@@ -4,6 +4,7 @@ import type {
   PayFrequency,
   ServiceEventType,
   State,
+  TerminationInitiator,
   TerminationReason,
 } from '@/lib/lsl/engine/types';
 
@@ -61,6 +62,12 @@ export interface FormState {
   leaveStartDate: string;
   terminationDate: string;
   terminationReason: TerminationReason | '';
+  /**
+   * DEV-CROSS-1: surfaced when the termination reason requires
+   * employee-vs-employer disambiguation (currently only `illness_incapacity`).
+   * Empty for all other reasons — engine defaults to `'employee'` when omitted.
+   */
+  terminationInitiator: TerminationInitiator | '';
   asAtDate: string;
 }
 
@@ -85,6 +92,7 @@ export function emptyFormState(): FormState {
     leaveStartDate: '',
     terminationDate: '',
     terminationReason: '',
+    terminationInitiator: '',
     asAtDate: '',
   };
 }
@@ -130,6 +138,26 @@ export const TERMINATION_REASON_OPTIONS: { value: TerminationReason; label: stri
     label: 'Domestic or other pressing necessity',
   },
   { value: 'death', label: 'Death' },
+  // DEV-CROSS-1 (2026-05-25).
+  { value: 'unfair_dismissal', label: 'Unfair dismissal' },
+  { value: 'poor_performance', label: 'Dismissal for poor performance' },
+];
+
+/**
+ * Set of termination reasons whose sub-paragraph outcome depends on who
+ * initiated the termination. When the user selects one of these reasons,
+ * the single-mode form surfaces a `terminationInitiator` radio group.
+ *
+ * v1: only `illness_incapacity` (QLD s.95(3)(b) vs (c)). Future per-state PRs
+ * may add more entries (WA/SA/TAS analogues).
+ */
+export const REASONS_REQUIRING_INITIATOR: ReadonlySet<TerminationReason> = new Set([
+  'illness_incapacity',
+]);
+
+export const TERMINATION_INITIATOR_OPTIONS: { value: TerminationInitiator; label: string }[] = [
+  { value: 'employee', label: 'Employee-initiated (the employee resigned)' },
+  { value: 'employer', label: 'Employer-initiated (the employer dismissed)' },
 ];
 
 export type ISODateInput = ISODate | '';

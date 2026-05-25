@@ -176,7 +176,17 @@ function reasonToRuleKey(reason: TerminationReason): string {
       return 'domestic';
     case 'death':
       return 'death';
-    default:
+    // DEV-CROSS-1 additive enum values. NSW does not currently branch on these
+    // for sub-10-yr pro-rata — they fall through to the non-qualifying path via
+    // the QUALIFYING_5_TO_10_REASONS list. This switch is only reached for
+    // 10+yr cases (where every reason pays out), so the rule key just needs to
+    // be a stable string for citation labelling.
+    case 'unfair_dismissal':
+      return 'unfair-dismissal';
+    case 'poor_performance':
+      return 'poor-performance';
+    case 'voluntary_resignation':
+    case 'serious_misconduct':
       return reason;
   }
 }

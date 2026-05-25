@@ -17,6 +17,32 @@ export type Category = 'A' | 'B' | 'C';
 
 export type PayFrequency = 'weekly' | 'fortnightly' | 'monthly' | 'other';
 
+/**
+ * Termination reasons accepted by the engine.
+ *
+ * The enum is **additive across states** (DEV-CROSS-1): each value is the union
+ * of every state's qualifying-reason taxonomy. A state engine only branches on
+ * the values it explicitly handles; unrecognised values fall through to the
+ * state's "non-qualifying" path (typically matching `voluntary_resignation`
+ * behaviour for that state's tenure band).
+ *
+ * State coverage at time of writing (2026-05-25):
+ *   - `voluntary_resignation` — handled by NSW, VIC, QLD.
+ *   - `employer_initiated_not_misconduct` — handled by NSW (qualifies 5-10yr),
+ *     QLD (qualifies sub-10yr via s.95(3)(d)). VIC pays out at 7+yr regardless.
+ *   - `redundancy` — qualifies everywhere.
+ *   - `serious_misconduct` — NSW + QLD exclude at sub-10yr. VIC pays out.
+ *   - `illness_incapacity` — see `terminationInitiator` for the
+ *     employee-vs-employer-initiated disambiguation (QLD s.95(3)(b) vs (c)).
+ *   - `domestic_pressing_necessity` — NSW + QLD qualifying reason. VIC ignores
+ *     (pays out anyway at 7+yr).
+ *   - `death` — qualifies everywhere.
+ *   - `unfair_dismissal` — QLD s.95(3)(e) qualifying. Other states currently
+ *     fall through to the non-qualifying path (matches voluntary_resignation
+ *     behaviour) — to be revisited per-state.
+ *   - `poor_performance` — explicitly non-qualifying at sub-10yr in QLD
+ *     (s.95(3)(d) excludes performance). Other states fall through.
+ */
 export type TerminationReason =
   | 'voluntary_resignation'
   | 'employer_initiated_not_misconduct'
@@ -24,7 +50,24 @@ export type TerminationReason =
   | 'serious_misconduct'
   | 'illness_incapacity'
   | 'domestic_pressing_necessity'
-  | 'death';
+  | 'death'
+  | 'unfair_dismissal'
+  | 'poor_performance';
+
+/**
+ * Who initiated a termination — surfaced by states whose sub-paragraphs change
+ * the qualifying-reason outcome based on who decided to end the employment.
+ *
+ * QLD is the first state to need this: s.95(3)(b) (employee illness
+ * resignation) and s.95(3)(c) (employer illness dismissal) both pay out, while
+ * s.95(3)(d) (employer dismissal for capacity/performance) does NOT. The
+ * `illness_incapacity` reason is therefore disambiguated by initiator before
+ * QLD's accrual table makes its qualifying-gate decision.
+ *
+ * Optional: when omitted, state engines default to `'employee'` (the most
+ * common case — resignation). NSW + VIC currently ignore this field entirely.
+ */
+export type TerminationInitiator = 'employee' | 'employer';
 
 export type ServiceEventType =
   | 'paid_leave'
@@ -40,7 +83,19 @@ export type ServiceEventType =
 
 export type Trigger =
   | { kind: 'taking_leave'; leaveStartDate: ISODate; leaveWeeks?: number }
-  | { kind: 'termination'; terminationDate: ISODate; reason: TerminationReason }
+  | {
+      kind: 'termination';
+      terminationDate: ISODate;
+      reason: TerminationReason;
+      /**
+       * Optional — who initiated the termination. Consumed by states whose
+       * sub-paragraphs branch on the initiator (QLD s.95(3)(b) vs (c) for
+       * illness; future WA/SA/TAS analogues). Engines that ignore this field
+       * default-treat the case as `'employee'`-initiated (the most common case
+       * = resignation). See `TerminationInitiator` doc comment.
+       */
+      terminationInitiator?: TerminationInitiator;
+    }
   | { kind: 'as_at'; asAtDate: ISODate }
   /**
    * Cashing-out trigger — scaffolded in E2 Phase 1 (impl-plan §R2).
