@@ -1,0 +1,31 @@
+{
+  "name": "TC-SA-004",
+  "title": "8 yrs FT death, pro-rata 10.4 wks to personal representative",
+  "source": "APA p.82; SA LSL Act 1987 s.5; SafeWork SA — payment",
+  "input": {
+    "employee": {
+      "id": "TC-SA-004",
+      "legalName": "DeathSAFixture",
+      "startDate": "2018-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2018-05-25", "periodEnd": "2026-05-25", "grossPay": "707200.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "death" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5", "rule": "trigger.termination.death-vests-in-personal-representative" },
+      { "section": "SA LSL Act 1987 s.4", "rule": "ordinary-pay.fixed-rate" }
+    ]
+  }
+}
