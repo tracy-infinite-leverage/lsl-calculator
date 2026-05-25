@@ -5,11 +5,12 @@ import type {
   ServiceEventType,
   WagePeriod,
   ContinuousServiceEvent,
+  TerminationInitiator,
   TerminationReason,
   State,
 } from '@/lib/lsl/engine/types';
 import { asISODate } from '@/lib/lsl/engine/types';
-import type { FormState } from './types';
+import { REASONS_REQUIRING_INITIATOR, type FormState } from './types';
 
 export interface FormValidation {
   ok: boolean;
@@ -47,8 +48,17 @@ export function validateForm(state: FormState): FormValidation {
     fieldErrors.leaveStartDate = 'Leave start date is required.';
   } else if (state.triggerKind === 'termination') {
     if (!state.terminationDate) fieldErrors.terminationDate = 'Termination date is required.';
-    if (!state.terminationReason)
+    if (!state.terminationReason) {
       fieldErrors.terminationReason = 'Termination reason is required.';
+    } else if (
+      REASONS_REQUIRING_INITIATOR.has(state.terminationReason as TerminationReason) &&
+      !state.terminationInitiator
+    ) {
+      // DEV-CROSS-1: illness/incapacity branches on initiator in QLD
+      // (s.95(3)(b) vs (c)) so the user must nominate it.
+      fieldErrors.terminationInitiator =
+        'For illness / incapacity, indicate whether the employee resigned or the employer dismissed.';
+    }
   } else if (state.triggerKind === 'as_at' && !state.asAtDate) {
     fieldErrors.asAtDate = 'As-at date is required.';
   }
@@ -149,11 +159,24 @@ export function formToEngine(state: FormState): { employee: Employee; trigger: T
   if (state.triggerKind === 'taking_leave') {
     trigger = { kind: 'taking_leave', leaveStartDate: asISODate(state.leaveStartDate) };
   } else if (state.triggerKind === 'termination') {
-    trigger = {
+    const reason = state.terminationReason as TerminationReason;
+    const terminationTrigger: Trigger = {
       kind: 'termination',
       terminationDate: asISODate(state.terminationDate),
-      reason: state.terminationReason as TerminationReason,
+      reason,
     };
+    // DEV-CROSS-1: pass `terminationInitiator` only when (a) the reason
+    // requires the disambiguation AND (b) the user supplied a value. The
+    // engine defaults to `'employee'` when the field is omitted — so for all
+    // other reasons we leave it off entirely to avoid leaking unused state.
+    if (
+      REASONS_REQUIRING_INITIATOR.has(reason) &&
+      state.terminationInitiator
+    ) {
+      terminationTrigger.terminationInitiator =
+        state.terminationInitiator as TerminationInitiator;
+    }
+    trigger = terminationTrigger;
     employee.endDate = asISODate(state.terminationDate);
   } else {
     trigger = { kind: 'as_at', asAtDate: asISODate(state.asAtDate) };

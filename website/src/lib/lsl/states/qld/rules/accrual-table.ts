@@ -1,6 +1,6 @@
 import { Decimal, mul, sub } from '@/lib/lsl/engine/decimal';
 import { citation } from '@/lib/lsl/engine/citation';
-import type { Citation, Trigger } from '@/lib/lsl/engine/types';
+import type { Citation, TerminationReason, Trigger } from '@/lib/lsl/engine/types';
 
 /**
  * QLD IR Act 2016 ss.95(2), 95(3), 95(4) accrual.
@@ -45,13 +45,33 @@ const QLD_ACCRUAL_PER_YEAR = new Decimal('8.6667').dividedBy(10); // 0.86667
 const QLD_FULL_QUALIFYING_YEARS = new Decimal('10.0000');
 const QLD_PRORATA_QUALIFYING_YEARS = new Decimal('7.0000');
 
-/** Set of `TerminationReason` enum values that qualify under s.95(3) for sub-10-yr pro-rata. */
-const QLD_QUALIFYING_REASONS = new Set([
+/**
+ * Set of `TerminationReason` enum values that qualify under s.95(3) for
+ * sub-10-yr pro-rata.
+ *
+ * DEV-CROSS-1 (2026-05-25) wires `unfair_dismissal` (s.95(3)(e)) and adds the
+ * `terminationInitiator` disambiguation for `illness_incapacity`:
+ *   - employee-initiated illness → s.95(3)(b) (qualifies)
+ *   - employer-initiated illness → s.95(3)(c) (qualifies — same outcome,
+ *     different citation)
+ *   - both paths pay out. The DISTINCTION matters for citation accuracy and
+ *     to keep the data shape ready for WA/SA/TAS where the analogous
+ *     distinction CAN change the payout outcome.
+ *
+ * `poor_performance` is deliberately NOT in this set — s.95(3)(d) excludes
+ * dismissal "for the employee's conduct, capacity or performance". It falls
+ * through to the non-qualifying path identically to `voluntary_resignation`.
+ *
+ * The 5 deferred QLD fixtures (TC-QLD-005, -007, -008, -015, -016) build on
+ * this enum + initiator disambiguation in a small follow-up PR.
+ */
+const QLD_QUALIFYING_REASONS = new Set<TerminationReason>([
   'death', // s.95(3)(a)
-  'illness_incapacity', // s.95(3)(b) (employee-initiated path) — DEV-CROSS-1 will refine
+  'illness_incapacity', // s.95(3)(b) employee | s.95(3)(c) employer
   'redundancy', // s.95(3)(d) (dismissal not for conduct/capacity/performance)
-  'employer_initiated_not_misconduct', // s.95(3)(d) — supported by existing enum
-  'domestic_pressing_necessity', // s.95(3)(b) — supported by existing enum
+  'employer_initiated_not_misconduct', // s.95(3)(d)
+  'domestic_pressing_necessity', // s.95(3)(b) (employee-initiated only)
+  'unfair_dismissal', // s.95(3)(e)
 ]);
 
 export interface QLDAccrualResult {
@@ -179,6 +199,7 @@ export function accrualQLD(
   // Termination at 7-10 yrs — route through the qualifying-reason gate.
   if (trigger.kind === 'termination') {
     const reason = trigger.reason;
+    const initiator = trigger.terminationInitiator ?? 'employee';
 
     // s.95(3)(d) misconduct exclusion (sub-10-yr).
     if (reason === 'serious_misconduct') {
@@ -225,6 +246,28 @@ export function accrualQLD(
       };
     }
 
+    // Poor performance — s.95(3)(d) explicitly excludes dismissal "for the
+    // employee's conduct, capacity or performance". Sub-10-yr: not payable.
+    // (10+yr already short-circuited above per s.95(2)(a) — all reasons pay
+    // out at 10+yr.)
+    if (reason === 'poor_performance') {
+      citations.push(
+        citation(
+          'QLD IR Act 2016 s.95(3)(d)',
+          'accrual.7-to-10yr.dismissal-for-performance-excluded',
+          50
+        )
+      );
+      return {
+        grossWeeks,
+        payableWeeks: new Decimal(0),
+        priorLeaveTakenWeeks,
+        citations,
+        payableIndicator: 'accrued_not_currently_payable',
+        noQualifyingReason: true,
+      };
+    }
+
     // Qualifying reasons → pro-rata payable per s.95(4).
     if (QLD_QUALIFYING_REASONS.has(reason)) {
       let ruleKey = 'accrual.7-to-10yr.qualifying-reason';
@@ -235,11 +278,17 @@ export function accrualQLD(
           ruleKey = 'accrual.7-to-10yr.death-of-employee';
           break;
         case 'illness_incapacity':
-          // Per docs/qa/test-cases-qld.md TC-QLD-004: employee-initiated illness
-          // resignation is the default v1 path under s.95(3)(b). Employer-initiated
-          // illness dismissal (s.95(3)(c), TC-QLD-005) is DEFERRED to DEV-CROSS-1.
-          section = 'QLD IR Act 2016 s.95(3)(b)';
-          ruleKey = 'accrual.7-to-10yr.employee-illness-or-pressing-necessity';
+          // DEV-CROSS-1: disambiguate by `terminationInitiator`. Employee-initiated
+          // illness resignation → s.95(3)(b); employer-initiated illness dismissal
+          // → s.95(3)(c). Both pay out, distinguished only by which subsection
+          // applies (impacts the citation, not the dollar outcome).
+          if (initiator === 'employer') {
+            section = 'QLD IR Act 2016 s.95(3)(c)';
+            ruleKey = 'accrual.7-to-10yr.employer-illness-dismissal';
+          } else {
+            section = 'QLD IR Act 2016 s.95(3)(b)';
+            ruleKey = 'accrual.7-to-10yr.employee-illness-or-pressing-necessity';
+          }
           break;
         case 'domestic_pressing_necessity':
           section = 'QLD IR Act 2016 s.95(3)(b)';
@@ -249,6 +298,10 @@ export function accrualQLD(
         case 'employer_initiated_not_misconduct':
           section = 'QLD IR Act 2016 s.95(3)(d)';
           ruleKey = 'accrual.7-to-10yr.dismissal-not-for-conduct';
+          break;
+        case 'unfair_dismissal':
+          section = 'QLD IR Act 2016 s.95(3)(e)';
+          ruleKey = 'accrual.7-to-10yr.unfair-dismissal';
           break;
       }
       citations.push(citation(section, ruleKey, 50));

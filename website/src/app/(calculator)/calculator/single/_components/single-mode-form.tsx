@@ -28,7 +28,9 @@ import { calculate } from '@/lib/lsl/dispatch';
 import { trackStateEvent } from '@/lib/observability/track';
 import {
   emptyFormState,
+  REASONS_REQUIRING_INITIATOR,
   STATE_OPTIONS,
+  TERMINATION_INITIATOR_OPTIONS,
   TERMINATION_REASON_OPTIONS,
   type FormState,
 } from './types';
@@ -497,42 +499,87 @@ export function SingleModeForm() {
             </Field>
           )}
           {state.triggerKind === 'termination' && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Termination date"
-                htmlFor="terminationDate"
-                error={fieldErrors.terminationDate}
-              >
-                <Input
-                  id="terminationDate"
-                  type="date"
-                  value={state.terminationDate}
-                  onChange={(e) => update('terminationDate', e.target.value)}
-                />
-              </Field>
-              <Field
-                label="Termination reason"
-                htmlFor="terminationReason"
-                error={fieldErrors.terminationReason}
-              >
-                <Select
-                  value={state.terminationReason || undefined}
-                  onValueChange={(v: string) =>
-                    update('terminationReason', v as FormState['terminationReason'])
-                  }
+            <div className="grid gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Termination date"
+                  htmlFor="terminationDate"
+                  error={fieldErrors.terminationDate}
                 >
-                  <SelectTrigger id="terminationReason">
-                    <SelectValue placeholder="Select..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TERMINATION_REASON_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+                  <Input
+                    id="terminationDate"
+                    type="date"
+                    value={state.terminationDate}
+                    onChange={(e) => update('terminationDate', e.target.value)}
+                  />
+                </Field>
+                <Field
+                  label="Termination reason"
+                  htmlFor="terminationReason"
+                  error={fieldErrors.terminationReason}
+                >
+                  <Select
+                    value={state.terminationReason || undefined}
+                    onValueChange={(v: string) => {
+                      const nextReason = v as FormState['terminationReason'];
+                      setState((s) => {
+                        const next: FormState = { ...s, terminationReason: nextReason };
+                        // Clear `terminationInitiator` when the new reason
+                        // doesn't need it — avoids stale state in the
+                        // localStorage-persisted form.
+                        if (
+                          !nextReason ||
+                          !REASONS_REQUIRING_INITIATOR.has(nextReason)
+                        ) {
+                          next.terminationInitiator = '';
+                        }
+                        return next;
+                      });
+                    }}
+                  >
+                    <SelectTrigger id="terminationReason">
+                      <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TERMINATION_REASON_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+              {state.terminationReason &&
+                REASONS_REQUIRING_INITIATOR.has(state.terminationReason) && (
+                  <Field
+                    label="Who initiated the termination?"
+                    htmlFor="terminationInitiator"
+                    error={fieldErrors.terminationInitiator}
+                    hint="QLD distinguishes employee-initiated illness (s.95(3)(b)) from employer-initiated illness dismissal (s.95(3)(c)). The dollar outcome is the same; the citation differs."
+                  >
+                    <RadioGroup
+                      id="terminationInitiator"
+                      value={state.terminationInitiator || undefined}
+                      onValueChange={(v: string) =>
+                        update('terminationInitiator', v as FormState['terminationInitiator'])
+                      }
+                      className="flex flex-col gap-2"
+                    >
+                      {TERMINATION_INITIATOR_OPTIONS.map((o) => (
+                        <div key={o.value} className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value={o.value}
+                            id={`terminationInitiator-${o.value}`}
+                          />
+                          <Label htmlFor={`terminationInitiator-${o.value}`}>
+                            {o.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </Field>
+                )}
             </div>
           )}
           {state.triggerKind === 'as_at' && (

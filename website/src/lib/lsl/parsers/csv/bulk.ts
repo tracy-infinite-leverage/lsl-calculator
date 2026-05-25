@@ -98,6 +98,9 @@ const VALID_TERMINATION_REASONS: readonly TerminationReason[] = [
   'illness_incapacity',
   'domestic_pressing_necessity',
   'death',
+  // DEV-CROSS-1 (2026-05-25) — cross-state additive expansion.
+  'unfair_dismissal',
+  'poor_performance',
 ] as const;
 
 const EMPLOYMENT_TYPE_MAP: Record<string, EmploymentType> = {
