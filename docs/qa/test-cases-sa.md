@@ -1,20 +1,87 @@
 # SA LSL Calculator — Gold-Standard Test Cases
 
-**Status**: DRAFT v1.0 · awaiting PM sign-off
-**Version**: v1.0-draft
+**Status**: SIGNED OFF · Tracy Angwin (PM) · 2026-05-25
+**Version**: v1.0
 **Date**: 2026-05-25
 **Spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
-**Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.2 Phase 6 (SA)
-**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T6.0 (BLOCKING — gates T6.1 onwards)
+**Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.2 Phase 6 (SA) — single regime, no DEV-CROSS-3 (TBD-SA-07 SA-localised via `extraInputs`)
+**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T6.0 ✅ SIGNED OFF; T6.1 unblocked immediately (no pre-flight cross-state PR)
 **Source-of-truth Acts**:
 - *Long Service Leave Act 1987* (SA) — sections 3, 4, 5, 6, 7, 8 (and where relevant 9, 10, 11). Cited as **"SA LSL Act 1987 s.N"**.
 - *Long Service Leave (Calculation of Average Weekly Earnings) Amendment Act 2015* (SA) — amended the ordinary-pay calculation in s.3/s.4. Applies prospectively to all LSL taken or paid in lieu **on or after commencement**, including absences before commencement. Cited as **"LSL (AWE) Amendment Act 2015 (SA)"** where the historical change point is relevant — but see TBD-SA-01 below: the transitional provision is uniform forward-looking, not dual-regime, so no date-aware service routing is required.
 
 ---
 
-## Resolutions (PENDING — populated after operator review 2026-05-25)
+## Resolutions (2026-05-25 — PM Tracy Angwin)
 
-This section is intentionally empty in the v1.0-draft. The TBDs listed at the bottom of this document must be resolved by the operator before the engine work (T6.1) can begin. Once resolved, this section will record the verbatim binding text — same pattern as the VIC, QLD, WA test-cases-{state}.md files.
+All 12 TBDs are resolved as listed below. The verbatim resolution text is the authority — where individual fixtures elsewhere in this document still carry "TBD" markers in inline prose, treat the Resolutions section here as binding and the inline marker as historical context to be ignored.
+
+### TBD-SA-01 (Sev-1, LOAD-BEARING) — Dual-regime architecture
+
+**RESOLVED: Accept PM's reading. Single regime, no date-aware service routing.** The LSL (Calculation of Average Weekly Earnings) Amendment Act 2015 (SA) transitional provision is uniform forward-looking — the amended methodology applies to every calculation taken on or after commencement, INCLUDING in respect of absences before commencement. There is no need for two parallel rule sets. SA mirrors QLD's flat single-regime architecture. **Impl-plan v0.3.2 §6 stands as drafted — no re-scope.** No `rules-pre-X.ts` / `rules-post-X.ts` split; no `sa_regime_split_applied` warning code; no insufficient-granularity fallback fixtures. Phase 6 effort estimate stays at M (3–5 days).
+
+### TBD-SA-02 (Sev-2) — Casual continuity gap threshold
+
+**RESOLVED: 3-month heuristic for casual gaps without seasonal-shutdown justification; up to 6 months tolerated where the user supplies a seasonal-shutdown signal.** Surface `sa_casual_continuity_uncertain` advisory when the gap is 2–6 months without seasonal justification. SafeWork SA guidance does not prescribe a hard month-cap; the "regular or systematic" test is case-by-case. The 3-month/6-month heuristic matches QLD's hard threshold (which is operationally clean) while preserving SA's seasonal-shutdown carve-out. Fixtures TC-SA-050 (4-month seasonal — preserved) and TC-SA-051 (12-month no-justification — broken) are drafted on this assumption and unchanged.
+
+### TBD-SA-03 (Sev-2) — Cashing-out section reference
+
+**RESOLVED: Cite as "SA LSL Act 1987 s.5" without sub-section reference in v1.0.** Documented-limitation pending quarterly review — same precedent as TBD-WA-02 (which cited "WCIM Act 2023 (WA)" at Act level only). SafeWork SA and the Law Handbook SA describe the cashing-out rule but do not cite a sub-section verbatim; the AustLII s.5 page suggests the cashing-out rule is in s.5 (specifically s.5(3) read with s.5(4) or s.5 generally). One targeted research pass post-launch (RES-3 quarterly review) can verify the exact sub-section against the consolidated Act text. **Documented limitation** — citation accuracy is to Act level for cashing out, not section level. Acceptable for launch.
+
+### TBD-SA-04 (Sev-2) — Unlawful-worker-termination representation
+
+**RESOLVED: Accept PM's reading. SA-localised `extraInputs.sa_worker_notice_compliance: boolean` (default `true` — assume notice was given).** Localised to SA; no cross-state enum change; consistent with ACT's planned `extraInputs` pattern (Phase 7) and with the SA-localised pattern adopted for higher-duties (TBD-SA-07). The engine's SA orchestrator checks `extraInputs.sa_worker_notice_compliance` when `reason === 'voluntary_resignation'`. SA-only form field and SA-only optional bulk-CSV column. Fixtures TC-SA-025 → TC-SA-028 unchanged.
+
+### TBD-SA-05 (Sev-2) — Workers Comp counts as service + excluded from 156-wk averaging
+
+**RESOLVED: WC absence counts toward continuous service (same as NSW/VIC/QLD); separately, WC weeks are EXCLUDED from the 156-week casual/PT averaging window and substituted with prior worked weeks.** Two-rule treatment per SafeWork SA: (a) accruing-leave guidance lists "absences from work due to illness or injury (paid or unpaid sick leave, including for casual workers) are included" — the natural reading is WC sits within the broader illness/injury bucket and counts toward service; (b) part-time / casual calculation methodology: "Weeks on approved unpaid leave or weeks on workers' compensation are excluded from the calculation and substituted for a working week" — drives the 156-wk window extension. Fixtures TC-SA-030 (WC counts as service) and TC-SA-049 (WC triggers 156-wk substitution) unchanged.
+
+### TBD-SA-06 (Sev-2) — Cashing-out advisory granularity
+
+**RESOLVED: Three distinct advisory codes** — `sa_cashout_post_accrual_advisory` (10+ yr, post-accrual, agreement required), `sa_cashout_pre_accrual_not_authorised` (7–10 yr or otherwise pre-10-yr), `sa_cashout_no_entitlement_to_cash_out` (sub-7-yr, nothing to cash out). Parallel to resolved TBD-WA-03 (three-tier WA advisory) and resolved TBD-QLD-04. Stronger user awareness; modest engine complexity. Fixtures TC-SA-055 → TC-SA-058 unchanged.
+
+### TBD-SA-07 (Sev-2) — Higher-duties acting rate representation
+
+**RESOLVED: SA-localised via `extraInputs.sa_higher_duties_active: boolean` + `extraInputs.sa_higher_duties_weekly_rate: number`.** **NOT a DEV-CROSS-3 cross-state schema extension.** Operator chose YAGNI — SA is the only state with a statutory higher-duties rule for LSL today; NSW/VIC/QLD/WA have no analogous provision. If NT/TAS/ACT genuinely need this concept later, the retrofit is no harder than doing it now. Same SA-localised pattern as `extraInputs.sa_worker_notice_compliance` (TBD-SA-04 resolution). **No new dev-finding is created. T6.1 is unblocked immediately — no pre-flight cross-state PR is required.** Phase 6 effort estimate stays at M (3–5 dev-days) per impl-plan v0.3.2 §6. Fixture TC-SA-042 unchanged (already drafted with the extraInputs naming).
+
+### TBD-SA-08 (Sev-3) — WC overlap with LSL rate
+
+**RESOLVED: Literal s.4 rate at leave time + non-blocking `sa_lsl_calculated_at_wc_reduced_rate_warning` advisory.** Parallel to resolved TBD-QLD-05 and TBD-WA-05. SA s.4 has no s.17-equivalent higher-of-pre-injury-or-current rule (unlike VIC). The engine pays at the literal rate but emits the advisory. Fixture TC-SA-059 unchanged.
+
+### TBD-SA-09 (Sev-3) — Single-day LSL on a PH
+
+**RESOLVED: Count it as 1 day of LSL (charge entitlement; pay at ordinary daily rate).** Literal reading of the inclusive rule (s.5 + SafeWork SA — "Weekends and public holidays count during the period of long service leave"). Avoids unintentional gaming where a worker could schedule all LSL days on PHs to consume zero entitlement. 0 dev-days additional — already covered by the general PH-inclusive engine path. Fixture TC-SA-039 unchanged.
+
+### TBD-SA-10 (Sev-3) — SA public-holidays calendar source
+
+**RESOLVED: Hardcode the SA PH list from the Public Holidays Act 1910 (SA) into `website/src/lib/lsl/states/sa/rules/public-holidays.ts`.** Include the 12 standard SA PHs (NYD, Australia Day, Adelaide Cup Day, Good Friday, Easter Saturday, Easter Sunday, Easter Monday, Anzac Day, King's Birthday, Labour Day, Christmas Day, Proclamation Day). Adelaide Cup Day is the SA-unique PH (second Monday in March, metropolitan Adelaide); the engine treats it as a SA PH for the inclusive-leave-counting rule (statewide for v1 — regional carve-outs deferred to v2). Re-validate annually as part of RES-3 quarterly review. ½ dev-day for data entry + a date-arithmetic helper for Easter / King's Birthday.
+
+### TBD-SA-11 (Sev-3) — Portable LSL schemes — out of v1 scope
+
+**RESOLVED: OUT OF v1 SA engine scope.** Both the Construction Industry Long Service Leave Act 1987 (SA) and the Portable Long Service Leave Act 2024 (SA — community services from October 2025) are separate portable schemes that override the LSL Act 1987 for specific industries. The engine assumes the LSL Act 1987 (SA) governs and does NOT surface an industry-portable-scheme advisory in v1. Same convention as VIC industry awards, QLD industry-specific portable schemes, WA MyLeave construction. Re-evaluate in v2 if user surveys surface frequent confusion. 0 dev-days.
+
+### TBD-SA-12 (Sev-3) — Pre-1987 service
+
+**RESOLVED: Pre-1987 service counts where the employee was continuously employed with the same employer from before 1987 to the present.** SA LSL Act 1987 contains no explicit transitional-savings provision excluding pre-1987 service; the natural reading is that continuous service performed before 1987 with the same employer DOES count under s.6. In practice this is moot — an employee starting pre-1987 has 39+ years of post-1987 service to draw on, far above the 13-week first-entitlement threshold. The engine emits no advisory; the user-provided `startDate` is used as-is. No fixture needed; this is a documentary note for the v1 PM sign-off record.
+
+### Net effect on fixtures and impl-plan
+
+| Resolution | Fixture impact | Impl-plan impact |
+|---|---|---|
+| TBD-SA-01 | All fixtures unchanged (PM's option (b) was the basis the fixtures were drafted on) | §6 unchanged. No re-scope. No `sa_regime_split_applied` warning code. M (3–5 d) effort estimate stands. |
+| TBD-SA-02 | TC-SA-050 + TC-SA-051 unchanged. 3-mo/6-mo threshold confirmed. | §6 acceptance criteria reflect 3-mo / 6-mo casual continuity threshold. |
+| TBD-SA-03 | Citation form unchanged — `SA LSL Act 1987 s.5` already used at Act level for cash-out. | §6 documents the Act-level citation as a v1 limitation (parallel to TBD-WA-02). |
+| TBD-SA-04 | Fixtures TC-SA-025 → TC-SA-028 unchanged. `extraInputs.sa_worker_notice_compliance` already used in fixture inputs. | §6 documents SA-localised `extraInputs` field. |
+| TBD-SA-05 | TC-SA-030 (WC counts as service) + TC-SA-049 (WC triggers 156-wk substitution) unchanged. | §6 confirms two-rule WC treatment. |
+| TBD-SA-06 | TC-SA-055 → TC-SA-058 unchanged. Three advisory codes confirmed. | §6 confirms three-code cash-out advisory taxonomy. |
+| TBD-SA-07 | TC-SA-042 unchanged. `extraInputs.sa_higher_duties_active` + `extraInputs.sa_higher_duties_weekly_rate` already used in fixture inputs. **No DEV-CROSS-3.** | §6 documents SA-localised `extraInputs` fields. **No pre-flight cross-state PR.** T6.1 unblocked immediately. |
+| TBD-SA-08 | TC-SA-059 unchanged. Literal s.4 + advisory confirmed. | §6 confirms parallel to QLD/WA WC-overlap pattern. |
+| TBD-SA-09 | TC-SA-039 unchanged. Single-day PH counts as 1 day of LSL confirmed. | No §6 change — covered by general PH-inclusive path. |
+| TBD-SA-10 | Fixtures TC-SA-037 → TC-SA-040 unchanged — they reference SA PHs hardcoded per the Public Holidays Act 1910 (SA). | §6 / T6.2 acceptance criteria reference hardcoded SA PHs from Public Holidays Act 1910 (SA). |
+| TBD-SA-11 | No fixture impact. Out of v1 scope. | §6 documents portable schemes as deferred per state convention. |
+| TBD-SA-12 | No fixture impact. Documentary note only. | No §6 change. |
+
+**No fixture-value changes from the v1.0-draft. All 67 fixtures (64 single-mode + 3 bulk) stand as drafted.** The Resolutions section above is the binding authority for any inline TBD references that remain in fixture notes — the inline references are historical context, not unresolved questions.
 
 ---
 
@@ -51,12 +118,12 @@ Each test case has:
 - **Entitlement formula** (SA LSL Act 1987 s.5): **13 weeks** at 10 years of continuous service, plus **1.3 weeks for each completed year after the first 10 years**. The accrual ratio is 1.3 / 10 = 0.13 weeks per year of service — the **most generous in Australia** (vs NSW/VIC/QLD/WA/TAS/ACT at 8.6667/10 = 0.0867 wks/yr). Same accrual table as NT (per impl-plan v0.3.2 §6 and §9 — `SA_NT_ACCRUAL_TABLE` to be extracted in T6.2). **This formula is unchanged across the LSL (AWE) Amendment Act 2015 cutoff** — that Amendment touched only the averaging methodology (s.3/s.4), not s.5 entitlements.
 - **Pro-rata at termination** (s.5(3)): payable to an employee who has completed **at least 7 years** of continuous service whose employment ends for any reason **other than (a) serious and wilful misconduct, or (b) unlawful termination by the worker** (e.g. failure to give the notice required under contract or award). Pro-rata is **1.3 weeks for each completed year of service**, paid at the ordinary weekly rate immediately before termination. Death is treated equivalently (the entitlement vests in the personal representative — s.5(4) per the SafeWork SA / Law Handbook SA construction of the section).
 - **Serious & wilful misconduct** (s.5(3)): forfeits all pro-rata at sub-10-yr tenure. **At 10+ years, the full 13-week (or higher) entitlement is payable regardless** — SA mirrors QLD on this point (no partial-forfeiture as in WA). The misconduct exception applies only to the **pro-rata** branch, not to the **full-entitlement** branch under s.5(1).
-- **Unlawful termination by the worker** (s.5(3) — second disqualifier): SA-unique among the encoded states. If the worker walks off the job without giving the contractually required notice, the pro-rata branch is forfeited. Engine treats this as a third `TerminationReason`-like signal alongside `voluntary_resignation` and `serious_misconduct`; see TBD-SA-04. v1.0 uses the existing `serious_misconduct` enum path with an SA-specific warning code; a dedicated `unlawful_worker_termination` enum value is deferred to v2 unless TBD-SA-04 is resolved otherwise.
+- **Unlawful termination by the worker** (s.5(3) — second disqualifier): SA-unique among the encoded states. If the worker walks off the job without giving the contractually required notice, the pro-rata branch is forfeited. Engine reads `extraInputs.sa_worker_notice_compliance: boolean` (default `true` — assume notice was given) when `reason === 'voluntary_resignation'` and emits the `unlawful_worker_termination_excluded_sa` warning when notice was not given and tenure is 7–10 yrs. SA-localised pattern per TBD-SA-04 RESOLUTION — no cross-state `TerminationReason` enum change.
 - **Ordinary pay** (s.3/s.4 as amended 2015): for fixed-rate full-time employees, the ordinary weekly rate at the time of taking leave applies (excluding overtime, penalty rates, shift premiums). **Higher-duties / acting rule (SA-unique)**: if the employee is acting in a higher-paid position when LSL commences, the higher rate is the ordinary weekly rate. For **part-time and casual** employees, the **average of all hours worked (including overtime hours) over the 156 weeks immediately preceding the leave** is divided by 156 to derive the weekly hours figure, then multiplied by the **current base hourly rate** (including 25% casual loading for casuals; excluding overtime / penalty / shift premium components of the rate). **Weeks of approved unpaid leave or weeks during which the worker was paid through a workers-compensation claim are excluded from the 156-week window and substituted with prior worked weeks** (the window extends backward). For **commission / piece-rate / payment-by-result** employees, the **52-week (12-month) lookback** of total earnings divided by 52 is used per SafeWork SA — commission, target, and per-piece worker page. **Bonuses (e.g. Christmas bonus, target-achievement bonus on top of an hourly rate) are excluded.**
-- **Continuous service** (s.6 + SafeWork SA guidance): paid working time and paid leave count (annual leave, paid personal/sick leave, LSL, paid parental leave). **Illness/injury including unpaid sick leave** counts (SafeWork SA guidance: "absences from work due to illness or injury (paid or unpaid sick leave, including for casual workers) are included"). **Workers compensation absences count as service** (SafeWork SA — accruing-leave guidance — see TBD-SA-05). **Unpaid leave agreed by the employer** does not count toward service but does not break continuity — entitlement date moves out (the so-called "extends-the-line" rule, contrast with NSW/VIC/QLD which apply different denominators). **Re-employment within 2 months** of a termination preserves continuity (SafeWork SA — accruing-leave guidance; same threshold as WA non-slackness; tighter than QLD's 3 months). **Casual / seasonal employees**: continuous service is preserved where the engagement is "regular or systematic" and absences are due to seasonal variation, temporary shutdown, or other authorised absences. There is no specific maximum gap duration in the Act for casuals; case-by-case "regular and systematic" assessment governs (see TBD-SA-02).
+- **Continuous service** (s.6 + SafeWork SA guidance): paid working time and paid leave count (annual leave, paid personal/sick leave, LSL, paid parental leave). **Illness/injury including unpaid sick leave** counts (SafeWork SA guidance: "absences from work due to illness or injury (paid or unpaid sick leave, including for casual workers) are included"). **Workers compensation absences count as service** (SafeWork SA — accruing-leave guidance; TBD-SA-05 RESOLVED — WC counts as service AND triggers the 156-wk averaging substitution separately). **Unpaid leave agreed by the employer** does not count toward service but does not break continuity — entitlement date moves out (the so-called "extends-the-line" rule, contrast with NSW/VIC/QLD which apply different denominators). **Re-employment within 2 months** of a termination preserves continuity (SafeWork SA — accruing-leave guidance; same threshold as WA non-slackness; tighter than QLD's 3 months). **Casual / seasonal employees**: continuous service is preserved where the engagement is "regular or systematic" and absences are due to seasonal variation, temporary shutdown, or other authorised absences. Per TBD-SA-02 RESOLUTION: 3-month engine heuristic for casual gaps without seasonal-shutdown justification; up to 6 months tolerated where the user supplies a seasonal-shutdown signal (`sa_casual_continuity_uncertain` advisory between 2–6 months without seasonal justification).
 - **Transfer of business** (s.6 + SafeWork SA): on a transmission of business to a new owner with the employee continuing to be employed, service is deemed continuous and the LSL liability transfers with the employee.
 - **Public holidays during LSL** (s.5 + SafeWork SA — calculating-leave): **INCLUSIVE — a PH falling within an LSL period IS counted as a day of LSL; the leave is NOT extended by the duration of the PH.** This is the **headliner SA-specific divergence** from NSW/VIC/QLD/WA (all of which apply exclusive PH-during-LSL — PH extends the leave by one day per PH). See F11/AC13 in the E2 spec.
-- **Cashing out** (s.5(3)/s.5(4) — see TBD-SA-03 for exact subsection): permitted **only after the employee has completed at least 10 years of continuous service**. Requires **written agreement signed by both parties**. Employer must provide a written statement showing entitlement, payment amount, period covered, and remaining leave. **Engine emits a non-blocking advisory** when a `cash_out` trigger is received — same shape as QLD (`qld_cashout_requires_instrument_or_qirc`) and WA (`wa_cashout_post_accrual_advisory`); contrast VIC's hard-error path. Three advisory codes following the WA/QLD precedent (see TBD-SA-06): `sa_cashout_post_accrual_advisory` (10+ yr, post-accrual, agreement required), `sa_cashout_pre_accrual_not_authorised` (7–10 yr or otherwise pre-10-yr, no statutory basis), `sa_cashout_no_entitlement_to_cash_out` (sub-7-yr, nothing to cash out).
+- **Cashing out** (SA LSL Act 1987 s.5 — Act-level citation only per TBD-SA-03 RESOLUTION, documented limitation pending RES-3 quarterly review): permitted **only after the employee has completed at least 10 years of continuous service**. Requires **written agreement signed by both parties**. Employer must provide a written statement showing entitlement, payment amount, period covered, and remaining leave. **Engine emits a non-blocking advisory** when a `cash_out` trigger is received — same shape as QLD (`qld_cashout_requires_instrument_or_qirc`) and WA (`wa_cashout_post_accrual_advisory`); contrast VIC's hard-error path. Three advisory codes per TBD-SA-06 RESOLUTION (parallel to WA/QLD precedent): `sa_cashout_post_accrual_advisory` (10+ yr, post-accrual, agreement required), `sa_cashout_pre_accrual_not_authorised` (7–10 yr or otherwise pre-10-yr, no statutory basis), `sa_cashout_no_entitlement_to_cash_out` (sub-7-yr, nothing to cash out).
 - **Pay-on-termination timing** (s.5(3) + SafeWork SA): "the employer must pay the worker the amount to which they are entitled **immediately upon termination**." Same effective rule as NSW ("forthwith"), VIC ("on the day on which the employment ends"), and QLD (next-pay-cycle accepted in practice). v1 treats next-pay-cycle as compliant; user can over-ride.
 - **Citations**: every case lists the minimum expected citations. The rules engine MAY emit additional citations; tests assert array-membership, not array-equality.
 
@@ -84,22 +151,22 @@ Each test case has:
 | Sickness / injury counted as service | counts | counts | counts | **15-day cap pre-2022; counts in full post-2022** | **counts (paid or unpaid sick leave — SafeWork SA guidance is explicit)** | SafeWork SA — accruing-leave; Law Handbook SA |
 | Unpaid leave (other than sick) | excluded | first 52 wks count (s.13(1)(b)) | does not count but no break (s.134) | excluded pre-2022; depends on regime post-2022 | **does not count as service but does not break continuity — entitlement date moves out ("extends-the-line")** | SafeWork SA — accruing-leave |
 | Workers Comp absence | counts (NSW LSA s.4(11)) | counts (s.13(1)(b)) | counts (s.134) | depends on accrual date (cap pre-2022 / excluded pre-2024-07-01 / counts post-2024-07-01) | **counts as continuous service — but excluded from 156-wk casual/PT averaging window (substituted with prior worked weeks)** | SafeWork SA — part-time / casual calculation methodology |
-| WC rate of pay during LSL | counts as service; current ordinary rate | s.17 higher-of-pre-injury-or-current | literal s.98 ordinary rate at leave time + advisory | literal s.9 ordinary rate at leave time + advisory | **literal s.4 ordinary rate at leave time + advisory (parallel to QLD/WA)** — see TBD-SA-08 | SA LSL Act 1987 s.4; SafeWork SA |
+| WC rate of pay during LSL | counts as service; current ordinary rate | s.17 higher-of-pre-injury-or-current | literal s.98 ordinary rate at leave time + advisory | literal s.9 ordinary rate at leave time + advisory | **literal s.4 ordinary rate at leave time + advisory (parallel to QLD/WA)** — TBD-SA-08 RESOLVED | SA LSL Act 1987 s.4; SafeWork SA |
 | Higher-duties / acting rate | not specifically encoded | not specifically encoded | not specifically encoded | not specifically encoded | **SA-UNIQUE: if employee is acting in a higher-paid position when LSL begins, the higher rate is the ordinary weekly rate** | SA LSL Act 1987 s.4; SafeWork SA — full-time calculation |
 | Public holiday during LSL | exclusive (NSW LSA s.4(4A)) | exclusive (s.7) | exclusive (s.97) | exclusive (s.9) | **INCLUSIVE — PH falling within LSL counts as a day of LSL; does NOT extend the leave** | SA LSL Act 1987 s.5; SafeWork SA — calculating LSL; F11/AC13 |
 | Death of employee | NSW LSA s.4(2)(iii)(d) — pro-rata, estate on request | s.10 — full accrued + 52-wk avg | s.95(3)(a) — pro-rata to legal personal rep | s.8(3) — pro-rata to legal personal rep | **s.5 — entitlement vests in personal representative; pro-rata payable at 7+ yrs (any age), full entitlement at 10+** | SA LSL Act 1987 s.5; AustLII s.5 quote: "Where a worker's service is terminated by the worker's death, the worker's entitlement under this section vests in his or her personal representative" |
 | Casual averaging window | implicit via "regular and systematic" + 52-wk lookback (E1) | 3-tier: weekly_avg_12mo / weekly_avg_5yr / whole (s.15(2)) | 52 weeks (s.105 per Business QLD) | accrual-period-average per block (s.9 — partial-duration averaging per TBD-WA-06) | **156 weeks (3 yrs) of all-hours-incl-overtime, with unpaid-leave / WC weeks substituted with prior worked weeks** | SafeWork SA — casual / part-time calculation |
 | Commission / piece-rate averaging window | research §1.4 (NSW) | 52 wks pre-leave (s.15(3)) | 365 days pre-leave (s.99) | 365 days pre-leave (s.9 results-based) | **52 weeks (12 months) of total income immediately preceding leave date** | SafeWork SA — commission, target and per-piece workers |
-| Cashing out | not in scope NSW v1 | **CRIMINAL OFFENCE — s.34** | PERMITTED via instrument or QIRC order (s.110) — advisory | PERMITTED post-accrual only with written agreement (s.5 as amended 2022) — advisory | **PERMITTED post-10-yr only with written agreement signed by both parties; employer must provide written statement — non-blocking advisory** | SA LSL Act 1987 s.5(3)/s.5(4) — see TBD-SA-03 for exact subsection; SafeWork SA — cashing out |
+| Cashing out | not in scope NSW v1 | **CRIMINAL OFFENCE — s.34** | PERMITTED via instrument or QIRC order (s.110) — advisory | PERMITTED post-accrual only with written agreement (s.5 as amended 2022) — advisory | **PERMITTED post-10-yr only with written agreement signed by both parties; employer must provide written statement — non-blocking advisory** | SA LSL Act 1987 s.5 (Act-level citation only per TBD-SA-03 RESOLUTION — documented limitation pending RES-3 quarterly review); SafeWork SA — cashing out |
 | Pay-on-termination timing | "forthwith" (NSW LSA s.4(5)(a)) | "on the day on which the employment ends" (VIC s.9(1)(b)) | payable on termination (s.95) | payable on termination (s.8(3), s.9) | **payable IMMEDIATELY upon termination (next-pay-cycle accepted in SafeWork SA enforcement practice)** | SA LSL Act 1987 s.5(3); SafeWork SA — payment of entitlement |
 | Working elsewhere during LSL | not encoded | OFFENCE under s.35 | not encoded | s.27 — forfeiture of unexpired LSL | **not specifically encoded in the SA Act; out of v1 SA scope** | SA LSL Act 1987 (no s.27 analogue) |
 | Industry-specific portable schemes | not in scope | not in scope | separate Acts (s.110 cross-ref) | MyLeave portable scheme (construction) | **Construction Industry Long Service Leave Act 1987 (SA) + Portable Long Service Leave Act 2024 (SA) — community services from Oct 2025. OUT OF v1 statutory engine scope** | Portable LSL Act 2024 (SA); SA Construction Industry Long Service Leave Act 1987 |
 
 ---
 
-## TBD-SA-01 (LOAD-BEARING) — Dual-regime architecture: NO
+## TBD-SA-01 (LOAD-BEARING) — Dual-regime architecture: NO · ✅ RESOLVED 2026-05-25
 
-**PM verdict in v1.0-draft: SINGLE REGIME. No date-aware service routing required.**
+**RESOLUTION**: Single regime. No date-aware service routing required. See the binding Resolutions section near the top of this document. The detail below is retained as the reasoning that produced the resolution.
 
 The original impl-plan v0.3.2 §6 does not call out a dual-regime risk for SA, and the research pass confirms there is no analogous transition cliff like VIC s.57 (2018-11-01) or WA 2022-06-20.
 
@@ -120,7 +187,7 @@ The original impl-plan v0.3.2 §6 does not call out a dual-regime risk for SA, a
 - **No insufficient-granularity fallback case** (no TC-SA-{044,045} equivalent of TC-WA-044/045 needed).
 - **Engine effort estimate stays at M (3–5 days)** per impl-plan v0.3.2 — no upward pressure from a regime split.
 
-**TBD-SA-01 status**: PM-recommended NO dual-regime. Confirm with operator. If confirmed, this section becomes the binding resolution and the impl-plan §6 needs no re-scope.
+**TBD-SA-01 status**: ✅ RESOLVED — single regime confirmed by operator 2026-05-25. Impl-plan v0.3.2 §6 stands as drafted.
 
 ---
 
@@ -806,7 +873,7 @@ expected_citations:
 
 **Notes**
 
-The engine relies on a new `extraInputs.sa_worker_notice_compliance: boolean` field (default `true` — assume notice was given). See TBD-SA-04 for whether to elevate this to a dedicated `TerminationReason` enum value `unlawful_worker_termination` instead. The form / bulk-CSV would need a corresponding optional column for SA.
+The engine relies on a new `extraInputs.sa_worker_notice_compliance: boolean` field (default `true` — assume notice was given). Per TBD-SA-04 RESOLUTION: SA-localised `extraInputs` pattern confirmed; no cross-state `TerminationReason` enum change. The form / bulk-CSV exposes a corresponding optional column for SA only.
 
 ---
 
@@ -1042,7 +1109,7 @@ expected:
   payable_for_taken_leave: 360.00                # 1800 / 5
 ```
 
-**Notes**: Edge case — operator should confirm in TBD-SA-09 whether a single-day LSL request on a PH should count as a day of LSL (engine charges entitlement) or as not-a-day-of-LSL (no charge). The PM-recommended reading is that the PH IS counted as a day of LSL per the inclusive rule. **TBD-SA-09**.
+**Notes**: Per TBD-SA-09 RESOLUTION: a single-day LSL request on a PH counts as 1 day of LSL (engine charges entitlement). Literal reading of the inclusive rule; avoids gaming via PH-scheduled LSL.
 
 ---
 
@@ -1106,7 +1173,7 @@ expected_citations:
 
 **Notes**
 
-**SA-unique among the 5 encoded states.** NSW/VIC/QLD/WA do not have a statutory higher-duties rule for LSL (engine uses ordinary substantive-role rate in those states even where the employee is acting up). Requires a new `extraInputs.sa_higher_duties_active: boolean` and `extraInputs.sa_higher_duties_weekly_rate: number` field. See TBD-SA-07 for whether this should be promoted from `extraInputs` to dedicated `Employee` fields.
+**SA-unique among the 5 encoded states.** NSW/VIC/QLD/WA do not have a statutory higher-duties rule for LSL (engine uses ordinary substantive-role rate in those states even where the employee is acting up). Per TBD-SA-07 RESOLUTION: SA-localised via `extraInputs.sa_higher_duties_active: boolean` + `extraInputs.sa_higher_duties_weekly_rate: number`. **NOT a DEV-CROSS-3 cross-state schema extension** — operator chose YAGNI; if NT/TAS/ACT genuinely need this concept later, retrofit is no harder than doing it now. Form / bulk-CSV exposes corresponding optional columns for SA only.
 
 ---
 
@@ -1264,7 +1331,7 @@ expected:
     - { code: sa_casual_seasonal_continuity_preserved, message: "Casual employment continuity preserved across a 4-month seasonal shutdown per SA LSL Act 1987 s.6 and SafeWork SA casual guidance ('seasonal variations, temporary shutdowns' typically do not break continuity)." }
 ```
 
-**Notes**: SA does not encode a hard-month limit for casual continuity (unlike QLD's 3-month s.103). The "regular or systematic" test governs, and seasonal-shutdown gaps are explicitly listed as preserving continuity. This case sits outside the 2-month non-casual re-employment threshold but is preserved on the seasonal-shutdown basis. See TBD-SA-02.
+**Notes**: SA does not encode a hard-month limit for casual continuity (unlike QLD's 3-month s.103). The "regular or systematic" test governs, and seasonal-shutdown gaps are explicitly listed as preserving continuity. This case sits outside the 2-month non-casual re-employment threshold but is preserved on the seasonal-shutdown basis per TBD-SA-02 RESOLUTION (3-mo heuristic without seasonal justification; up to 6 mo with).
 
 ---
 
@@ -1284,7 +1351,7 @@ expected:
     - { code: gap_exceeds_state_tolerance, message: "Casual employment gap of 12 months is too long to be 'regular or systematic' under SA LSL Act 1987 s.6. Pre-gap service forfeited." }
 ```
 
-**Notes**: Engine threshold of "12 months" is a v1 heuristic — the actual SA test is case-by-case "regular or systematic" and could be litigated either way. See TBD-SA-02 for the operator's guidance threshold.
+**Notes**: Per TBD-SA-02 RESOLUTION: 12-month gap without seasonal justification clearly fails the 3-month engine heuristic. The actual SA test is case-by-case "regular or systematic" and could be litigated either way — the engine surfaces the forfeiture and the user can dispute via SAET.
 
 ---
 
@@ -1348,7 +1415,7 @@ expected:
     - { section: SA LSL Act 1987 s.5, rule: cashout.post-10yr-written-agreement-required }
 ```
 
-**Notes**: TBD-SA-03 — confirm the exact section/sub-section. AustLII and SafeWork SA guidance both refer to s.5 broadly; the Sprintlaw / employment-law commentary references "section 10" but that may be a confusion with other states. Best evidence currently is that the cashing-out rule is in s.5 (specifically s.5(3) read with s.5(4) or s.5 generally — to be confirmed). **TBD-SA-03**.
+**Notes**: Per TBD-SA-03 RESOLUTION: cite as `SA LSL Act 1987 s.5` at Act level only in v1 (documented limitation pending RES-3 quarterly review, parallel to TBD-WA-02). SafeWork SA and the Law Handbook SA describe the rule but do not cite a sub-section verbatim; AustLII s.5 page suggests cashing-out lives in s.5 (specifically s.5(3) read with s.5(4) or s.5 generally — exact sub-section to be confirmed in the quarterly review).
 
 ---
 
@@ -1422,7 +1489,7 @@ expected_citations:
   - { section: SA LSL Act 1987 s.4, rule: ordinary-pay.literal-rate-at-leave-time-no-wc-uplift }
 ```
 
-**Notes**: Parallel to QLD's resolved TBD-QLD-05 and WA's resolved TBD-WA-05. SA s.4 has no higher-of-pre-injury-vs-current rule (unlike VIC s.17). The engine pays at the literal rate but emits the advisory. **TBD-SA-08** — confirm with operator.
+**Notes**: Parallel to QLD's resolved TBD-QLD-05 and WA's resolved TBD-WA-05. SA s.4 has no higher-of-pre-injury-vs-current rule (unlike VIC s.17). The engine pays at the literal rate but emits the advisory. TBD-SA-08 RESOLVED — operator accepted PM-recommended path 2026-05-25.
 
 ---
 
@@ -1606,7 +1673,7 @@ Demonstrates per-state cash-out branching across the 5 encoded states: SA = advi
 | **SA LSL Act 1987 s.4** — Ordinary weekly rate of pay (incl. higher-duties acting rule + 156-wk averaging method post-2015 amendment) | TC-SA-041 → TC-SA-047, TC-SA-059 |
 | **SA LSL Act 1987 s.5(1)** — 13 wks at 10 yrs + 1.3 wks per further year | TC-SA-001, TC-SA-009, TC-SA-019, TC-SA-020, TC-SA-053, TC-SA-054 |
 | **SA LSL Act 1987 s.5(3)** — Pro-rata at termination + serious-misconduct + unlawful-worker-termination exception | TC-SA-002 → TC-SA-018, TC-SA-024 → TC-SA-028 |
-| **SA LSL Act 1987 s.5** — Cashing out (subsection TBD per TBD-SA-03) | TC-SA-055 → TC-SA-058 |
+| **SA LSL Act 1987 s.5** — Cashing out (Act-level citation only per TBD-SA-03 RESOLUTION — documented limitation pending RES-3 quarterly review) | TC-SA-055 → TC-SA-058 |
 | **SA LSL Act 1987 s.5** — Death-of-worker, entitlement vests in personal representative | TC-SA-004, TC-SA-021 |
 | **SA LSL Act 1987 s.5** — PH-INCLUSIVE in LSL period (F11/AC13) | TC-SA-037 → TC-SA-040 |
 | **SA LSL Act 1987 s.6** — Continuous service / break tolerances / transfer of business | TC-SA-029 → TC-SA-036, TC-SA-050 → TC-SA-051, TC-SA-060 |
@@ -1616,15 +1683,15 @@ Demonstrates per-state cash-out branching across the 5 encoded states: SA = advi
 | **E2 spec F11 / AC13** — SA PH-inclusive in LSL period | TC-SA-037, TC-SA-038, TC-SA-039, TC-SA-040 |
 | **E2 spec F13 / AC14** — Cross-jurisdictional governing-state nomination | TC-SA-063, TC-SA-064 |
 | **E2 spec F17 / AC16** — Mixed-state bulk CSV with per-row state column | TC-SA-BULK-002 |
-| **E2 spec AC4 / AC4a / AC4b** — PM sign-off + per-state launch gate | this file's PM signature line (pending) |
+| **E2 spec AC4 / AC4a / AC4b** — PM sign-off + per-state launch gate | this file's PM signature line — SIGNED OFF · Tracy Angwin (PM) · 2026-05-25 |
 
 ---
 
-# Items flagged `TBD-SA-NN` — operator decision required
+# Items flagged `TBD-SA-NN` — ✅ ALL RESOLVED 2026-05-25
 
-The following TBDs require operator decision before T6.1 (SA rule-set scaffold) commences. Ordered by severity (Sev-1 = load-bearing; Sev-2 = engine-shape; Sev-3 = nice-to-have).
+All 12 TBDs were resolved by the operator on 2026-05-25. The verbatim binding text is in the **Resolutions** section near the top of this document. The detail below is retained as the reasoning that produced each resolution — historical context, not unresolved questions. Ordered by severity (Sev-1 = load-bearing; Sev-2 = engine-shape; Sev-3 = nice-to-have).
 
-## TBD-SA-01 — [Sev-1, LOAD-BEARING] Dual-regime architecture: NO (PM-recommended)
+## TBD-SA-01 — [Sev-1, LOAD-BEARING] Dual-regime architecture · ✅ RESOLVED 2026-05-25 — NO (single regime)
 
 **Question**: Does SA need a pre/post-2015 dual-regime (parallel to VIC s.57 or WA 2022-06-20) to handle the LSL (Calculation of Average Weekly Earnings) Amendment Act 2015 (SA)?
 
@@ -1636,7 +1703,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-02 — [Sev-2] Casual continuity gap threshold
+## TBD-SA-02 — [Sev-2] Casual continuity gap threshold · ✅ RESOLVED 2026-05-25 — 3-mo / 6-mo (with seasonal justification)
 
 **Question**: For casual employees, what specific gap-duration heuristic should the engine apply to detect a continuity break? SA's s.6 does NOT prescribe a hard month-cap for casuals (unlike QLD's 3-month s.103). The test is "regular or systematic" with seasonal-shutdown / temporary-closure tolerances.
 
@@ -1646,7 +1713,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-03 — [Sev-2] Cashing-out section reference (s.5(3), s.5(4), or s.10?)
+## TBD-SA-03 — [Sev-2] Cashing-out section reference · ✅ RESOLVED 2026-05-25 — Act-level only (documented limitation)
 
 **Question**: Different secondary sources cite different section references for cashing-out in the SA LSL Act 1987. SafeWork SA and the Law Handbook SA describe the rule but do not cite a sub-section verbatim. Sprintlaw references "section 10" but that may be confusion with other states (s.10 is "leave in advance" in WA, for example). The AustLII s.5 page indicates the death-vesting clause is in s.5, suggesting cashing-out may also be in s.5.
 
@@ -1656,7 +1723,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-04 — [Sev-2] Unlawful-worker-termination — extraInputs vs new TerminationReason enum value
+## TBD-SA-04 — [Sev-2] Unlawful-worker-termination representation · ✅ RESOLVED 2026-05-25 — SA-localised `extraInputs.sa_worker_notice_compliance`
 
 **Question**: How should the engine represent SA's second sub-10-yr disqualifier ("worker failed to give required notice on resignation")?
 
@@ -1671,7 +1738,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-05 — [Sev-2] Workers Comp absence treatment — counts as service?
+## TBD-SA-05 — [Sev-2] Workers Comp absence treatment · ✅ RESOLVED 2026-05-25 — counts as service AND triggers 156-wk substitution
 
 **Question**: Does a WC absence count toward continuous service in SA, the same way it does in NSW/VIC/QLD?
 
@@ -1683,7 +1750,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-06 — [Sev-2] Cashing-out advisory granularity (one code or three?)
+## TBD-SA-06 — [Sev-2] Cashing-out advisory granularity · ✅ RESOLVED 2026-05-25 — three distinct codes
 
 **Question**: Should the engine emit one generic `sa_cashout_advisory` code (parallel to QLD's pre-resolution simple-advisory option) or three distinct codes per the WA pattern (`sa_cashout_post_accrual_advisory` / `sa_cashout_pre_accrual_not_authorised` / `sa_cashout_no_entitlement_to_cash_out`)?
 
@@ -1693,7 +1760,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-07 — [Sev-2] Higher-duties acting rate — extraInputs vs dedicated Employee fields
+## TBD-SA-07 — [Sev-2] Higher-duties acting rate representation · ✅ RESOLVED 2026-05-25 — SA-localised `extraInputs.sa_higher_duties_*` (NOT DEV-CROSS-3)
 
 **Question**: How should the SA-unique higher-duties acting rate be represented on `Employee`?
 
@@ -1701,20 +1768,15 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 - **(a)** `extraInputs.sa_higher_duties_active: boolean` + `extraInputs.sa_higher_duties_weekly_rate: number`. Localised to SA. Same pattern as TBD-SA-04 unlawful-worker-termination.
 - **(b)** Promote to dedicated `Employee` fields `higherDutiesActive?: boolean` + `higherDutiesWeeklyRate?: number`. State-agnostic — any future state that introduces a similar rule would consume them.
 
-**PM recommendation**: **(b) — Promote to dedicated `Employee` fields**, because:
-1. The concept ("acting in a higher-paid position") is universally meaningful and likely to surface in future state work (NT, TAS, ACT may all surface analogous provisions in their quarterly review).
-2. The DEV-CROSS-2 precedent — `mealsAndAccommodationCashValueWeekly` was promoted to `Employee` rather than left in `extraInputs` for the same reason (per `engine/types.ts` line 211).
-3. Consistent with the state-agnostic schema pattern established by DEV-CROSS-1 + DEV-CROSS-2.
+**PM recommendation (at draft time)**: Option (b) promote to `Employee` fields via DEV-CROSS-3.
 
-**If accepted**, this becomes a small **DEV-CROSS-3** schema extension (½ dev-day) — same pattern as DEV-CROSS-1 (termination-reason enum) and DEV-CROSS-2 (WA schema extensions), landing as a pre-flight cross-state PR before T6.1.
+**Operator decision 2026-05-25**: **Option (a) accepted — SA-localised via `extraInputs.sa_higher_duties_active` + `extraInputs.sa_higher_duties_weekly_rate`.** YAGNI principle — SA is the only state with a statutory higher-duties rule for LSL today; NSW/VIC/QLD/WA have no analogous provision. If NT/TAS/ACT genuinely need this concept later, retrofit is no harder than doing it now. **No new DEV-CROSS-3 dev-finding is created. T6.1 is unblocked immediately — no pre-flight cross-state PR is required.**
 
-**Engine impact if (b) accepted**: ½ dev-day for DEV-CROSS-3 + the SA-specific consumption. No impact on NSW/VIC/QLD/WA — they leave the new fields undefined and ignore them.
-
-**Engine impact if (a) accepted**: 0 cross-state work; +½ dev-day to wire SA extraInputs reading.
+**Engine impact (option (a))**: 0 cross-state work; +½ dev-day to wire SA `extraInputs` reading (folded into the M (3–5 d) Phase 6 estimate).
 
 ---
 
-## TBD-SA-08 — [Sev-3] WC overlap with LSL — literal rate + advisory, or higher-of-rates?
+## TBD-SA-08 — [Sev-3] WC overlap with LSL rate · ✅ RESOLVED 2026-05-25 — literal s.4 + advisory
 
 **Question**: When an employee on WC at a reduced rate takes LSL, does SA apply the literal s.4 rate at leave time (yielding the reduced WC rate) or a higher-of-pre-injury-or-current rule like VIC s.17?
 
@@ -1726,7 +1788,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-09 — [Sev-3] Single-day LSL on a PH — counts as LSL or not?
+## TBD-SA-09 — [Sev-3] Single-day LSL on a PH · ✅ RESOLVED 2026-05-25 — counts as 1 day of LSL
 
 **Question**: If a worker requests a single day of LSL falling on a public holiday, does the engine charge 1 day against entitlement (per the PH-inclusive rule) or zero days (PH is already a non-working day for which the worker is paid via the PH-loading mechanism)?
 
@@ -1738,7 +1800,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-10 — [Sev-3] SA public-holidays calendar source
+## TBD-SA-10 — [Sev-3] SA public-holidays calendar source · ✅ RESOLVED 2026-05-25 — Public Holidays Act 1910 (SA)
 
 **Question**: Per impl-plan v0.3.2 §6 T6.2, the engine consults a "hardcoded SA public-holidays array for v1; auto-detect from leave dates." What is the v1 source-of-truth for SA PHs?
 
@@ -1753,7 +1815,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-11 — [Sev-3] Portable LSL schemes — out of v1 scope, but flag for advisory?
+## TBD-SA-11 — [Sev-3] Portable LSL schemes · ✅ RESOLVED 2026-05-25 — out of v1 scope (no advisory)
 
 **Question**: SA has two separate portable LSL schemes that override the LSL Act 1987 for specific industries: (1) Construction Industry Long Service Leave Act 1987 (SA) — administered via SA PLSL (`saplsl.org.au`); (2) Portable Long Service Leave Act 2024 (SA) — community services workers, commenced October 2025. Should the engine surface an advisory when an employee's industry suggests they may fall under a portable scheme?
 
@@ -1763,7 +1825,7 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## TBD-SA-12 — [Sev-3] Pre-1987 service — moot for current calcs?
+## TBD-SA-12 — [Sev-3] Pre-1987 service · ✅ RESOLVED 2026-05-25 — counts; moot in practice
 
 **Question**: SA LSL Act 1987 came into force in 1987. Does the Act recognise pre-1987 service performed under the predecessor Acts (the LSL Act 1957 and earlier industry-specific acts)?
 
@@ -1789,31 +1851,28 @@ The following TBDs require operator decision before T6.1 (SA rule-set scaffold) 
 
 ---
 
-## Recommendation for sign-off
+## Sign-off summary
 
-This draft (v1.0-draft) **REQUIRES OPERATOR DECISIONS** on the 12 TBDs above before T6.1 (SA rule-set scaffold) can commence.
+All 12 TBDs were resolved by the operator on 2026-05-25:
 
-**Critical-path TBDs that must be resolved before T6.1**:
-- **TBD-SA-01** (Sev-1) — dual-regime architecture (PM recommends NO; if reversed, ~1-2 days re-scope).
-- **TBD-SA-04** (Sev-2) — unlawful-worker-termination representation (impacts schema decision).
-- **TBD-SA-07** (Sev-2) — higher-duties acting rate (impacts schema decision — likely DEV-CROSS-3 needed).
+- **TBD-SA-01** (Sev-1, LOAD-BEARING) — single regime confirmed. Impl-plan v0.3.2 §6 stands; no re-scope.
+- **TBD-SA-04** (Sev-2) — SA-localised `extraInputs.sa_worker_notice_compliance` confirmed.
+- **TBD-SA-07** (Sev-2) — SA-localised `extraInputs.sa_higher_duties_*` confirmed. **NOT DEV-CROSS-3.** T6.1 unblocked immediately with no pre-flight cross-state PR.
+- **TBD-SA-02, -03, -05, -06, -08, -09, -10, -11, -12** (Sev-2/3) — all resolved per PM-recommended path with the inline detail in the **Resolutions** section near the top of this document.
 
-**Lower-severity TBDs that can be resolved as part of T6.1 implementation** (engine work proceeds on PM-recommended path; resolution recorded retroactively):
-- TBD-SA-02, TBD-SA-03, TBD-SA-05, TBD-SA-06, TBD-SA-08, TBD-SA-09, TBD-SA-10, TBD-SA-11, TBD-SA-12.
-
-If the operator accepts the PM-recommended path on all 12 TBDs, the engine effort estimate remains M (3–5 days) per impl-plan v0.3.2 §6 + ½ dev-day for the DEV-CROSS-3 schema extension (TBD-SA-07 option (b)).
+Engine effort estimate stays at **M (3–5 days)** per impl-plan v0.3.2 §6. No DEV-CROSS-3 dev-finding is created. No new pre-flight cross-state PR.
 
 ---
 
 ## Signature line
 
 ```
-Signed: [pending operator review 2026-05-25]
-Date:   [pending]
+Signed: Tracy Angwin (PM)
+Date:   2026-05-25
 ```
 
-> PM-only sign-off per E2 spec RES-6 / AC4. Sign-off completes T6.0. T6.1 (SA rule-set scaffold) is BLOCKED until the operator resolves the 12 TBDs (in particular, the Sev-1 TBD-SA-01 dual-regime architecture and the two Sev-2 schema-impact TBDs TBD-SA-04 and TBD-SA-07).
+> PM-only sign-off per E2 spec RES-6 / AC4. Sign-off completes T6.0. **T6.1 (SA rule-set scaffold) is UNBLOCKED immediately.** No pre-flight cross-state PR required — higher-duties and worker-notice are SA-localised via `extraInputs`.
 
 ---
 
-*End of test-cases-sa.md v1.0-draft — awaiting PM sign-off 2026-05-25.*
+*End of test-cases-sa.md v1.0 SIGNED OFF · Tracy Angwin (PM) · 2026-05-25.*
