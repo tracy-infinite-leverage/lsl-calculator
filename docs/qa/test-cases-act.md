@@ -1,15 +1,113 @@
 # ACT LSL Calculator — Gold-Standard Test Cases
 
-**Status**: DRAFT v1.0 · awaiting PM sign-off
-**Version**: v1.0-draft
+**Status**: SIGNED OFF · Tracy Angwin (PM) · 2026-05-26
+**Version**: v1.0
 **Date**: 2026-05-26
 **Spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
-**Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.3 Phase 7 (ACT) — pending Phase 7 amendment after TBD resolutions
-**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T7.0 BLOCKING — PM sign-off pending
+**Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.5 Phase 7 (ACT) — single rule set + WC date-aware override at 9 June 2023, no DEV-CROSS-4 (ACT signals localised via `extraInputs.act_*`); one new `Result.payable_by: ISODate` field bundles inline with per-state PR
+**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T7.0 ✅ SIGNED OFF; T7.1 unblocked immediately (no pre-flight cross-state PR)
 **Source-of-truth Acts**:
 - *Long Service Leave Act 1976* (ACT) — Republication No 29 effective 19 November 2025. Cited as **"ACT LSL Act 1976 s.N"** throughout. Section coverage in v1: s.2F (commission/results-based pay definition), s.2G (continuous service), s.3 (entitlement period), s.4 (entitlement formula), s.6 (taking LSL), s.7 (ordinary pay), s.8 (payment for LSL), s.9 (public holidays exclusive), s.10 (transfer of business), s.10A (workers compensation absence), s.11A (cessation pay-in-lieu), s.11C (pro-rata at 5–7 yrs), s.11D (cessation hours averaging), s.12 (records).
 - *Workers Compensation Act 1951* (ACT) s.46 — amended effective 9 June 2023 to make workers-compensation absence count toward LSL service. Cited as **"WC Act 1951 (ACT) s.46"** where the date-aware override applies. Note v1 citation form is Act-level only; sub-section detail to be verified during quarterly review (parallel to TBD-WA-02 / TBD-SA-03 documented limitation).
 - *Public Holidays Act 1958* (ACT) — source-of-truth for ACT public holidays (Canberra Day, Reconciliation Day are ACT-unique). Cited as **"Public Holidays Act 1958 (ACT)"**.
+
+---
+
+## Resolutions (2026-05-26 — PM Tracy Angwin)
+
+All 17 TBDs are resolved as listed below. The verbatim resolution text is the authority — where individual fixtures elsewhere in this document still carry "TBD" markers in inline prose, treat the Resolutions section here as binding and the inline marker as historical context to be ignored.
+
+### TBD-ACT-01 (Sev-1, LOAD-BEARING) — Dual-regime architecture for Workers Comp pre/post 9 June 2023
+
+**RESOLVED: Single rule set with date-aware WC override at 9 June 2023.** Same architectural pattern as WA TBD-WA-01 RESOLVED — the 9 June 2023 cliff is WC-specific only; s.3, s.4, s.7, s.11C accrual / pay / termination formulas are unchanged across the cutoff. WC override is a one-file module (`rules/workers-comp-override.ts`) sitting on top of a single continuous-service-rule profile. NO `rules-pre-9jun2023/` / `rules-post-9jun2023/` split. Phase 7 effort estimate stays at L (5–7 days) per impl-plan v0.3.5 §Phase 7. Engine impact ~½ dev-day for the WC override module.
+
+### TBD-ACT-02 (Sev-1, LOAD-BEARING) — Overtime hours-vs-rate asymmetry interpretation
+
+**RESOLVED: Asymmetric — hours INCLUDED in s.7(2) 12-mo casual/PT average; rate EXCLUDES overtime premium per s.7(1).** WorkSafe ACT guidance under s.7(1) explicitly excludes overtime from ordinary pay; s.7(2) hours-averaging explicitly includes overtime hours. The asymmetric reading matches both WorkSafe ACT and the APA Masterclass. The engine MUST decompose total hours into base + overtime and apply only the base rate. Parallel to SA 156-wk pattern. Spec wording follow-up clarification will be made in a v0.3.5 (or later) amendment to make the asymmetry explicit. Fixtures TC-ACT-006, TC-ACT-051, TC-ACT-053 unchanged (drafted on asymmetric (a) interpretation).
+
+### TBD-ACT-03 (Sev-1, LOAD-BEARING) — s.7(2) vs s.11D averaging-anchor disambiguation
+
+**RESOLVED: Compute entitlement date as `startDate + 7 years` adjusted for excluded days; trigger kind drives the averaging anchor.** `taking_leave` → s.7(2) anchor (12 months immediately before entitlement date). `termination` → s.11D anchor (12 months immediately before cessation). No new input field required for v1 — the engine tracks the day-precise entitlement date during the continuous-service walk (service-interrupting events like UPL or WC > 2 wks/yr shift the entitlement date out by the excluded day-count). Engine emits `act_taking_anchor_vs_termination_anchor_diverged` warning when the two anchors yield different averages. Engine impact ½–1 dev-day folded into T7.2. Fixtures TC-ACT-059 → TC-ACT-061 unchanged.
+
+### TBD-ACT-04 (Sev-1) — s.7(3) FT→PT/casual within 2 yrs — 5-yr salary path
+
+**RESOLVED: ACT-localised via `extraInputs.act_ft_to_pt_transition_date: ISODate` (optional).** When present AND `(entitlement_date − act_ft_to_pt_transition_date) <= 2 years` (boundary INCLUSIVE), route to s.7(3) formula (total salary over 5 years ÷ 5 ÷ 52). Otherwise route to s.7(2). Default undefined → engine treats employee as having consistent employment type and applies s.7(2) for casual/PT or fixed-rate for FT. ACT-unique rule — no cross-state schema change. Engine impact 1 dev-day folded into T7.2. Fixtures TC-ACT-056 (within), TC-ACT-057 (boundary), TC-ACT-058 (outside) unchanged.
+
+### TBD-ACT-05 (Sev-2) — WC pre/post 9 June 2023 — 2-wk/yr cap interpretation
+
+**RESOLVED: Service-year aligned (running from employee's startDate anniversary).** Each service year may carry up to 2 weeks of WC absence that counts. Excess in any service year is excluded from service. Matches WA's pre-2022 15-day sickness cap interpretation per TBD-WA-09 RESOLVED. Operationally cleaner — no calendar-arithmetic against an arbitrary calendar-year boundary. **Cutoff inclusivity at exact-day boundary: ON 9 June 2023 → post-cutoff (strict "on or after").** Same convention as TBD-WA-11 RESOLVED. Engine impact ½ dev-day folded into T7.2. Fixtures TC-ACT-036 (pre), TC-ACT-037 (post), TC-ACT-038 (straddling), TC-ACT-039 (on-cutoff) unchanged.
+
+### TBD-ACT-06 (Sev-2) — WC DEV-CROSS-2 flags (paidConcurrent, returnToWorkProgram) — do they apply to ACT?
+
+**RESOLVED: NO — flags ignored by ACT orchestrator.** WA-specific exceptions, not state-agnostic. ACT's pre-9-June-2023 2-wk/yr cap is hard-anchored regardless of `paidConcurrent` or `returnToWorkProgram` values. Documentary clarification only — 0 dev-days. Fixture TC-ACT-041 verifies this (a pre-cutoff WC absence with `paidConcurrent: true` is still capped at 2 weeks counted).
+
+### TBD-ACT-07 (Sev-2) — Retirement-age qualifying-reason interpretation
+
+**RESOLVED: Two-signal check.** Engine reads `employee.dob` — if `age_at_termination >= 65`, retirement qualifies automatically. Engine reads `extraInputs.act_award_min_retirement_age_reached: boolean` (default `false`) — if `true`, retirement qualifies via award/agreement-specified sub-65 minimum. When both signals are absent and `reason === 'retirement'`, retirement is treated as NON-qualifying and warning `sub_7yr_no_qualifying_reason_act` fires. **Poor-performance dismissal treated as non-qualifying** (parallel to QLD s.95(3)(d) which explicitly excludes performance). Engine impact ½ dev-day folded into T7.2. Fixtures TC-ACT-013 (age 65), TC-ACT-014 (award-min sub-65), TC-ACT-015 (no signals), TC-ACT-018 (poor performance) unchanged.
+
+### TBD-ACT-08 (Sev-2) — Pay-on-termination 90-day window — engine surface
+
+**RESOLVED: Add new optional `payable_by: ISODate` field to `Result`.** Purely additive; cross-state-available; no breaking change. Field is `undefined` for states that don't compute a window (NSW = "forthwith" — no `payable_by` surfaced). ACT engine sets `payable_by = terminationDate + 90 days` on every termination trigger and emits `act_termination_payable_within_90_days_advisory`. UI renders the field on the result panel when present. Single SA-localised-pattern philosophy — low cost, clear UI affordance, cross-state-available if other jurisdictions later encode similar windows. Engine impact ½ dev-day for the engine surface + UI rendering. Fixture TC-ACT-075 is the load-bearing test; TC-ACT-002, -005, -009, -020 also surface `payable_by`.
+
+### TBD-ACT-09 (Sev-3) — ACT public-holidays calendar source
+
+**RESOLVED: Hardcode the ACT PH list from the Public Holidays Act 1958 (ACT) into `website/src/lib/lsl/states/act/rules/public-holidays.ts`.** Include the 13 ACT PHs (NYD, Australia Day, Canberra Day [second Monday in March — ACT-unique], Good Friday, Easter Saturday, Easter Sunday, Easter Monday, Anzac Day, Reconciliation Day [Monday closest to 27 May — ACT-unique], King's Birthday, Labour Day, Christmas Day, Boxing Day). Re-validate annually as part of RES-3 quarterly review. ½ dev-day for data entry + date-arithmetic helpers for Easter / Canberra Day / Reconciliation Day / King's Birthday. Fixtures TC-ACT-042 → TC-ACT-044 unchanged.
+
+### TBD-ACT-10 (Sev-3) — Single-day LSL on a PH (PH-EXCLUSIVE state)
+
+**RESOLVED: Shift to next non-PH working day.** The LSL day shifts to the next non-PH working day — engine charges 1 day of LSL but on a different calendar date. Worker is paid PH rate per award for the original day (outside engine scope). Preserves the user's intent to charge 1 day of LSL while honouring s.9 PH-exclusive semantics. Engine impact ½ dev-day for PH-detection + next-working-day computation. Fixture TC-ACT-044 unchanged.
+
+### TBD-ACT-11 (Sev-3) — Portable LSL schemes — out of v1 scope
+
+**RESOLVED: OUT OF v1 ACT engine scope.** The three ACT portable schemes — LSL (BCI) Act 1981 (construction), LSL (CCI) Act 1999 (contract cleaning), LSL (PS) Act 2009 (other industries) — are separate portable schemes that override the LSL Act 1976 for specific industries. The engine assumes the LSL Act 1976 (ACT) governs and does NOT surface an industry-portable-scheme advisory in v1. Same convention as VIC/QLD/WA/SA industry portable schemes. Re-evaluate in v2 if user surveys surface frequent confusion. 0 dev-days.
+
+### TBD-ACT-12 (Sev-3) — Cashing-out section reference
+
+**RESOLVED: Cite as `ACT LSL Act 1976 s.8(c)` — documented limitation pending RES-3 quarterly review.** The s.8(c) "in another way" interpretation is operational per WorkSafe ACT guidance, not verbatim Act text. Parallel to TBD-WA-02 (which cited "WCIM Act 2023 (WA)" at Act level only) and TBD-SA-03 (which cited "SA LSL Act 1987 s.5" at Act level only) precedent. One targeted research pass post-launch can verify the citation accuracy. **Documented limitation** — acceptable for launch. No engine-code impact — citation string in `trigger-handlers.ts` uses `section: 'ACT LSL Act 1976 s.8(c)'`. Fixtures TC-ACT-064 → TC-ACT-067 unchanged.
+
+### TBD-ACT-13 (Sev-3) — Unpaid leave continuity-break interpretation
+
+**RESOLVED: Treat all UPL events as continuity-preserving but not service-counting ("extends-the-line" pattern).** Engine pushes the effective entitlement date out by the UPL duration. Operator can dispute via subsequent edit. Reuses the SA `continuous-service-rules` pattern (parallel to SA TBD-SA-04 RESOLVED precedent). 0 new dev-days. Fixture TC-ACT-028 unchanged.
+
+### TBD-ACT-14 (Sev-2) — Advance leave — engine refusal semantics
+
+**RESOLVED: `status: computed` + `payable_for_taken_leave: 0` + `act_advance_leave_not_permitted` advisory.** Preserves the as-at computation as informational (parallel to QLD's sub-7-yr cash-out pattern). User can see what the entitlement WOULD be at their tenure but cannot actually take it. NOT a hard error. Engine impact ½ dev-day for the advisory + zero-payable handling folded into T7.2. Fixture TC-ACT-070 unchanged.
+
+### TBD-ACT-15 (Sev-2) — Paid parental leave does NOT count as service
+
+**RESOLVED: Non-service-counting per WorkSafe ACT guidance.** ACT divergence from NSW/SA/VIC-post-2018. Engine MUST NOT auto-treat `paid_leave` events labelled as "parental" as service-counting for ACT. v1 implementation: engine reads the `note` field on `paid_leave` events (case-insensitive substring match for "parental") AND honours the explicit event-type `paid_parental_leave` if present — treats either signal as non-service-counting for ACT. Engine impact ½ dev-day folded into T7.2. Fixture TC-ACT-029 unchanged.
+
+### TBD-ACT-16 (Sev-3) — Warning-code naming — `act_slackness_of_trade_continuity_preserved` vs WA reuse
+
+**RESOLVED: Introduce ACT-namespaced codes (`act_slackness_of_trade_continuity_preserved`, `transfer_of_business_continuity_preserved_act`).** Same convention as SA's state-namespaced warning codes. Keeps the warning taxonomy state-localised; engine can swap citations and messages cleanly. 0 dev-days additional (parallel pattern to SA). Fixtures TC-ACT-032, TC-ACT-069 unchanged.
+
+### TBD-ACT-17 (Sev-2) — Sickness 2-wk/yr cap interpretation
+
+**RESOLVED: Per service year (same as TBD-ACT-05 WC cap).** Operationally cleaner; matches WA pre-2022 cap pattern. Engine impact ½ dev-day folded into the s.2G continuous-service profile work (same module as TBD-ACT-05 — 0 dev-days additional). Fixture TC-ACT-033 unchanged.
+
+### Net effect on fixtures and impl-plan
+
+| Resolution | Fixture impact | Impl-plan impact |
+|---|---|---|
+| TBD-ACT-01 | All fixtures unchanged. WC-override module added to engine layout. | §Phase 7 documents WC date-aware override at 9 June 2023 (parallel to WA's 2024-07-01 module). No re-scope. L (5–7 d) effort estimate stands. |
+| TBD-ACT-02 | TC-ACT-006, -051, -053 unchanged (drafted on asymmetric (a) interpretation). | §Phase 7 documents the asymmetric ordinary-pay interpretation. F9 wording clarification noted for follow-up spec amendment. |
+| TBD-ACT-03 | TC-ACT-059 → TC-ACT-061 unchanged — s.7 vs s.11D anchor split. | §Phase 7 documents the entitlement-date computation rule (`startDate + 7 years` adjusted for excluded days). |
+| TBD-ACT-04 | TC-ACT-056 → TC-ACT-058 unchanged. `extraInputs.act_ft_to_pt_transition_date` field documented. | §Phase 7 documents the ACT-localised `extraInputs.act_*` keys. **No DEV-CROSS-4.** |
+| TBD-ACT-05 | TC-ACT-036 → TC-ACT-041 unchanged — per-service-year cap. | §Phase 7 reuses the WA pre-2022 cap pattern. |
+| TBD-ACT-06 | TC-ACT-041 unchanged — verifies WA DEV-CROSS-2 fields are ignored by ACT orchestrator. | §Phase 7 documents the cross-state-field-ignored decision. |
+| TBD-ACT-07 | TC-ACT-013, -014, -015, -018 unchanged — two-signal retirement gate + poor-performance non-qualifying. | §Phase 7 documents `extraInputs.act_award_min_retirement_age_reached` and `employee.dob` reads. |
+| TBD-ACT-08 | TC-ACT-002, -005, -009, -020, -075 unchanged — surface `payable_by`. | §Phase 7 adds `payable_by: ISODate (optional)` to `Result` interface in `engine/types.ts`. Purely additive. Bundles inline with per-state PR — no separate cross-state PR. |
+| TBD-ACT-09 | TC-ACT-042 → TC-ACT-044 unchanged — hardcoded ACT PHs from Public Holidays Act 1958 (ACT). | §Phase 7 / T7.2 adds `rules/public-holidays.ts` (½ dev-day). |
+| TBD-ACT-10 | TC-ACT-044 unchanged — shift-to-next-non-PH semantics. | §Phase 7 confirms shift-to-next-PH semantics. |
+| TBD-ACT-11 | No fixture impact. Out of v1 scope. | §Phase 7 documents portable schemes as deferred per state convention. |
+| TBD-ACT-12 | TC-ACT-064 → TC-ACT-067 unchanged — cite `ACT LSL Act 1976 s.8(c)`. | §Phase 7 documents the documented-limitation citation form (parallel to TBD-WA-02 / TBD-SA-03). |
+| TBD-ACT-13 | TC-ACT-028 unchanged — "extends-the-line" UPL pattern. | §Phase 7 reuses the SA `extends-the-line` pattern. |
+| TBD-ACT-14 | TC-ACT-070 unchanged — `status: computed` + advisory. | §Phase 7 confirms advisory-not-hard-error semantics. |
+| TBD-ACT-15 | TC-ACT-029 unchanged — paid parental leave non-counting. | §Phase 7 documents the ACT-specific paid-parental-leave exclusion (engine reads event-type or substring-match on `note`). |
+| TBD-ACT-16 | TC-ACT-032, TC-ACT-069 unchanged — ACT-namespaced warning codes. | §Phase 7 documents the state-namespaced warning-code convention. |
+| TBD-ACT-17 | TC-ACT-033 unchanged — per-service-year sickness cap. | §Phase 7 reuses the WA pre-2022 cap pattern (same module as TBD-ACT-05). |
+
+**No fixture-value changes from the v1.0-draft. All 78 fixtures (75 single-mode + 3 bulk) stand as drafted.** The Resolutions section above is the binding authority for any inline TBD references that remain in fixture notes — the inline references are historical context, not unresolved questions. **No DEV-CROSS-4 dev-finding is created** — all schema additions are ACT-localised via `extraInputs.act_*` keys (parallel to SA TBD-SA-04 / -07 RESOLVED precedent). One purely-additive optional `Result.payable_by: ISODate` field is added — cross-state-available, bundles inline with the per-state PR. **T7.1 unblocks immediately on PM sign-off — no pre-flight cross-state PR required** (parallel to SA Phase 6 precedent). Phase 7 effort estimate stays at L (5–7 dev-days).
 
 ---
 
@@ -1956,11 +2054,11 @@ row_results:
 
 ---
 
-# Items flagged `TBD-ACT-NN` — to be resolved by operator
+# Items flagged `TBD-ACT-NN` — ✅ ALL RESOLVED 2026-05-26
 
-Ordered by severity (Sev-1 = load-bearing; Sev-2 = engine-shape; Sev-3 = nice-to-have). PM recommendations are provided inline; operator decision binds the v1 ACT engine.
+All 17 TBDs were resolved by the operator on 2026-05-26. The verbatim binding text is in the **Resolutions** section near the top of this document. The detail below is retained as the reasoning that produced each resolution — historical context, not unresolved questions. Ordered by severity (Sev-1 = load-bearing; Sev-2 = engine-shape; Sev-3 = nice-to-have).
 
-## TBD-ACT-01 — [Sev-1, LOAD-BEARING] Dual-regime architecture for Workers Comp pre/post 9 June 2023
+## TBD-ACT-01 — [Sev-1, LOAD-BEARING] Dual-regime architecture for Workers Comp pre/post 9 June 2023 · ✅ RESOLVED 2026-05-26 — single rule set + WC date-aware override at 9 June 2023
 
 **Question**: Does ACT need a pre/post-9-June-2023 dual-regime for Workers Compensation (parallel to WA's 2024-07-01 architectural pattern, with a WC-override-only date-aware module sitting on top of the single rule set)?
 
@@ -1986,7 +2084,7 @@ website/src/lib/lsl/states/act/
 
 ---
 
-## TBD-ACT-02 — [Sev-1, LOAD-BEARING] Overtime hours-vs-rate asymmetry interpretation
+## TBD-ACT-02 — [Sev-1, LOAD-BEARING] Overtime hours-vs-rate asymmetry interpretation · ✅ RESOLVED 2026-05-26 — asymmetric (hours included, rate excludes overtime premium)
 
 **Question**: The spec/impl-plan/F9 wording is "ACT casuals require overtime hours per ACT LSL Act 1976 s.4 ... value-of-week formula MUST include overtime hours in the ordinary-pay computation." Is the correct read:
 
@@ -1999,7 +2097,7 @@ website/src/lib/lsl/states/act/
 
 ---
 
-## TBD-ACT-03 — [Sev-1, LOAD-BEARING] s.7(2) vs s.11D averaging-anchor disambiguation
+## TBD-ACT-03 — [Sev-1, LOAD-BEARING] s.7(2) vs s.11D averaging-anchor disambiguation · ✅ RESOLVED 2026-05-26 — entitlement-date = `startDate + 7yr` (adjusted); anchor by trigger kind
 
 **Question**: ACT s.7(2) anchors the 12-month casual/PT hours-averaging window at "12 months immediately before the employee became entitled to long service leave" (i.e. the date the worker first reached 7-yr qualifying period). s.11D anchors at "12 months immediately before cessation". The trigger kind determines which anchor applies:
 
@@ -2014,7 +2112,7 @@ How does the engine know "the date the worker became entitled to LSL" — is it 
 
 ---
 
-## TBD-ACT-04 — [Sev-1] s.7(3) FT→PT/casual within 2 yrs — 5-yr salary path
+## TBD-ACT-04 — [Sev-1] s.7(3) FT→PT/casual within 2 yrs — 5-yr salary path · ✅ RESOLVED 2026-05-26 — ACT-localised `extraInputs.act_ft_to_pt_transition_date` (NOT DEV-CROSS-4)
 
 **Question**: ACT s.7(3) applies when the employee transitions from full-time to part-time/casual within 2 years prior to reaching the 7-yr LSL entitlement. The formula is total salary over 5 years (the 5 years immediately preceding the entitlement date) divided by 5, divided by 52. How does the engine know about the transition?
 
@@ -2026,7 +2124,7 @@ Boundary inclusivity: exactly 2-yr boundary is INCLUSIVE — `act_ft_to_pt_trans
 
 ---
 
-## TBD-ACT-05 — [Sev-2] WC pre/post 9 June 2023 — 2-wk/yr cap interpretation
+## TBD-ACT-05 — [Sev-2] WC pre/post 9 June 2023 — 2-wk/yr cap interpretation · ✅ RESOLVED 2026-05-26 — per service year; ON 9 June 2023 → post-cutoff
 
 **Question**: ACT s.2G and s.10A cap pre-9-June-2023 WC absence at 2 weeks per year. Is "per year" calendar-year aligned or service-year aligned (= aligned with employee's start anniversary)? Strict reading of "in any one year" in the WorkSafe ACT guidance is ambiguous.
 
@@ -2038,7 +2136,7 @@ Boundary inclusivity: exactly 2-yr boundary is INCLUSIVE — `act_ft_to_pt_trans
 
 ---
 
-## TBD-ACT-06 — [Sev-2] WC DEV-CROSS-2 flags (paidConcurrent, returnToWorkProgram) — do they apply to ACT?
+## TBD-ACT-06 — [Sev-2] WC DEV-CROSS-2 flags (paidConcurrent, returnToWorkProgram) — do they apply to ACT? · ✅ RESOLVED 2026-05-26 — NO, flags ignored by ACT orchestrator
 
 **Question**: WA's DEV-CROSS-2 schema additions include `paidConcurrent?: boolean` and `returnToWorkProgram?: boolean` on `workers_comp_absence` events. These were added for WA's pre-2024-07-01 WC exclusion exceptions. Do these flags affect ACT's pre-9-June-2023 2-wk/yr cap?
 
@@ -2048,7 +2146,7 @@ Boundary inclusivity: exactly 2-yr boundary is INCLUSIVE — `act_ft_to_pt_trans
 
 ---
 
-## TBD-ACT-07 — [Sev-2] Retirement-age qualifying-reason interpretation
+## TBD-ACT-07 — [Sev-2] Retirement-age qualifying-reason interpretation · ✅ RESOLVED 2026-05-26 — two-signal check (`dob >= 65` OR `extraInputs.act_award_min_retirement_age_reached`); poor-performance non-qualifying
 
 **Question**: ACT s.11C lists "minimum retirement age (per award/agreement, or 65)" as a qualifying reason for pro-rata at 5–7 yrs. How does the engine determine whether retirement qualifies?
 
@@ -2064,7 +2162,7 @@ When both signals are absent and `reason === 'retirement'`, retirement is treate
 
 ---
 
-## TBD-ACT-08 — [Sev-2] Pay-on-termination 90-day window — engine surface
+## TBD-ACT-08 — [Sev-2] Pay-on-termination 90-day window — engine surface · ✅ RESOLVED 2026-05-26 — new optional `Result.payable_by: ISODate` field (purely additive, cross-state-available, bundles inline with per-state PR)
 
 **Question**: ACT s.11A(4)(b) provides up to 90 days from cessation for the employer to pay the LSL amount. How should the engine surface this in the `Result`?
 
@@ -2078,7 +2176,7 @@ When both signals are absent and `reason === 'retirement'`, retirement is treate
 
 ---
 
-## TBD-ACT-09 — [Sev-3] ACT public-holidays calendar source
+## TBD-ACT-09 — [Sev-3] ACT public-holidays calendar source · ✅ RESOLVED 2026-05-26 — Public Holidays Act 1958 (ACT), hardcoded (13 PHs incl. Canberra Day + Reconciliation Day)
 
 **Question**: Per the F11-equivalent for ACT (s.9 PH-exclusive), the engine consults an ACT PH calendar. What is the v1 source-of-truth?
 
@@ -2090,7 +2188,7 @@ When both signals are absent and `reason === 'retirement'`, retirement is treate
 
 ---
 
-## TBD-ACT-10 — [Sev-3] Single-day LSL on a PH (PH-EXCLUSIVE state)
+## TBD-ACT-10 — [Sev-3] Single-day LSL on a PH (PH-EXCLUSIVE state) · ✅ RESOLVED 2026-05-26 — shift to next non-PH working day (charge 1 day of LSL on a different date)
 
 **Question**: When a worker requests a single day of LSL falling on a public holiday in ACT (a PH-exclusive state), what semantics apply?
 
@@ -2102,7 +2200,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 
 ---
 
-## TBD-ACT-11 — [Sev-3] Portable LSL schemes — out of v1 scope
+## TBD-ACT-11 — [Sev-3] Portable LSL schemes — out of v1 scope · ✅ RESOLVED 2026-05-26 — out of v1 scope (no advisory)
 
 **Question**: ACT has three separate portable LSL schemes that override the LSL Act 1976 for specific industries — (1) LSL (BCI) Act 1981 (construction); (2) LSL (CCI) Act 1999 (contract cleaning); (3) LSL (PS) Act 2009 (other industries). Should the engine surface an advisory when an employee's industry suggests they may fall under a portable scheme?
 
@@ -2110,7 +2208,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 
 ---
 
-## TBD-ACT-12 — [Sev-3] Cashing-out section reference
+## TBD-ACT-12 — [Sev-3] Cashing-out section reference · ✅ RESOLVED 2026-05-26 — cite `ACT LSL Act 1976 s.8(c)` (documented limitation pending RES-3 quarterly review)
 
 **Question**: ACT cash-out is per WorkSafe ACT guidance s.8(c) "in another way" — non-statutory. The s.8(c) interpretation is operational, not verbatim Act text. What citation form should the engine use?
 
@@ -2120,7 +2218,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 
 ---
 
-## TBD-ACT-13 — [Sev-3] Unpaid leave continuity-break interpretation
+## TBD-ACT-13 — [Sev-3] Unpaid leave continuity-break interpretation · ✅ RESOLVED 2026-05-26 — continuity-preserving but not service-counting ("extends-the-line")
 
 **Question**: ACT s.2G handles unpaid leave as "does not count toward service" without an explicit duration cap (unlike VIC's 52-wk cap). How does the engine determine whether an unpaid-leave event breaks continuity vs merely doesn't count toward service?
 
@@ -2128,7 +2226,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 
 ---
 
-## TBD-ACT-14 — [Sev-2] Advance leave — engine refusal semantics
+## TBD-ACT-14 — [Sev-2] Advance leave — engine refusal semantics · ✅ RESOLVED 2026-05-26 — `status: computed` + advisory (not hard error)
 
 **Question**: The ACT Act contains no leave-in-advance provision. Should the engine refuse `taking_leave` triggers at sub-7-yr tenure with:
 
@@ -2141,7 +2239,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 
 ---
 
-## TBD-ACT-15 — [Sev-2] Paid parental leave does NOT count as service
+## TBD-ACT-15 — [Sev-2] Paid parental leave does NOT count as service · ✅ RESOLVED 2026-05-26 — non-service-counting (ACT divergence from NSW/SA/VIC-post-2018)
 
 **Question**: WorkSafe ACT guidance explicitly lists paid parental leave (Company-Paid Parental + Government Paid Parental Leave) in the "does NOT count" column of s.2G. Should the engine treat paid parental leave as service-counting (matching NSW/SA/VIC-post-2018) or as non-service-counting (matching the ACT-specific WorkSafe guidance)?
 
@@ -2151,7 +2249,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 
 ---
 
-## TBD-ACT-16 — [Sev-3] Warning-code naming — `act_slackness_of_trade_continuity_preserved` vs WA reuse
+## TBD-ACT-16 — [Sev-3] Warning-code naming — `act_slackness_of_trade_continuity_preserved` vs WA reuse · ✅ RESOLVED 2026-05-26 — ACT-namespaced codes (parallel to SA pattern)
 
 **Question**: WA already has a similar slackness-of-trade preservation pattern. Should ACT reuse the WA warning code or introduce an ACT-namespaced equivalent (parallel to SA's `transfer_of_business_continuity_preserved_sa` precedent)?
 
@@ -2161,7 +2259,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 
 ---
 
-## TBD-ACT-17 — [Sev-2] Sickness 2-wk/yr cap interpretation
+## TBD-ACT-17 — [Sev-2] Sickness 2-wk/yr cap interpretation · ✅ RESOLVED 2026-05-26 — per service year (same as TBD-ACT-05)
 
 **Question**: ACT s.2G caps sickness/injury absence at 2 weeks per year. Per service year or per calendar year? Same as TBD-ACT-05 (WC) which was resolved per-service-year.
 
@@ -2171,7 +2269,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 
 ---
 
-## Net effect on fixtures and impl-plan (if all 17 TBDs are resolved per PM recommendations)
+## Net effect on fixtures and impl-plan (all 17 TBDs resolved 2026-05-26 per PM recommendations — historical reasoning)
 
 | Resolution | Fixture impact | Impl-plan impact |
 |---|---|---|
@@ -2193,7 +2291,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 | TBD-ACT-16 | TC-ACT-032, TC-ACT-069 use ACT-namespaced warning codes. | §Phase 7 documents the state-namespaced warning-code convention. |
 | TBD-ACT-17 | TC-ACT-033 uses per-service-year sickness cap. | §Phase 7 reuses the WA pre-2022 cap pattern. |
 
-**No fixture-value changes are expected from the v1.0-draft assuming operator accepts all PM recommendations.** All 75 single-mode + 3 bulk fixtures stand as drafted. If operator overrides PM recommendations on TBD-ACT-02, TBD-ACT-04, TBD-ACT-08, TBD-ACT-14, or TBD-ACT-15, some fixture values may need to shift.
+**No fixture-value changes from the v1.0-draft — operator accepted all 17 PM recommendations on 2026-05-26.** All 75 single-mode + 3 bulk fixtures stand as drafted. The Resolutions section near the top of this document is the binding authority.
 
 **Effort estimate summary**:
 - TBD-ACT-01 (single-rule-set + WC override): ½ d added; total Phase 7 stays at L (5–7 d).
@@ -2214,7 +2312,7 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 - TBD-ACT-16 (state-namespaced codes): 0 d.
 - TBD-ACT-17 (sickness cap): 0 d (same module as TBD-ACT-05).
 
-**Total: ~4–6 dev-days within the L (5–7 d) Phase 7 envelope.** No effort re-scope required if PM recommendations are accepted in full. **No DEV-CROSS-4 dev-finding is created** — all schema additions are ACT-localised via `extraInputs` and one additive optional `Result` field. **T7.1 will be unblocked immediately on PM sign-off** — no pre-flight cross-state PR required.
+**Total: ~4–6 dev-days within the L (5–7 d) Phase 7 envelope.** No effort re-scope required — operator accepted all PM recommendations on 2026-05-26. **No DEV-CROSS-4 dev-finding is created** — all schema additions are ACT-localised via `extraInputs.act_*` and one additive optional `Result.payable_by: ISODate` field bundles inline with the per-state PR. **T7.1 is UNBLOCKED immediately on PM sign-off** — no pre-flight cross-state PR required.
 
 ---
 
@@ -2234,28 +2332,28 @@ Alternative reading: the engine returns "0 days of LSL consumed" because the req
 
 ## Sign-off summary
 
-This contract proposes 17 TBDs for operator resolution:
-- **3 Sev-1 (LOAD-BEARING)**: TBD-ACT-01 (architecture), TBD-ACT-02 (overtime asymmetry), TBD-ACT-03 (anchor split).
-- **1 Sev-1**: TBD-ACT-04 (s.7(3) FT→PT routing).
-- **6 Sev-2**: TBD-ACT-05, -07, -08, -14, -15, -17.
-- **7 Sev-3**: TBD-ACT-06, -09, -10, -11, -12, -13, -16.
+All 17 TBDs were resolved by the operator on 2026-05-26:
 
-All 17 carry PM recommendations. Operator decision binds the v1 ACT engine. If operator accepts all PM recommendations:
-- Phase 7 effort estimate stays at **L (5–7 dev-days)** per impl-plan v0.3.3 §Phase 7.
-- **No DEV-CROSS-4** dev-finding is created. All schema additions are ACT-localised via `extraInputs` (parallel to SA TBD-SA-04 / -07 RESOLVED pattern). One purely-additive optional `Result.payable_by: ISODate` field is added (TBD-ACT-08).
-- **T7.1 unblocked immediately on PM sign-off** — no pre-flight cross-state PR required.
+- **TBD-ACT-01** (Sev-1, LOAD-BEARING) — single rule set + WC date-aware override at 9 June 2023 confirmed. Impl-plan v0.3.5 §Phase 7 stands; no re-scope.
+- **TBD-ACT-02** (Sev-1, LOAD-BEARING) — asymmetric overtime interpretation confirmed (hours included in s.7(2) average; rate excludes overtime premium per s.7(1)).
+- **TBD-ACT-03** (Sev-1, LOAD-BEARING) — entitlement-date computation (`startDate + 7yr` adjusted) + trigger-kind drives anchor confirmed.
+- **TBD-ACT-04** (Sev-1) — ACT-localised `extraInputs.act_ft_to_pt_transition_date` confirmed. **NOT DEV-CROSS-4.**
+- **TBD-ACT-08** (Sev-2) — new optional `Result.payable_by: ISODate` field confirmed. Purely additive; bundles inline with per-state PR (no separate cross-state PR).
+- **TBD-ACT-05, -06, -07, -09, -10, -11, -12, -13, -14, -15, -16, -17** (Sev-2/3) — all resolved per PM-recommended path with the inline detail in the **Resolutions** section near the top of this document.
+
+Phase 7 effort estimate stays at **L (5–7 days)** per impl-plan v0.3.5 §Phase 7. **No DEV-CROSS-4** dev-finding is created. All schema additions are ACT-localised via `extraInputs.act_*` (parallel to SA TBD-SA-04 / -07 RESOLVED pattern). One purely-additive optional `Result.payable_by: ISODate` field is added (TBD-ACT-08) — cross-state-available, bundles inline with the per-state PR. **T7.1 unblocked immediately — no pre-flight cross-state PR required** (parallel to SA Phase 6 precedent).
 
 ---
 
 ## Signature line
 
 ```
-Signed: __________________________ (PM)
-Date:   __________________________
+Signed: Tracy Angwin (PM)
+Date:   2026-05-26
 ```
 
-> PM-only sign-off per E2 spec RES-6 / AC4. Sign-off completes T7.0. **T7.1 (ACT rule-set scaffold) is UNBLOCKED on PM sign-off.** No pre-flight cross-state PR required — all ACT-specific signals are ACT-localised via `extraInputs` (parallel to SA Phase 6 precedent).
+> PM-only sign-off per E2 spec RES-6 / AC4. Sign-off completes T7.0. **T7.1 (ACT rule-set scaffold) is UNBLOCKED immediately.** No pre-flight cross-state PR required — all ACT-specific signals are ACT-localised via `extraInputs.act_*` (parallel to SA Phase 6 precedent).
 
 ---
 
-*End of test-cases-act.md v1.0 DRAFT · awaiting PM sign-off.*
+*End of test-cases-act.md v1.0 SIGNED OFF · Tracy Angwin (PM) · 2026-05-26.*

@@ -1,11 +1,18 @@
 # Impl Plan — All-State Coverage (E2)
 
 **Source spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
-**Version**: 0.3.4 (2026-05-26 — Phase 7 ACT test-cases drafted; 17 TBDs surfaced awaiting PM sign-off; no DEV-CROSS-4 anticipated)
+**Version**: 0.3.5 (2026-05-26 — Phase 7 (ACT) T7.0 SIGNED OFF; all 17 TBDs resolved per `docs/qa/test-cases-act.md` v1.0; no DEV-CROSS-4)
 **Branch**: `002-all-state-coverage`
 **Date**: 2026-05-26
 **Owner**: developer agent
-**Status**: Phase 6 (SA) SHIPPED at `d8bd186`. Phase 7 (ACT) test-cases v1.0-draft authored at `docs/qa/test-cases-act.md` — 17 TBDs surfaced for operator resolution; T7.0 pending PM sign-off. If PM accepts all PM recommendations, T7.1 unblocks immediately on sign-off — no pre-flight cross-state PR required (all ACT-specific signals are ACT-localised via `extraInputs`, parallel to SA Phase 6 precedent).
+**Status**: Phase 6 (SA) SHIPPED at `d8bd186`. Phase 7 (ACT) T7.0 SIGNED OFF 2026-05-26 (PM Tracy Angwin) at `docs/qa/test-cases-act.md` v1.0 — all 17 TBDs resolved; **T7.1 unblocked immediately** (no pre-flight cross-state PR required — all ACT-specific signals are ACT-localised via `extraInputs.act_*`, parallel to SA Phase 6 precedent; one purely-additive optional `Result.payable_by: ISODate` field bundles inline with the per-state PR).
+
+**v0.3.5 change log (2026-05-26)**:
+1. **Phase 7 (ACT) T7.0 SIGNED OFF.** All 17 TBDs resolved per `docs/qa/test-cases-act.md` v1.0 (PM-signed Tracy Angwin 2026-05-26) Resolutions section. **No architectural re-scope** — TBD-ACT-01 resolved as single rule set with date-aware Workers Comp override at 9 June 2023 (parallel to WA's 2024-07-01 WCIM 2023 override pattern). All anticipated PM-recommendations confirmed.
+2. **No DEV-CROSS-4 dev-finding created.** All ACT-specific signals (overtime hours, FT→PT transition date, award-min retirement age) are ACT-localised via `extraInputs.act_*` keys (parallel to SA TBD-SA-04 / -07 RESOLVED pattern). NSW/VIC/QLD/WA/SA orchestrators not affected.
+3. **One new `Result.payable_by: ISODate` field** added per TBD-ACT-08 — purely additive, cross-state-available, no breaking change. Bundles inline with the per-state ACT PR (no separate cross-state PR required). ACT is the first consumer; other states emit `undefined`.
+4. **Phase 7 effort estimate stays at L (5–7 dev-days)** — no re-scope.
+5. **Total dev-days re-estimate**: 32–48 (unchanged from v0.3.4 — Phase 7 stays at L (5–7 d); no DEV-CROSS-4 addition).
 
 **v0.3.4 change log (2026-05-26)**:
 1. **Phase 7 (ACT) test-cases drafted** at `docs/qa/test-cases-act.md` v1.0-draft. 78 fixtures (75 single-mode + 3 bulk). 17 TBDs surfaced for operator resolution, with PM recommendations inline. **No fixture-value changes expected** if operator accepts all PM recommendations.
@@ -447,10 +454,10 @@ State-specific work beyond the generic shape:
 
 **Effort estimate**: L (5–7 days) — overtime-inclusive ordinary-pay is the highest mis-coding risk in the entire epic.
 
-**Phase 7 expansion (2026-05-26 — anticipates `docs/qa/test-cases-act.md` v1.0 PM sign-off)**:
+**Phase 7 expansion (2026-05-26 — PM-signed `docs/qa/test-cases-act.md` v1.0; all 17 TBDs resolved)**:
 
 State-specific work beyond the generic shape:
-- **Single ACT rule set with date-aware Workers Comp override at 9 June 2023** per TBD-ACT-01 (anticipated PM-accept). Parallel to WA's 2024-07-01 WCIM 2023 override pattern. WC override is a one-file module sitting on top of a single continuous-service-rule profile — NOT two parallel rule sets. Pre-9-June-2023 WC absence counts up to 2 weeks per service year; from 9 June 2023, counts in full per WC Act 1951 (ACT) s.46 amendment.
+- **Single ACT rule set with date-aware Workers Comp override at 9 June 2023** per TBD-ACT-01 RESOLVED. Parallel to WA's 2024-07-01 WCIM 2023 override pattern. WC override is a one-file module sitting on top of a single continuous-service-rule profile — NOT two parallel rule sets. Pre-9-June-2023 WC absence counts up to 2 weeks per service year; from 9 June 2023, counts in full per WC Act 1951 (ACT) s.46 amendment.
 - **7-year qualifying period (equal-lowest with VIC)**; **5-year pro-rata threshold under s.11C** — the LOWEST in Australia. Qualifying reasons in 5–7 yr band: illness/incapacity, domestic or pressing necessity, retirement (per award/agreement OR 65), death, employer-not-misconduct. Voluntary resignation 5–7 yrs does NOT qualify (ACT divergence from SA/WA which pay out at 7+ regardless).
 - **7+ yr full payout regardless of reason** — ACT does NOT mirror WA's partial-forfeiture; aligns with NSW/VIC/QLD/SA on this point. The s.11C misconduct exception applies only to the 5–7 yr pro-rata band.
 - **Accrual formula**: 6.0667 weeks at 7 yrs; +0.8667 wks/yr continuous (= 1/5 month/yr). Equivalent expression past year 10: `Years × (8.6667/10)` — same accrual ratio as NSW/QLD/WA/TAS. No discrete step at 15 yrs.

@@ -1,8 +1,8 @@
 # Tasks — All-State Coverage (E2)
 
-**Source plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.3
+**Source plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.5
 **Branch**: `002-all-state-coverage`
-**Date**: 2026-05-25 (last updated)
+**Date**: 2026-05-26 (last updated)
 **Sizing legend**: S (≤ 4h), M (½ – 1.5 days), L (2–4 days), XL (> 4 days, split before starting)
 **[P] marker**: task can run in parallel with sibling tasks in the same phase (no shared file mutation, no dependency)
 
@@ -14,7 +14,7 @@
 
 **2026-05-25 update (SA)**: T6.0 SIGNED OFF (PM Tracy Angwin). All 12 TBDs resolved in `docs/qa/test-cases-sa.md` v1.0 — see file's Resolutions section. **No architectural re-scope** — TBD-SA-01 resolved as single regime (SA mirrors QLD's flat single-regime architecture). **No pre-flight cross-state PR required** — TBD-SA-07 (higher-duties acting rate) resolved as SA-localised via `extraInputs.sa_higher_duties_*`, NOT promoted to `Employee` fields. T6.1 unblocked immediately. Phase 6 effort estimate stays at M (3–5 d); total dev-days estimate unchanged at 32–48.
 
-**2026-05-26 update (ACT)**: `docs/qa/test-cases-act.md` v1.0-draft authored — 78 fixtures (75 single-mode + 3 bulk), 17 TBDs surfaced for operator resolution with PM recommendations inline. **No architectural re-scope anticipated** — TBD-ACT-01 recommended as single rule set with date-aware Workers Comp override at 9 June 2023 (parallel to WA's 2024-07-01 WCIM 2023 override pattern). **No pre-flight cross-state PR anticipated** — all ACT-specific signals are ACT-localised via `extraInputs.act_*` keys (parallel to SA Phase 6 precedent). One purely-additive optional `Result.payable_by: ISODate` field anticipated (TBD-ACT-08). T7.0 PM sign-off pending. Phase 7 effort estimate stays at L (5–7 d); total dev-days estimate unchanged at 32–48.
+**2026-05-26 update (ACT)**: T7.0 SIGNED OFF (PM Tracy Angwin). All 17 TBDs resolved in `docs/qa/test-cases-act.md` v1.0 — see file's Resolutions section. **No architectural re-scope** — TBD-ACT-01 resolved as single rule set with date-aware Workers Comp override at 9 June 2023 (parallel to WA's 2024-07-01 WCIM 2023 override pattern). **No pre-flight cross-state PR required** — all ACT-specific signals are ACT-localised via `extraInputs.act_*` keys (parallel to SA Phase 6 precedent), and the one purely-additive optional `Result.payable_by: ISODate` field added per TBD-ACT-08 bundles inline with the per-state PR. **No DEV-CROSS-4 dev-finding created.** T7.1 unblocked immediately. Phase 7 effort estimate stays at L (5–7 d); total dev-days estimate unchanged at 32–48.
 
 Per AC4a, **Phases 3 through 9 (per-state encoding) execute strictly sequentially** in the order VIC → QLD → WA → SA → ACT → TAS → NT. Phases 1 and 2 run before Phase 3 and can overlap with each other (different code paths). Phase 10 runs after Phase 9 ships.
 
@@ -433,18 +433,9 @@ Wire SA orchestrator into `dispatch.calculate` switch. SA-only single-mode form 
 
 ## Phase 7 — ACT (RES-1 #5, overtime in ordinary pay — high mis-coding risk)
 
-### T7.0 · [BLOCKING] PM-signed test-cases-act.md (L) — AC4 · 🟡 v1.0-DRAFT 2026-05-26, PENDING OPERATOR SIGN-OFF
+### T7.0 · [BLOCKING] PM-signed test-cases-act.md (L) — AC4 · ✅ SIGNED OFF 2026-05-26
 
-`docs/qa/test-cases-act.md` v1.0-draft authored 2026-05-26 on branch `pm/act-test-cases`. 78 test cases (75 single-mode + 3 bulk; case IDs TC-ACT-001 → TC-ACT-075 + TC-ACT-BULK-001 → TC-ACT-BULK-003). 17 TBDs surfaced for operator resolution (3 Sev-1 LOAD-BEARING, 1 additional Sev-1, 6 Sev-2, 7 Sev-3) with PM recommendations inline — see file's Resolutions / TBD section. If operator accepts all PM recommendations: no fixture-value changes; no DEV-CROSS-4 dev-finding; no pre-flight cross-state PR; T7.1 unblocked immediately on PM sign-off. T7.1 BLOCKED until PM sign-off.
-
-PM-explicit review checklist before signing:
-- TBD-ACT-01 (architecture): single rule set with WC date-aware override at 9 June 2023? (parallel to WA pattern)
-- TBD-ACT-02 (overtime asymmetry): hours INCLUDED in s.7(2) average, rate EXCLUDED per s.7(1)? (parallel to SA pattern)
-- TBD-ACT-03 (anchor split): s.7(2) for `taking_leave` (entitlement-date anchor), s.11D for `termination` (cessation-date anchor)?
-- TBD-ACT-04 (s.7(3) FT→PT): `extraInputs.act_ft_to_pt_transition_date` routing; 2-yr boundary inclusive at 2.0000 yrs?
-- TBD-ACT-08 (payable_by): new optional `Result.payable_by: ISODate` field, surface via UI?
-- TBD-ACT-14 (advance leave): `status: computed` + advisory (not hard-error)?
-- TBD-ACT-15 (paid parental excluded): ACT divergence from NSW/SA confirmed?
+`docs/qa/test-cases-act.md` v1.0 PM-signed by Tracy Angwin on 2026-05-26 on branch `pm/act-test-cases`. 78 test cases (75 single-mode + 3 bulk; case IDs TC-ACT-001 → TC-ACT-075 + TC-ACT-BULK-001 → TC-ACT-BULK-003). **All 17 TBDs resolved** — see Resolutions section in the document. Coverage spans: ACT LSL Act 1976 s.3, s.4, s.7, s.11C accrual / pay / pro-rata; **single rule set + WC date-aware override at 9 June 2023** (TBD-ACT-01) per WC Act 1951 (ACT) s.46 amendment; **asymmetric overtime treatment** (hours included in s.7(2) 12-mo casual/PT average; rate excludes overtime premium per s.7(1)) per TBD-ACT-02; **s.7(2) vs s.11D averaging-anchor split by trigger kind** per TBD-ACT-03; **s.7(3) FT→PT/casual within 2 yrs 5-yr salary path** via `extraInputs.act_ft_to_pt_transition_date` per TBD-ACT-04; **5-yr pro-rata threshold under s.11C** (the LOWEST in Australia); **7+ yr full payout regardless of reason** (ACT does NOT mirror WA partial-forfeiture); **PH-EXCLUSIVE in LSL period** per s.9 with single-day-on-PH shift-to-next-working-day; **paid parental leave does NOT count toward ACT service** (divergence from NSW/SA/VIC-post-2018) per TBD-ACT-15; **90-day pay-on-termination window** surfaced via new optional `Result.payable_by: ISODate` field per TBD-ACT-08; cash-out as non-statutory advisory citing `ACT LSL Act 1976 s.8(c)` (documented limitation pending RES-3 quarterly review). **No pre-flight cross-state PR required** — all ACT-specific signals are ACT-localised via `extraInputs.act_*` keys (parallel to SA Phase 6 precedent); the one new `Result.payable_by` field bundles inline with the per-state PR. **No DEV-CROSS-4 dev-finding created.** T7.1 unblocked immediately.
 
 ### T7.1 · ACT rule-set scaffold + extra-inputs schema (S) — F2, AC11
 
