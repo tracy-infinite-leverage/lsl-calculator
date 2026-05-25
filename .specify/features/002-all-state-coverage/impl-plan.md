@@ -1,15 +1,22 @@
 # Impl Plan — All-State Coverage (E2)
 
 **Source spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
-**Version**: 0.3.1 (2026-05-24)
+**Version**: 0.3.1 (2026-05-25 — Phase 4 QLD TBDs resolved)
 **Branch**: `002-all-state-coverage`
-**Date**: 2026-05-24
+**Date**: 2026-05-25
 **Owner**: developer agent
-**Status**: Draft — ready for `speckit-tasks` to convert into `tasks.md`
+**Status**: Phase 4 (QLD) TBDs resolved — ready for T4.1 (rule-set scaffold).
 
-**v0.3.1 change log (2026-05-24)**:
-1. **Phase 3 (VIC) re-scoped** per `docs/qa/test-cases-vic.md` TBD-VIC-01 resolution. The "two parallel rule sets (`rules-pre-2018/` + `rules-post-2018/`)" model is replaced by **one VIC rule set with date-aware continuous-service handling**. Two continuous-service-rule *modules* (selected by absence start date) feed the same s.6 accrual formula. P0.2 decision and Phase 3 effort estimate revised. ~2 dev-days saved (8 → 6).
-2. **F5 citation corrected**: `LSL Act 2018 (Vic) s.67` → `LSL Act 2018 (Vic) s.34` (Part 3 Division 3 — Offences) per TBD-VIC-12. Mirrors spec v0.3.1.
+**v0.3.1 change log**:
+1. **2026-05-24 — Phase 3 (VIC) re-scoped** per `docs/qa/test-cases-vic.md` TBD-VIC-01 resolution. The "two parallel rule sets (`rules-pre-2018/` + `rules-post-2018/`)" model is replaced by **one VIC rule set with date-aware continuous-service handling**. Two continuous-service-rule *modules* (selected by absence start date) feed the same s.6 accrual formula. P0.2 decision and Phase 3 effort estimate revised. ~2 dev-days saved (8 → 6).
+2. **2026-05-24 — F5 citation corrected**: `LSL Act 2018 (Vic) s.67` → `LSL Act 2018 (Vic) s.34` (Part 3 Division 3 — Offences) per TBD-VIC-12. Mirrors spec v0.3.1.
+3. **2026-05-25 — Phase 4 (QLD) TBDs resolved per `docs/qa/test-cases-qld.md` v1.0 (PM-signed Tracy Angwin)**:
+   - 15-yr accrual continuous at 1/60 (no discrete step) + threshold inclusivity at exact-day boundary (TBD-QLD-01).
+   - s.103 casual cliff HARD-ANCHOR to 1994-03-30; s.96 general cliff ADVISORY-ONLY (TBD-QLD-02).
+   - Casual rate single 52-wk lookback (NOT 3-tier "greater of") (TBD-QLD-03).
+   - Cash-out advisory: no user-supplied ground required; stronger sub-10-yr advisory; pass-through with $0 at sub-7-yr (TBD-QLD-04).
+   - WC rate: literal s.98 + new `qld_lsl_calculated_at_wc_reduced_rate_warning` advisory when WC overlaps trigger (TBD-QLD-05).
+   - Termination-reason enum redesign **deferred** to a separate cross-state PR (DEV-CROSS-1) — see dev-findings.md. 5 QLD fixtures deferred until that refactor lands.
 
 ---
 
@@ -283,13 +290,31 @@ State-specific work beyond the generic shape:
 - Sub-7-yr advisory warning (TBD-VIC-07): when trigger is death/illness at sub-7-yr tenure, emit `sub_7yr_review_industrial_instrument` non-blocking warning.
 - VIC docs page emphasises cashing-out prohibition + transitional s.57 handling.
 
-### Phase 4 — QLD (RES-1 #2)
+### Phase 4 — QLD (RES-1 #2) — TBDs resolved 2026-05-25 per `docs/qa/test-cases-qld.md` v1.0
 
-**Effort estimate**: M (3–5 days) — single regime; the complexity is QIRC/EA-restricted cashing-out language (not a hard error, but a citation note).
+**Effort estimate**: M (3–5 days) — single regime; the complexity is QIRC/EA-restricted cashing-out language (not a hard error, but a citation note) plus the WC-reduced-rate advisory and the s.103 hard-anchor casual cliff.
 
 Highlights:
-- 3-month break tolerance.
-- Cashing-out: not blocked, but emits citation referencing the QIRC/EA-permission rule.
+- **3-month break tolerance** (s.134 general; s.103 casual-specific). Reuses the state-agnostic `gap_exceeds_state_tolerance` warning code introduced in VIC Phase 3 (TBD-VIC-03 resolution).
+- **Cashing-out: not blocked, but emits citation referencing the QIRC/EA-permission rule** (s.110). Per TBD-QLD-04 resolution:
+  - Engine does NOT require user-supplied s.110 ground (financial hardship / compassionate / industrial instrument). Single advisory message covers all grounds.
+  - Emit BOTH a base s.110 advisory AND a sub-10-yr-specific advisory when `years_of_continuous_service < 10`.
+  - Pass through with $0 at sub-7-yr (no entitlement to cash out); surface `qld_cashout_no_entitlement_to_cash_out` advisory alongside the existing `sub_7yr_no_entitlement_qld` warning.
+- **Accrual: 1/60 continuous across all tenure bands ≥ 10 yrs** per TBD-QLD-01 resolution. No discrete step at 15 yrs — the 13-week figure at 15 yrs is the arithmetic outcome of `15 × 8.6667 / 10 = 13.00005 ≈ 13.0`. Thresholds at 7, 10, 15 yrs are inclusive at exact-day boundary (`years_of_continuous_service >= N.0000`).
+- **Historical cliffs** per TBD-QLD-02 resolution:
+  - **s.103 (30 March 1994 casual cliff)** — HARD-ANCHOR. `continuous-service-rules.ts` sets the effective service start to `1994-03-30` when `employmentType = 'casual' && startDate < 1994-03-30`. Emit `pre_1994_casual_cliff_qld` warning. Applies retrospectively to any casual portion of a casual-to-permanent transition (TC-QLD-038).
+  - **s.96 (23 June 1990 general cliff)** — ADVISORY-ONLY. Engine uses the actual start date and emits `pre_1990_service_advisory_qld` warning when `startDate < 1990-06-23`. The cliff is moot for current calculations (pre-1990 starters have 35+ years of post-cliff service).
+- **Casual rate of pay**: single 52-week lookback per s.105 and Business QLD per TBD-QLD-03 resolution. `value-of-week.ts` reads `hoursLast52Weeks ÷ 52 × loadedHourlyRate`. NO 3-tier "greater of" averaging (that pattern stays VIC-specific).
+- **Workers Compensation rate of pay**: literal s.98 ordinary-rate-at-leave-time per TBD-QLD-05 resolution. NO equivalent of VIC s.17 higher-of-rates. Additionally, emit `qld_lsl_calculated_at_wc_reduced_rate_warning` advisory in `trigger-handlers.ts` when a `workers_comp_absence` event overlaps the trigger date OR when the trigger date falls within an active WC episode. Advisory text suggests deferring LSL until the employee is back on their ordinary rate, if feasible.
+- **10+ yr automatic payout regardless of reason (incl. serious misconduct)** per s.95(2). QLD has NO misconduct exception at 10+ yrs. Diverges from sub-10-yr behaviour where s.95(3)(d) excludes misconduct.
+
+**Cross-state refactor deferred to follow-up PR (DEV-CROSS-1)**:
+
+The termination-reason enum redesign raised under TBD-QLD-06 has been spun off as a separate state-agnostic PR (tracked as **DEV-CROSS-1** in `dev-findings.md`). It is NOT bundled into the QLD per-state PR because the same disambiguation surfaces for WA/SA/TAS/ACT/NT — it belongs in a single cross-state refactor rather than per-state retrofits.
+
+QLD v1 ships with the **existing** `Trigger.reason` enum values (`voluntary_resignation`, `redundancy`, `serious_misconduct`, `illness_incapacity`, `death`). Five fixtures that genuinely require the new disambiguation (`employer_initiated_not_misconduct`, `unfair_dismissal`, `domestic_pressing_necessity`, `poor_performance`, employee-vs-employer-initiated illness) are deferred to the post-DEV-CROSS-1 follow-up PR. See the **Deferred to cross-state termination-enum refactor** appendix in `docs/qa/test-cases-qld.md` for the full list and the rationale for each.
+
+The DEV-CROSS-1 refactor PR is expected to land between QLD v1 launch and WA Phase 5; the deferred QLD fixtures will be reinstated immediately after DEV-CROSS-1 lands (estimated S — under half a day of work).
 
 ### Phase 5 — WA (RES-1 #3)
 

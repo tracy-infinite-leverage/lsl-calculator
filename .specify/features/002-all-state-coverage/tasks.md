@@ -8,6 +8,8 @@
 
 **2026-05-24 update**: T3.0 SIGNED OFF (PM Tracy Angwin). T3.1-T3.4 re-scoped per `docs/qa/test-cases-vic.md` TBD-VIC-01 resolution — one VIC rule set with date-aware continuous-service handling instead of two parallel rule sets. F5 citation corrected s.67 → s.34 per TBD-VIC-12.
 
+**2026-05-25 update**: T4.0 SIGNED OFF (PM Tracy Angwin). All 6 TBDs resolved in `docs/qa/test-cases-qld.md` v1.0 — see file's Resolutions section. T4.2 acceptance criteria updated to reflect the resolved interpretations (15-yr continuous accrual; s.103 hard-anchor casual cliff + s.96 advisory-only general cliff; 52-wk casual lookback; cash-out advisory granularity; WC-reduced-rate advisory). Termination-reason enum redesign deferred to a separate state-agnostic PR (DEV-CROSS-1 — see dev-findings.md); 5 QLD fixtures deferred until that refactor lands. T4.1 onwards unblocked.
+
 Per AC4a, **Phases 3 through 9 (per-state encoding) execute strictly sequentially** in the order VIC → QLD → WA → SA → ACT → TAS → NT. Phases 1 and 2 run before Phase 3 and can overlap with each other (different code paths). Phase 10 runs after Phase 9 ships.
 
 ---
@@ -231,24 +233,52 @@ Before merging T3.4–T3.6 to `main`:
 
 ## Phase 4 — QLD (RES-1 #2)
 
-### T4.0 · [BLOCKING] PM-signed test-cases-qld.md (M) — AC4, AC4a, AC4b
+### T4.0 · [BLOCKING] PM-signed test-cases-qld.md (M) — AC4, AC4a, AC4b — ✅ SIGNED OFF 2026-05-25
 
-Same shape as T3.0, sourcing from APA PDF pp.49–64 + QLD edge cases (3-month break tolerance, QIRC-restricted cashing-out, employee at exactly 10 years).
+`docs/qa/test-cases-qld.md` v1.0 — PM-signed-off 2026-05-25 by Tracy Angwin on branch `pm/qld-test-cases`. 58 active test cases (single-mode 50 + bulk-mode 3 + cross-jurisdiction 2 + as-at 2 + 1 PH = 58; case IDs TC-QLD-001 through TC-QLD-057 + TC-QLD-BULK-001..003, with TC-QLD-005, -007, -008, -015, -016 deferred to a follow-up PR after DEV-CROSS-1 lands). All 6 TBDs resolved (see Resolutions section in the document). T4.1 onwards unblocked.
 
 ### T4.1 · QLD rule-set scaffold (S) — AC1
 
 Single-regime structure: `website/src/lib/lsl/states/qld/{index.ts, rules/{accrual-table, value-of-week, trigger-handlers, continuous-service-rules}.ts, __tests__/}`.
 
-### T4.2 · QLD rules + orchestrator (L) — F2, AC1
+### T4.2 · QLD rules + orchestrator (L) — F2, AC1 — acceptance criteria updated 2026-05-25 per TBD resolutions
 
-- Encode accrual table, value-of-week, trigger handlers, continuous-service-rules from IR Act 2016 (Qld) Ch.2 Pt.3 Div.9.
-- 3-month break tolerance.
-- Cashing-out is allowed under EA/award/QIRC — citation note in trigger handlers, no hard error.
-- `calculateQLD` + `calculateQLDSafe`. Export `QLD_RULE_SET`.
+**Accrual table (`accrual-table.ts`)**:
+- 10-yr qualifying period at 8.6667 weeks (s.95(2)(a)). Threshold inclusive at exact-day boundary (`years_of_continuous_service >= 10.0000`).
+- Continuous 1/60 accrual across all tenure bands ≥ 10 yrs (NO discrete step at 15 yrs per TBD-QLD-01 resolution). At 15 yrs the arithmetic outcome is `15 × 8.6667 / 10 ≈ 13.0` weeks. At 7-yr threshold (sub-10-yr pro-rata): `years_of_continuous_service >= 7.0000` AND qualifying-reason gate satisfied (s.95(3)/(4)).
+- 10+ yr automatic payout regardless of reason (incl. `serious_misconduct`) per s.95(2). QLD has NO misconduct exception at 10+ yrs.
+
+**Value-of-week (`value-of-week.ts`)**:
+- Fixed-rate FT/PT path: trust `currentWeeklyGross` (s.98 ordinary rate, overtime excluded; engine does not decompose). Above-award and contractual allowances honoured if included in supplied gross.
+- Casual path: single 52-wk lookback per TBD-QLD-03 resolution. Formula: `(hoursLast52Weeks ÷ 52) × loadedHourlyRate` (s.105). NO 3-tier "greater of" (that stays VIC-specific).
+- Commission path: 52-wk average per s.99.
+- WC handling per TBD-QLD-05: ALWAYS return current rate at time of leave (literal s.98). NO equivalent of VIC s.17 higher-of-rates. The reduced-rate advisory is emitted from `trigger-handlers.ts`, not this module.
+
+**Continuous-service-rules (`continuous-service-rules.ts`)**:
+- 3-month break tolerance (s.134 general). Reuse state-agnostic `gap_exceeds_state_tolerance` warning code (introduced VIC Phase 3) with QLD-specific message "3 months".
+- Casual-specific 3-month gap break per s.103.
+- UPL does NOT count toward service but does NOT break continuity (s.134).
+- Workers Comp absence counts toward continuous service (s.134; Business QLD interpretive guidance).
+- Transfer of business preserves service (s.134); dismissed-at-transfer + rehired-within-3-mo by new owner preserves total service.
+- **s.103 casual cliff HARD-ANCHOR per TBD-QLD-02**: when `employmentType = 'casual' && startDate < 1994-03-30`, set effective service start to `1994-03-30`. Emit `pre_1994_casual_cliff_qld` warning. Applies retrospectively to the casual portion of a casual-to-permanent transition.
+- **s.96 general cliff ADVISORY-ONLY per TBD-QLD-02**: when `startDate < 1990-06-23`, use actual start date in accrual computation. Emit `pre_1990_service_advisory_qld` warning. Do NOT alter computed weeks/dollars.
+- Stand-down (s.134(2)(b) slackness of trade) preserves continuity but does NOT count as service (aligns with VIC s.14(c) per TBD-QLD-02 resolution).
+
+**Trigger-handlers (`trigger-handlers.ts`)**:
+- `termination` trigger: route by `reason` through s.95(2) (10+ yr automatic) vs s.95(3)/(4) (sub-10-yr qualifying-reason gate) vs sub-7-yr ($0). v1 supports `voluntary_resignation`, `redundancy`, `serious_misconduct`, `illness_incapacity`, `death` enum values. Other s.95(3) sub-paragraphs (`employer_initiated_not_misconduct`, `unfair_dismissal`, `domestic_pressing_necessity`, `poor_performance`, employee-vs-employer-initiated illness) are deferred to DEV-CROSS-1.
+- `cash_out` trigger per TBD-QLD-04: ALWAYS compute and return value (not a hard error — divergence from VIC). Emit `qld_cashout_requires_instrument_or_qirc` advisory citing s.110. When `years_of_continuous_service < 10`, emit additional `sub_10yr_cashout_only_via_qirc_qld` advisory. When `years_of_continuous_service < 7`, value is $0 and emit `qld_cashout_no_entitlement_to_cash_out` advisory alongside the existing `sub_7yr_no_entitlement_qld` warning. NO user-supplied s.110 ground required.
+- `taking_leave` trigger: standard s.97 PH-exclusive treatment.
+- `as_at` snapshot: bypass qualifying-reason gates (E1 spec D20 convention); report accrued value; emit `accrued_not_currently_payable` warning when sub-7-yr.
+- **WC-overlap advisory per TBD-QLD-05**: when ANY `workers_comp_absence` event in `employee.serviceEvents` overlaps the trigger date (termination date, leave start date, as-at date, or cash-out date), emit `qld_lsl_calculated_at_wc_reduced_rate_warning` advisory. Message text per Resolutions section in test-cases-qld.md.
+
+**Orchestrator (`index.ts`)**:
+- `calculateQLD(employee, trigger)` per `StateRuleSet` interface (P0.1).
+- `calculateQLDSafe(employee, trigger)` wrapper.
+- Export `QLD_RULE_SET: StateRuleSet`.
 
 ### T4.3 · QLD fixtures (M) — F3, AC2, AC3
 
-`TC-QLD-NNN.json` fixtures per the signed test-cases.
+`TC-QLD-NNN.json` fixtures per the signed test-cases. Build the 58 active fixtures; do NOT build the 5 deferred fixtures (TC-QLD-005, -007, -008, -015, -016 — see test-cases-qld.md "Deferred to cross-state termination-enum refactor" appendix). The deferred fixtures will be added via a small follow-up PR after DEV-CROSS-1 lands.
 
 ### T4.4 · QLD integration (S) — AC1
 
