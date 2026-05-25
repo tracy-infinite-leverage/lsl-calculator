@@ -53,6 +53,24 @@ const WARNING_LABELS: Record<string, { label: string; tone: 'info' | 'warning' }
   wa_regime_split_data_insufficient: { label: 'WA regime-split fallback — insufficient data granularity', tone: 'warning' },
   wa_workers_comp_pre_2024_excluded: { label: 'WA workers compensation pre-2024-07-01 excluded from service', tone: 'info' },
   wa_workers_comp_paid_concurrent: { label: 'WA workers compensation paid-concurrent exception applied', tone: 'info' },
+  // SA-specific (E2 Phase 6)
+  sub_7yr_no_entitlement_sa: { label: 'Sub-7-year tenure — no SA entitlement (universal floor under s.5(3))', tone: 'info' },
+  sub_10yr_misconduct_excluded_sa: { label: 'SA sub-10-year misconduct dismissal — pro-rata excluded under s.5(3)', tone: 'warning' },
+  unlawful_worker_termination_excluded_sa: { label: 'SA sub-10-year unlawful worker termination — pro-rata excluded under s.5(3)', tone: 'warning' },
+  sa_10yr_plus_misconduct_full_payout: { label: 'SA 10+ year misconduct — full payout (SA does NOT mirror WA partial-forfeiture)', tone: 'info' },
+  sa_cashout_post_accrual_advisory: { label: 'SA cash-out — post-accrual advisory (s.5 written agreement required)', tone: 'warning' },
+  sa_cashout_pre_accrual_not_authorised: { label: 'SA cash-out sub-10-year — not authorised under s.5', tone: 'warning' },
+  sa_cashout_no_entitlement_to_cash_out: { label: 'SA sub-7-yr cash-out — no entitlement has yet accrued', tone: 'info' },
+  sa_lsl_calculated_at_wc_reduced_rate_warning: { label: 'SA LSL calculated at WC-reduced rate (s.4 literal — no higher-of-rates equivalent)', tone: 'warning' },
+  sa_higher_duties_rate_applied: { label: 'SA higher-duties acting rate applied as ordinary weekly rate (s.4 SA-unique)', tone: 'info' },
+  sa_commission_52wk_lookback_applied: { label: 'SA commission worker — 52-week income lookback applied', tone: 'info' },
+  sa_bonus_excluded_from_average: { label: 'SA bonus excluded from ordinary weekly rate calculation', tone: 'info' },
+  sa_casual_seasonal_continuity_preserved: { label: 'SA casual continuity preserved across seasonal shutdown (s.6)', tone: 'info' },
+  sa_casual_continuity_uncertain: { label: 'SA casual continuity uncertain — gap is borderline regular-or-systematic', tone: 'warning' },
+  sa_156wk_window_extended_for_upl: { label: 'SA 156-week averaging window extended for unpaid-leave substitution', tone: 'info' },
+  sa_156wk_window_extended_for_wc: { label: 'SA 156-week averaging window extended for workers-comp substitution', tone: 'info' },
+  ph_only_lsl_day_sa: { label: 'SA single-day LSL on a public holiday — counts as 1 day under PH-inclusive rule', tone: 'info' },
+  transfer_of_business_continuity_preserved_sa: { label: 'SA transfer of business — service preserved (s.6)', tone: 'info' },
 };
 
 export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPanelProps) {

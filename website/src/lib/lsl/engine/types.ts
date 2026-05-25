@@ -253,7 +253,25 @@ export interface Warning {
     | 'wa_regime_split_applied'
     | 'wa_regime_split_data_insufficient'
     | 'wa_workers_comp_pre_2024_excluded'
-    | 'wa_workers_comp_paid_concurrent';
+    | 'wa_workers_comp_paid_concurrent'
+    // SA-specific (E2 Phase 6 — see docs/qa/test-cases-sa.md Resolutions section)
+    | 'sub_7yr_no_entitlement_sa'
+    | 'sub_10yr_misconduct_excluded_sa'
+    | 'unlawful_worker_termination_excluded_sa'
+    | 'sa_10yr_plus_misconduct_full_payout'
+    | 'sa_cashout_post_accrual_advisory'
+    | 'sa_cashout_pre_accrual_not_authorised'
+    | 'sa_cashout_no_entitlement_to_cash_out'
+    | 'sa_lsl_calculated_at_wc_reduced_rate_warning'
+    | 'sa_higher_duties_rate_applied'
+    | 'sa_commission_52wk_lookback_applied'
+    | 'sa_bonus_excluded_from_average'
+    | 'sa_casual_seasonal_continuity_preserved'
+    | 'sa_casual_continuity_uncertain'
+    | 'sa_156wk_window_extended_for_upl'
+    | 'sa_156wk_window_extended_for_wc'
+    | 'ph_only_lsl_day_sa'
+    | 'transfer_of_business_continuity_preserved_sa';
   message: string;
   rowRef?: string;
 }
