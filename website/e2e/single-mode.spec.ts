@@ -109,53 +109,66 @@ export async function pickRadixSelect(page: Page, triggerSelector: string, optio
 /**
  * DEV-CROSS-1 — conditional `terminationInitiator` radio group surfaces only
  * for termination reasons that need the disambiguation (v1: illness_incapacity).
+ *
+ * Split into two tests so the second case can start from a fresh page (no
+ * post-Calculate results panel pushing the Select trigger below the fold,
+ * which makes the Radix Select popper render options outside the viewport on
+ * Firefox/Webkit/mobile and times out the option click).
  */
+function seedSingleModeQldTerminationState(
+  page: Page,
+  overrides: { terminationReason: string; terminationInitiator: string }
+) {
+  return page.addInitScript((opts) => {
+    const state = {
+      legalName: 'DEV-CROSS-1 test',
+      externalEmployeeId: 'DEV-CROSS-1',
+      startDate: '2018-05-22',
+      employmentType: 'full_time',
+      categoryOverride: 'A',
+      categoryOverrideConfirmed: true,
+      statesOfService: ['QLD'],
+      governingJurisdiction: 'QLD',
+      currentWeeklyGross: '1500',
+      priorLeaveTakenWeeks: '',
+      wageHistory: [
+        {
+          id: 'a',
+          periodStart: '2025-05-22',
+          periodEnd: '2026-05-21',
+          grossPay: '78000',
+          frequency: 'weekly',
+          periodDays: '',
+          note: '',
+        },
+      ],
+      serviceEvents: [],
+      triggerKind: 'termination',
+      leaveStartDate: '',
+      terminationDate: '2026-05-21',
+      terminationReason: opts.terminationReason,
+      terminationInitiator: opts.terminationInitiator,
+      asAtDate: '',
+    };
+    localStorage.setItem(
+      'lsl-calculator:single-mode:v1',
+      JSON.stringify({ savedAt: Date.now(), state })
+    );
+  }, overrides);
+}
+
 test.describe('Single-mode — termination initiator (DEV-CROSS-1)', () => {
-  test('terminationInitiator radio appears for illness_incapacity, hidden otherwise', async ({
+  test('terminationInitiator radio appears when switching to illness_incapacity, calc succeeds', async ({
     page,
   }) => {
-    // Seed a QLD form with termination + voluntary_resignation — initiator
-    // radio should NOT show.
-    await page.addInitScript(() => {
-      const state = {
-        legalName: 'DEV-CROSS-1 test',
-        externalEmployeeId: 'DEV-CROSS-1',
-        startDate: '2018-05-22',
-        employmentType: 'full_time',
-        categoryOverride: 'A',
-        categoryOverrideConfirmed: true,
-        statesOfService: ['QLD'],
-        governingJurisdiction: 'QLD',
-        currentWeeklyGross: '1500',
-        priorLeaveTakenWeeks: '',
-        wageHistory: [
-          {
-            id: 'a',
-            periodStart: '2025-05-22',
-            periodEnd: '2026-05-21',
-            grossPay: '78000',
-            frequency: 'weekly',
-            periodDays: '',
-            note: '',
-          },
-        ],
-        serviceEvents: [],
-        triggerKind: 'termination',
-        leaveStartDate: '',
-        terminationDate: '2026-05-21',
-        terminationReason: 'voluntary_resignation',
-        terminationInitiator: '',
-        asAtDate: '',
-      };
-      localStorage.setItem(
-        'lsl-calculator:single-mode:v1',
-        JSON.stringify({ savedAt: Date.now(), state })
-      );
+    // Seed: termination + voluntary_resignation. Initiator radio MUST NOT show.
+    await seedSingleModeQldTerminationState(page, {
+      terminationReason: 'voluntary_resignation',
+      terminationInitiator: '',
     });
 
     await page.goto('/calculator/single');
 
-    // With voluntary_resignation, the initiator field MUST NOT be visible.
     await expect(page.locator('#terminationInitiator')).toHaveCount(0);
 
     // Switch to illness_incapacity via the Select trigger.
@@ -179,9 +192,28 @@ test.describe('Single-mode — termination initiator (DEV-CROSS-1)', () => {
     // Pick employer-initiated and verify calculation succeeds.
     await page.locator('#terminationInitiator-employer').click();
     await page.getByRole('button', { name: /Calculate LSL/i }).click();
-    await expect(page.locator('text=/QLD IR Act 2016 s\\.95\\(3\\)\\(c\\)/').first()).toBeVisible();
+    await expect(
+      page.locator('text=/QLD IR Act 2016 s\\.95\\(3\\)\\(c\\)/').first()
+    ).toBeVisible();
+  });
 
-    // Switching to a reason that doesn't need the initiator → field hides.
+  test('terminationInitiator radio hides when switching from illness_incapacity to redundancy', async ({
+    page,
+  }) => {
+    // Seed already on illness_incapacity / employer with no result panel —
+    // keeps the Select trigger near the top of the viewport so the Radix
+    // popper can render its options in-view across all browsers.
+    await seedSingleModeQldTerminationState(page, {
+      terminationReason: 'illness_incapacity',
+      terminationInitiator: 'employer',
+    });
+
+    await page.goto('/calculator/single');
+
+    // Initiator radio group MUST be visible on illness_incapacity.
+    await expect(page.locator('#terminationInitiator')).toBeVisible();
+
+    // Switch to a reason that doesn't need the initiator — field hides.
     await pickRadixSelect(page, '#terminationReason', 'Redundancy');
     await expect(page.locator('#terminationInitiator')).toHaveCount(0);
   });
