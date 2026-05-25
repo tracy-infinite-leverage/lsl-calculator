@@ -1,0 +1,28 @@
+{
+  "name": "TC-QLD-040",
+  "title": "PT fixed-rate 25h/wk for 11 yrs → s.98",
+  "source": "QLD IR Act 2016 s.98",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-040",
+      "legalName": "FixedRatePT",
+      "startDate": "2015-05-25",
+      "employmentType": "part_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "750.00",
+      "wageHistory": [
+        { "periodStart": "2015-05-25", "periodEnd": "2026-05-25", "grossPay": "429000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "750.00",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.98", "rule": "ordinary-pay.ordinary-rate-at-leave-time" }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "TC-QLD-056",
+  "title": "QLD + NSW service, NSW nominated — multi-state with non-QLD governing → blocked",
+  "source": "spec F13 / AC14",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-056",
+      "legalName": "CrossJurisdictionNSWNominated",
+      "startDate": "2015-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD", "NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2015-05-25", "periodEnd": "2026-05-25", "grossPay": "858000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "blocked_cross_jurisdiction",
+    "warnings": ["cross_jurisdiction_pending"]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "TC-QLD-010",
+  "title": "Olivia-QLD — 1.5 yrs UPL during employment, accrual frozen but continuity preserved",
+  "source": "APA p.56 (Olivia variant for QLD); QLD IR Act 2016 s.134",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-010",
+      "legalName": "Olivia-QLD",
+      "startDate": "2014-07-01",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1600.00",
+      "wageHistory": [
+        { "periodStart": "2014-07-01", "periodEnd": "2026-05-25", "grossPay": "952320.00", "frequency": "weekly", "note": "Total wages reflect 595 wks elapsed less 78 wks UPL excluded" }
+      ],
+      "serviceEvents": [
+        { "type": "unpaid_parental_leave", "startDate": "2018-05-01", "endDate": "2019-10-31", "note": "78 wks UPL — none counts toward service per QLD treatment" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1600.00",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.134",     "rule": "continuous-service.unpaid-leave-does-not-count-but-no-break" },
+      { "section": "QLD IR Act 2016 s.95",      "rule": "accrual.snapshot.no-qualifying-reason-threshold" }
+    ]
+  }
+}

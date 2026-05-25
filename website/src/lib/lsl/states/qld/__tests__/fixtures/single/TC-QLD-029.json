@@ -1,0 +1,35 @@
+{
+  "name": "TC-QLD-029",
+  "title": "Workers Comp counts as continuous service (s.134) + WC-reduced-rate advisory (s.98)",
+  "source": "QLD IR Act 2016 s.134, s.98; TBD-QLD-05 resolution",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-029",
+      "legalName": "WorkersCompReducedRate",
+      "startDate": "2018-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2018-05-25", "periodEnd": "2026-05-25", "grossPay": "624000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2025-08-01", "endDate": "2026-05-25", "note": "Active WC at as-at date — engine emits reduced-rate advisory" }
+      ],
+      "extraInputs": {
+        "preInjuryWeeklyRate": "1800.00"
+      }
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "warnings": ["qld_lsl_calculated_at_wc_reduced_rate_warning"],
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.134", "rule": "continuous-service.workers-comp-counts" },
+      { "section": "QLD IR Act 2016 s.98",  "rule": "ordinary-pay.ordinary-rate-at-leave-time" }
+    ]
+  }
+}

@@ -60,7 +60,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        state: [nsw, vic, engine]
+        state: [nsw, vic, qld, engine]
     steps:
       - uses: actions/checkout@v4
 
@@ -141,16 +141,19 @@ jobs:
           echo "## Cross-state regression results" >> "$GITHUB_STEP_SUMMARY"
           STATUS_NSW=pass
           STATUS_VIC=pass
+          STATUS_QLD=pass
           STATUS_ENGINE=pass
           npx vitest run src/lib/lsl/states/nsw || STATUS_NSW=fail
           npx vitest run src/lib/lsl/states/vic || STATUS_VIC=fail
+          npx vitest run src/lib/lsl/states/qld || STATUS_QLD=fail
           npx vitest run src/lib/lsl/engine || STATUS_ENGINE=fail
           echo "| Suite | Result |" >> "$GITHUB_STEP_SUMMARY"
           echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
           echo "| NSW | $STATUS_NSW |" >> "$GITHUB_STEP_SUMMARY"
           echo "| VIC | $STATUS_VIC |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| QLD | $STATUS_QLD |" >> "$GITHUB_STEP_SUMMARY"
           echo "| engine | $STATUS_ENGINE |" >> "$GITHUB_STEP_SUMMARY"
-          if [ "$STATUS_NSW" = "fail" ] || [ "$STATUS_VIC" = "fail" ] || [ "$STATUS_ENGINE" = "fail" ]; then
+          if [ "$STATUS_NSW" = "fail" ] || [ "$STATUS_VIC" = "fail" ] || [ "$STATUS_QLD" = "fail" ] || [ "$STATUS_ENGINE" = "fail" ]; then
             exit 1
           fi
 

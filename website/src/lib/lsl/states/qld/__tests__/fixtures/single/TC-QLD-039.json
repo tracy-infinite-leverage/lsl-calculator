@@ -1,0 +1,28 @@
+{
+  "name": "TC-QLD-039",
+  "title": "FT fixed-rate, hours unchanged 5+ yrs → s.98 ordinary rate",
+  "source": "QLD IR Act 2016 s.98",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-039",
+      "legalName": "FixedRateFT",
+      "startDate": "2014-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "2000.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1248000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2000.00",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.98", "rule": "ordinary-pay.ordinary-rate-at-leave-time" }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "TC-QLD-045",
+  "title": "Above-award rate honoured (engine trusts user-supplied gross)",
+  "source": "QLD IR Act 2016 s.98",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-045",
+      "legalName": "AboveAwardRate",
+      "startDate": "2014-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "2500.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1560000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2500.00",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.98", "rule": "ordinary-pay.above-award-rate-honoured" }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "TC-QLD-037",
+  "title": "Permanent employee starting in 1992 — full service counts (no casual cliff)",
+  "source": "QLD IR Act 2016 s.95(2), s.96",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-037",
+      "legalName": "PermanentPostCliff",
+      "startDate": "1992-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "1992-05-25", "periodEnd": "2026-05-25", "grossPay": "2652000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.95",  "rule": "accrual.snapshot.no-qualifying-reason-threshold" },
+      { "section": "QLD IR Act 2016 s.96",  "rule": "continuous-service.pre-1990-cliff-not-engaged" }
+    ]
+  }
+}

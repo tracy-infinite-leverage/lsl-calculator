@@ -1,0 +1,31 @@
+{
+  "name": "TC-QLD-051",
+  "title": "Cash-out attempt on 5-yr employee → ADVISORY + sub-7-yr no-entitlement + $0",
+  "source": "QLD IR Act 2016 s.95(3), s.110; TBD-QLD-04 resolution",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-051",
+      "legalName": "SubSevenYearCashOut",
+      "startDate": "2021-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-25", "periodEnd": "2026-05-25", "grossPay": "390000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["sub_7yr_no_entitlement_qld", "qld_cashout_no_entitlement_to_cash_out", "qld_cashout_requires_instrument_or_qirc"],
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.95(3)", "rule": "accrual.sub-7yr-no-entitlement-any-reason" },
+      { "section": "QLD IR Act 2016 s.110",   "rule": "cash-out.industrial-instrument-or-qirc-permission" }
+    ]
+  }
+}

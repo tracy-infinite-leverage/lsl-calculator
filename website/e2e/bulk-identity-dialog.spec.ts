@@ -84,8 +84,12 @@ test.describe('Bulk-mode identity dialog state dropdown', () => {
     // NSW is also clean.
     await expect(listbox.getByRole('option', { name: /^NSW$/ })).toBeVisible();
 
+    // QLD has shipped in Phase 4 — must NOT carry "(coming soon)".
+    await expect(listbox.getByRole('option', { name: /^QLD$/ })).toBeVisible();
+    await expect(listbox.getByRole('option', { name: /^QLD \(coming soon\)$/ })).toHaveCount(0);
+
     // At least one unshipped state still carries "(coming soon)" — proves we
-    // didn't over-strip. QLD is the next-to-ship and a safe canary.
-    await expect(listbox.getByRole('option', { name: /^QLD \(coming soon\)$/ })).toBeVisible();
+    // didn't over-strip. WA is the next-to-ship and a safe canary.
+    await expect(listbox.getByRole('option', { name: /^WA \(coming soon\)$/ })).toBeVisible();
   });
 });

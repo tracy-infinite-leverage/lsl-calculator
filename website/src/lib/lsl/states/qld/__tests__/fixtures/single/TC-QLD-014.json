@@ -1,0 +1,31 @@
+{
+  "name": "TC-QLD-014",
+  "title": "9 yrs FT serious-misconduct dismissal → $0 (s.95(3)(d) exclusion)",
+  "source": "QLD IR Act 2016 s.95(3)(d) — conduct/capacity/performance excluded",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-014",
+      "legalName": "SubTenYearMisconductFixture",
+      "startDate": "2017-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-25", "periodEnd": "2026-05-25", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["sub_10yr_misconduct_excluded_qld"],
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.95(3)(d)", "rule": "accrual.7-to-10yr.dismissal-for-conduct-excluded" }
+    ]
+  }
+}
