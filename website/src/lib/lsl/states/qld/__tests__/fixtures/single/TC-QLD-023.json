@@ -1,0 +1,30 @@
+{
+  "name": "TC-QLD-023",
+  "title": "13 yrs FT death → full pro-rata to estate",
+  "source": "QLD IR Act 2016 s.95(2)(a), s.98",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-023",
+      "legalName": "ThirteenYearDeath",
+      "startDate": "2013-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2013-05-25", "periodEnd": "2026-05-25", "grossPay": "1149200.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "death" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.95(2)(a)", "rule": "accrual.10yr-automatic-any-reason" },
+      { "section": "QLD IR Act 2016 s.98",       "rule": "ordinary-pay.ordinary-rate-at-leave-time" }
+    ]
+  }
+}

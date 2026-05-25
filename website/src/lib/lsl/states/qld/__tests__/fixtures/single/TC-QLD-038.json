@@ -1,0 +1,32 @@
+{
+  "name": "TC-QLD-038",
+  "title": "Casual (pre-1994) → permanent transition — cliff applies to casual portion",
+  "source": "QLD IR Act 2016 s.103, s.134",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-038",
+      "legalName": "CasualToPermanentTransition",
+      "startDate": "1992-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1280.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "66560.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursLast52Weeks": 1664
+      }
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["pre_1994_casual_cliff_qld"],
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.103", "rule": "continuous-service.casual-cliff-30mar1994" }
+    ]
+  }
+}

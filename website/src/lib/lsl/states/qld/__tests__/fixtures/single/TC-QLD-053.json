@@ -1,0 +1,31 @@
+{
+  "name": "TC-QLD-053",
+  "title": "Australia Day PH falls during LSL window → extends leave by 1 day (s.97 exclusive)",
+  "source": "QLD IR Act 2016 s.97",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-053",
+      "legalName": "PHDuringLSL",
+      "startDate": "2014-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1123200.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "publicHolidaysInWindow": ["2024-01-26"]
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2024-01-24", "leaveWeeks": 1 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.97", "rule": "trigger.taking-leave.public-holiday-exclusive" }
+    ]
+  }
+}

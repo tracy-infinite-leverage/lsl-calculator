@@ -1,0 +1,31 @@
+{
+  "name": "TC-QLD-006",
+  "title": "7 yrs FT death, pro-rata payable to estate",
+  "source": "APA p.53; QLD IR Act 2016 s.95(3)(a)",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-006",
+      "legalName": "DeathFixture",
+      "startDate": "2019-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2019-05-25", "periodEnd": "2026-05-25", "grossPay": "618800.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "death" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.95(3)(a)", "rule": "accrual.7-to-10yr.death-of-employee" },
+      { "section": "QLD IR Act 2016 s.95(4)",    "rule": "accrual.proportionate-payment-formula" },
+      { "section": "QLD IR Act 2016 s.98",       "rule": "ordinary-pay.ordinary-rate-at-leave-time" }
+    ]
+  }
+}

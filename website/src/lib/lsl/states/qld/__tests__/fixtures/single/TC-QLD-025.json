@@ -1,0 +1,31 @@
+{
+  "name": "TC-QLD-025",
+  "title": "Paid annual leave counts as service (s.134)",
+  "source": "QLD IR Act 2016 s.134, s.93",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-025",
+      "legalName": "PaidLeaveCountsFixture",
+      "startDate": "2016-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-25", "periodEnd": "2026-05-25", "grossPay": "780000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2026-01-12", "endDate": "2026-02-09", "note": "4 wks paid annual leave" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.134", "rule": "continuous-service.paid-leave-counts" },
+      { "section": "QLD IR Act 2016 s.93",  "rule": "continuous-service.definition-includes-paid-leave" }
+    ]
+  }
+}

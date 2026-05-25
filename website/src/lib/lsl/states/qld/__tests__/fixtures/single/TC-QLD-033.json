@@ -1,0 +1,34 @@
+{
+  "name": "TC-QLD-033",
+  "title": "Casual with 4.5-mo gap → service breaks (s.103 cap exceeded)",
+  "source": "QLD IR Act 2016 s.103",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-033",
+      "legalName": "CasualFourMonthGap",
+      "startDate": "2014-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1216.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "63232.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2025-08-01", "endDate": "2025-12-15", "note": "137-day gap — exceeds 3-mo casual cap" }
+      ],
+      "extraInputs": {
+        "currentHourlyRate": "38.00",
+        "hoursLast52Weeks": 1664
+      }
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["gap_exceeds_state_tolerance"],
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.103", "rule": "continuous-service.casual-3mo-gap-breaks-service" }
+    ]
+  }
+}

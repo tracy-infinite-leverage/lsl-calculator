@@ -29,6 +29,17 @@ const WARNING_LABELS: Record<string, { label: string; tone: 'info' | 'warning' }
   extraction_low_confidence: { label: 'Low confidence on PDF extraction', tone: 'warning' },
   sub_7yr_review_industrial_instrument: { label: 'Sub-7-year tenure — review industrial instrument / EA for top-up', tone: 'info' },
   pre_2018_service_broken: { label: 'Service before 2018 broken under 1992 Act', tone: 'warning' },
+  // QLD-specific (E2 Phase 4)
+  sub_7yr_no_entitlement_qld: { label: 'Sub-7-year tenure — no QLD entitlement; review industrial instrument / EA', tone: 'info' },
+  sub_10yr_no_qualifying_reason_qld: { label: 'Sub-10-year QLD — no qualifying reason for pro-rata', tone: 'info' },
+  sub_10yr_misconduct_excluded_qld: { label: 'QLD sub-10-year misconduct dismissal — pro-rata excluded under s.95(3)(d)', tone: 'warning' },
+  qld_cashout_requires_instrument_or_qirc: { label: 'QLD cash-out — requires industrial instrument or QIRC order (s.110)', tone: 'warning' },
+  sub_10yr_cashout_only_via_qirc_qld: { label: 'QLD sub-10-yr cash-out — typically requires QIRC order', tone: 'warning' },
+  qld_cashout_no_entitlement_to_cash_out: { label: 'QLD sub-7-yr cash-out — no entitlement has yet accrued', tone: 'info' },
+  qld_lsl_calculated_at_wc_reduced_rate_warning: { label: 'QLD LSL calculated at WC-reduced rate (s.98 literal — no higher-of-rates equivalent)', tone: 'warning' },
+  pre_1994_casual_cliff_qld: { label: 'Casual service before 30 March 1994 excluded (QLD s.103 cliff)', tone: 'info' },
+  pre_1990_service_advisory_qld: { label: 'Pre-1990 service advisory (QLD s.96)', tone: 'info' },
+  employment_type_transition_qld: { label: 'QLD employment-type transition (casual → permanent)', tone: 'info' },
 };
 
 export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPanelProps) {

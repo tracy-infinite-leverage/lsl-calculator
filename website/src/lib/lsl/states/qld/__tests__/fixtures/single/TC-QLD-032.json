@@ -1,0 +1,33 @@
+{
+  "name": "TC-QLD-032",
+  "title": "Casual with 2-mo gap → service preserved (s.103, 60-day gap)",
+  "source": "QLD IR Act 2016 s.103",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-032",
+      "legalName": "CasualTwoMonthGap",
+      "startDate": "2017-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1216.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "63232.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2026-01-01", "endDate": "2026-03-01", "note": "60-day gap — under 3-mo casual cap" }
+      ],
+      "extraInputs": {
+        "currentHourlyRate": "38.00",
+        "hoursLast52Weeks": 1664
+      }
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.103", "rule": "continuous-service.casual-3mo-gap-rule" }
+    ]
+  }
+}

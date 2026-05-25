@@ -1,0 +1,29 @@
+{
+  "name": "TC-QLD-028",
+  "title": "Unpaid leave does not count toward service but preserves continuity (s.134)",
+  "source": "QLD IR Act 2016 s.134",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-028",
+      "legalName": "LWOPSixMonths",
+      "startDate": "2014-07-01",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "1600.00",
+      "wageHistory": [
+        { "periodStart": "2014-07-01", "periodEnd": "2026-05-25", "grossPay": "942400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2024-01-01", "endDate": "2024-06-30", "note": "6-month LWOP — does not count toward service" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.134", "rule": "continuous-service.unpaid-leave-does-not-count-but-no-break" }
+    ]
+  }
+}

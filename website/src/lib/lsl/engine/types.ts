@@ -109,7 +109,18 @@ export interface Warning {
     | 'sub_7yr_review_industrial_instrument'
     | 'pre_2018_service_broken'
     | 'rehire_gap_at_threshold'
-    | 'accrued_not_currently_payable';
+    | 'accrued_not_currently_payable'
+    // QLD-specific (E2 Phase 4 — see docs/qa/test-cases-qld.md Resolutions section)
+    | 'sub_7yr_no_entitlement_qld'
+    | 'sub_10yr_no_qualifying_reason_qld'
+    | 'sub_10yr_misconduct_excluded_qld'
+    | 'qld_cashout_requires_instrument_or_qirc'
+    | 'sub_10yr_cashout_only_via_qirc_qld'
+    | 'qld_cashout_no_entitlement_to_cash_out'
+    | 'qld_lsl_calculated_at_wc_reduced_rate_warning'
+    | 'pre_1994_casual_cliff_qld'
+    | 'pre_1990_service_advisory_qld'
+    | 'employment_type_transition_qld';
   message: string;
   rowRef?: string;
 }

@@ -1,0 +1,30 @@
+{
+  "name": "TC-QLD-027",
+  "title": "Re-employment after 4 months breaks service (s.134 ceiling exceeded)",
+  "source": "QLD IR Act 2016 s.134",
+  "input": {
+    "employee": {
+      "id": "TC-QLD-027",
+      "legalName": "RehireBeyondThreeMonths",
+      "startDate": "2014-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["QLD"],
+      "governingJurisdiction": "QLD",
+      "currentWeeklyGross": "2000.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1248000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "employer_initiated_termination_and_rehire", "startDate": "2025-09-15", "endDate": "2026-01-22", "note": "130-day gap — exceeds 3-mo cap" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["gap_exceeds_state_tolerance"],
+    "expected_citations": [
+      { "section": "QLD IR Act 2016 s.134", "rule": "continuous-service.gap-exceeds-3mo-breaks-service" }
+    ]
+  }
+}

@@ -29,15 +29,16 @@ const asAtTrigger = (date = '2026-05-21'): Trigger => ({
 });
 
 describe('dispatch — ENCODED_STATES', () => {
-  it('contains NSW and VIC after Phase 3', () => {
-    expect(ENCODED_STATES.slice().sort()).toEqual(['NSW', 'VIC']);
+  it('contains NSW, VIC, and QLD after Phase 4', () => {
+    expect(ENCODED_STATES.slice().sort()).toEqual(['NSW', 'QLD', 'VIC']);
   });
 
   it('isStateEncoded returns true for shipped states, false for unshipped', () => {
     expect(isStateEncoded('NSW')).toBe(true);
     expect(isStateEncoded('VIC')).toBe(true);
-    expect(isStateEncoded('QLD')).toBe(false);
+    expect(isStateEncoded('QLD')).toBe(true);
     expect(isStateEncoded('NT')).toBe(false);
+    expect(isStateEncoded('WA')).toBe(false);
   });
 });
 
@@ -61,14 +62,25 @@ describe('dispatch — calculate', () => {
 
   it('blocks unshipped governing state with cross_jurisdiction_pending', () => {
     const employee = baseEmployee({
-      statesOfService: ['QLD'],
-      governingJurisdiction: 'QLD',
+      statesOfService: ['WA'],
+      governingJurisdiction: 'WA',
     });
     const r = calculate(employee, asAtTrigger());
     expect(r.status).toBe('blocked_cross_jurisdiction');
     expect(r.warnings[0].code).toBe('cross_jurisdiction_pending');
-    expect(r.warnings[0].message).toContain('QLD');
+    expect(r.warnings[0].message).toContain('WA');
     expect(r.warnings[0].message).toContain('NSW'); // lists what's supported
+  });
+
+  it('routes QLD-only employee to QLD orchestrator', () => {
+    const employee = baseEmployee({
+      statesOfService: ['QLD'],
+      governingJurisdiction: 'QLD',
+      // 12-year tenure for QLD to satisfy 10-yr qualifying period
+      startDate: asISODate('2014-05-22'),
+    });
+    const r = calculate(employee, asAtTrigger());
+    expect(r.status).toBe('computed');
   });
 
   it('routes VIC-only employee to VIC orchestrator', () => {
@@ -82,13 +94,13 @@ describe('dispatch — calculate', () => {
     expect(r.status).toBe('computed');
   });
 
-  it('blocks single non-NSW state (no governing nominated) too', () => {
+  it('blocks single non-encoded state (no governing nominated) too', () => {
     const employee = baseEmployee({
-      statesOfService: ['QLD'],
+      statesOfService: ['WA'],
     });
     const r = calculate(employee, asAtTrigger());
     expect(r.status).toBe('blocked_cross_jurisdiction');
-    expect(r.warnings[0].message).toContain('QLD');
+    expect(r.warnings[0].message).toContain('WA');
   });
 
   it('defaults to NSW when no governing and no states-of-service', () => {
