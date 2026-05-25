@@ -1,10 +1,30 @@
 # Dev Findings — All-State Coverage (E2)
 
 **Source spec**: `.specify/features/002-all-state-coverage/spec.md` v0.1.0
-**Date**: 2026-05-23 (DEV-CROSS-1 added 2026-05-25; DEV-CROSS-2 added 2026-05-25)
+**Date**: 2026-05-23 (DEV-CROSS-1 added 2026-05-25; DEV-CROSS-2 added 2026-05-25; ACT analysis added 2026-05-26)
 **Owner**: developer agent (resolves these in Phase 0 of `dev-feature-plan`)
 
 These findings are routed from `pm-analyze-split` and are out-of-scope for PM resolution. They concern technical architecture, NFRs in engineering units, and implementation detail.
+
+---
+
+## DEV-CROSS-N anticipation for Phase 7 (ACT) — 2026-05-26
+
+**Status**: ❌ NOT anticipated. **No DEV-CROSS-4 dev-finding is created for ACT Phase 7.**
+
+**Analysis**: ACT Phase 7 introduces three new ACT-specific signals:
+1. **Overtime hours per pay period for casual/PT averaging** — encoded as `extraInputs.act_overtime_hours_by_period: Array<{periodStart, periodEnd, hours}>`. ACT-localised; no other state has a statutory overtime-in-averaging rule (WA includes overtime if "regular" but doesn't need a discrete data field; SA includes overtime hours via the 156-wk window but the data shape differs). YAGNI for cross-state promotion.
+2. **FT→PT/casual transition date for s.7(3) routing** — encoded as `extraInputs.act_ft_to_pt_transition_date: ISODate`. ACT-unique statutory rule (s.7(3)) — no other state has an analogous mid-service-transition formula. No cross-state value.
+3. **Award-specified minimum retirement age signal** — encoded as `extraInputs.act_award_min_retirement_age_reached: boolean`. ACT-specific qualifying-reason gate; other states have different retirement frameworks (NSW: not encoded; VIC: not encoded; QLD: not encoded; WA: not encoded; SA: not encoded — retirement falls under "any reason except misconduct" at 7+ yrs; TAS: 60/65 split; NT: Age Pension age).
+
+**Schema-level change**: One purely-additive optional field on `Result`:
+- `payable_by?: ISODate` — for ACT's 90-day pay-on-termination window per s.11A(4)(b). Lands in `engine/types.ts` as additive; cross-state-available; no breaking change. NSW/VIC/QLD/WA/SA orchestrators do not populate the field; it remains undefined.
+
+**The `payable_by` field addition could in principle be a "DEV-CROSS-4 lite"** — a 5-minute additive change to `engine/types.ts` that lands inline with the ACT per-state PR rather than as a separate cross-state refactor PR. PM recommendation (TBD-ACT-08): bundle the `payable_by` addition into the ACT per-state PR; do not spin out a separate DEV-CROSS-4. Rationale: (a) the field is one line of TypeScript and adds zero behaviour to any existing state; (b) no existing fixture changes; (c) the cross-state refactor PR pattern (DEV-CROSS-1, DEV-CROSS-2) is for changes that touch multiple files across multiple state orchestrators — that test is NOT met here.
+
+**Decision (pending PM sign-off on TBD-ACT-08)**: T7.1 unblocks on PM sign-off alone. No pre-flight cross-state PR (no T7.0.5 task). Same shape as Phase 6 SA which also did not require DEV-CROSS-3.
+
+**WA DEV-CROSS-2 fields (`paidConcurrent`, `returnToWorkProgram`, `slacknessOfTrade`, `reasonableExpectationOfReturn`, `mealsAndAccommodationCashValueWeekly`) — already merged at PR #18.** ACT consumes ONE of these (`slacknessOfTrade` for the 6-mo slackness re-employment tolerance, per TBD-ACT-16 RESOLVED). The other four WA fields are silently ignored by the ACT orchestrator per TBD-ACT-06. No additional cross-state work.
 
 ---
 
