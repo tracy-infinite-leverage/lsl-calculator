@@ -58,7 +58,7 @@ export default function Home() {
               <CardContent>
                 <Button asChild variant="outline" className="w-full sm:w-auto">
                   <Link href="/calculator/bulk">
-                    Calculate for many
+                    Calculate for multiple employees
                     <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
