@@ -185,4 +185,4 @@ Before development of **state #2** begins:
 
 Before development of **WA (Phase 5 / state #4)** begins:
 1. DEV-CROSS-1 (termination-reason enum refactor) — must be merged. ✅ MERGED 2026-05-25 at `bd2d284`.
-2. DEV-CROSS-2 (WA schema extension) — must be merged. PENDING — task T5.0.5 in `tasks.md`.
+2. DEV-CROSS-2 (WA schema extension) — ✅ MERGED 2026-05-25 at `0a2d652` (PR #18).

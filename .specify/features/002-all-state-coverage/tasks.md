@@ -1,6 +1,6 @@
 # Tasks — All-State Coverage (E2)
 
-**Source plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.2
+**Source plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.3
 **Branch**: `002-all-state-coverage`
 **Date**: 2026-05-25 (last updated)
 **Sizing legend**: S (≤ 4h), M (½ – 1.5 days), L (2–4 days), XL (> 4 days, split before starting)
@@ -11,6 +11,8 @@
 **2026-05-25 update (QLD)**: T4.0 SIGNED OFF (PM Tracy Angwin). All 6 TBDs resolved in `docs/qa/test-cases-qld.md` v1.0 — see file's Resolutions section. T4.2 acceptance criteria updated to reflect the resolved interpretations (15-yr continuous accrual; s.103 hard-anchor casual cliff + s.96 advisory-only general cliff; 52-wk casual lookback; cash-out advisory granularity; WC-reduced-rate advisory). Termination-reason enum redesign deferred to a separate state-agnostic PR (DEV-CROSS-1 — see dev-findings.md); 5 QLD fixtures deferred until that refactor lands. T4.1 onwards unblocked.
 
 **2026-05-25 update (WA)**: T5.0 SIGNED OFF (PM Tracy Angwin). All 16 TBDs resolved in `docs/qa/test-cases-wa.md` v1.0 — see file's Resolutions section. T5.1-T5.4 re-scoped per TBD-WA-01 resolution — one WA rule set with date-aware continuous-service handling instead of two parallel rule sets (parallel to VIC's earlier re-scope). New task T5.0.5 (WA schema extension via DEV-CROSS-2) added as a state-agnostic refactor PR that lands BEFORE WA T5.1 begins. T5.1 BLOCKED on DEV-CROSS-2 (same blocking pattern as QLD's deferred fixtures were blocked on DEV-CROSS-1). Phase 5 effort estimate revised L (5–8 d) → M–L (4–6 d); total dev-days estimate revised 34–50 → 32–48.
+
+**2026-05-25 update (SA)**: T6.0 SIGNED OFF (PM Tracy Angwin). All 12 TBDs resolved in `docs/qa/test-cases-sa.md` v1.0 — see file's Resolutions section. **No architectural re-scope** — TBD-SA-01 resolved as single regime (SA mirrors QLD's flat single-regime architecture). **No pre-flight cross-state PR required** — TBD-SA-07 (higher-duties acting rate) resolved as SA-localised via `extraInputs.sa_higher_duties_*`, NOT promoted to `Employee` fields. T6.1 unblocked immediately. Phase 6 effort estimate stays at M (3–5 d); total dev-days estimate unchanged at 32–48.
 
 Per AC4a, **Phases 3 through 9 (per-state encoding) execute strictly sequentially** in the order VIC → QLD → WA → SA → ACT → TAS → NT. Phases 1 and 2 run before Phase 3 and can overlap with each other (different code paths). Phase 10 runs after Phase 9 ships.
 
@@ -392,25 +394,36 @@ Before merging T5.1–T5.6 to `main`:
 
 ## Phase 6 — SA (RES-1 #4)
 
-### T6.0 · [BLOCKING] PM-signed test-cases-sa.md (M) — AC4
+### T6.0 · [BLOCKING] PM-signed test-cases-sa.md (M) — AC4 · ✅ SIGNED OFF 2026-05-25
 
-APA PDF pp.80–94 + SA edge cases: employee at exactly 10 years → 13 weeks (not 8.6667), employee with PH falling within LSL period (no extension), written-agreement cashing-out.
+`docs/qa/test-cases-sa.md` v1.0 PM-signed by Tracy Angwin on 2026-05-25. **All 12 TBDs resolved** — see Resolutions section in the document. 67 fixtures (64 single-mode + 3 bulk) covering SA LSL Act 1987 ss.3–6 + LSL (Calculation of Average Weekly Earnings) Amendment Act 2015 (SA). Coverage spans: s.5(1) 13-week first entitlement at 10 yrs (F10/AC12); s.5(3) two disqualifiers (misconduct + SA-unique unlawful-worker-termination); s.5 PH-INCLUSIVE in LSL period (F11/AC13 — headliner); SA-unique higher-duties acting rate (s.4); 156-wk all-hours casual averaging with WC/UPL substitution; three-tier cash-out advisory (s.5); 10+ yr full-payout regardless of reason. **No pre-flight cross-state PR required.** T6.1 unblocked immediately.
 
-### T6.1 · SA rule-set scaffold (S) — AC1
+### T6.1 · SA rule-set scaffold (S) — AC1 · UNBLOCKED 2026-05-25
+
+Scaffold `states/sa/{index, rules/{accrual-table,value-of-week,trigger-handlers,public-holidays,continuous-service}, __tests__/}`. Single-regime SA rule set (no dual-regime split per TBD-SA-01 RESOLVED). SA-localised `extraInputs` keys read by the SA orchestrator only: `sa_worker_notice_compliance: boolean` (default `true`), `sa_higher_duties_active: boolean` (default `false`), `sa_higher_duties_weekly_rate: number` (default `undefined`). No `engine/types.ts` change required (per TBD-SA-04 + TBD-SA-07 RESOLVED — SA-localised, not cross-state).
 
 ### T6.2 · SA rules + orchestrator (L) — F2, F10, F11, AC12, AC13
 
-- **Accrual: 13 weeks at 10 years** (separate table — implementation shared with NT in T9.x by extracting a `SA_NT_ACCRUAL_TABLE` constant).
-- **Value-of-week: PH-inclusive in LSL period (F11)** — when trigger is `taking_leave` and the leave-period overlaps a public holiday, do not extend the leave by the PH duration. Implementation: the SA `value-of-week.ts` and/or trigger handler reads a `publicHolidays` field on the employee or a system PH calendar. (Decision: use a hardcoded SA public-holidays array for v1; auto-detect from leave dates. v2 may upgrade to user-supplied PH list.)
+- **Accrual: 13 weeks at 10 years** + 1.3 wks per further year continuous (no discrete step at 15 yrs per TBD-SA-01 / TBD-SA-12 reasoning) — share with NT in T9.x by extracting `SA_NT_ACCRUAL_TABLE` constant.
+- **Value-of-week — fixed-rate**: current weekly gross. **Higher-duties acting rate (SA-unique, s.4)**: when `extraInputs.sa_higher_duties_active === true`, use `extraInputs.sa_higher_duties_weekly_rate` as the ordinary weekly rate; emit `sa_higher_duties_rate_applied` warning. **Part-time / casual**: 156-week all-hours-including-overtime average of hours, divided by 156, multiplied by current base hourly rate (25% loading included for casuals). Weeks of approved unpaid leave OR workers-compensation absence are excluded from the 156-wk window and substituted with prior worked weeks (denominator stays 156); emit `sa_156wk_window_extended_for_upl` or `sa_156wk_window_extended_for_wc` warning when substitution occurs. **Commission / piece-rate**: 52-week (12-month) lookback of total income divided by 52; bonuses (Christmas, target-achievement on hourly rate) excluded.
+- **PH-inclusive in LSL period (F11/AC13)** — when trigger is `taking_leave`, the SA `value-of-week.ts` / trigger handler computes the calendar end-date of the leave window using `leaveWeeks` only (NOT extended by PHs falling within the window). Reads a hardcoded SA PH calendar from `rules/public-holidays.ts` (12 PHs from Public Holidays Act 1910 (SA): NYD, Australia Day, Adelaide Cup Day, Good Friday, Easter Saturday, Easter Sunday, Easter Monday, Anzac Day, King's Birthday, Labour Day, Christmas Day, Proclamation Day) per TBD-SA-10 RESOLVED. Surface `phs_within_leave_count` as informational. Single-day LSL falling on a PH counts as 1 day of LSL per TBD-SA-09 RESOLVED.
+- **Trigger-handlers — termination matrix**: s.5(1) full payout at 10+ yrs regardless of reason (SA does NOT mirror WA's partial-forfeiture). s.5(3) pro-rata at 7–10 yrs with TWO disqualifiers: `reason === 'serious_misconduct'` → `sub_10yr_misconduct_excluded_sa` warning + $0; `reason === 'voluntary_resignation' && extraInputs.sa_worker_notice_compliance === false` → `unlawful_worker_termination_excluded_sa` warning + $0. Sub-7-yr returns $0 with `sub_7yr_no_entitlement_sa` warning. Death (s.5) returns pro-rata at 7+ yrs / full at 10+ yrs to personal representative.
+- **Three-tier cash-out advisory** per TBD-SA-06 RESOLVED: `sa_cashout_post_accrual_advisory` (10+ yr) / `sa_cashout_pre_accrual_not_authorised` (7–10 yr or other sub-10) / `sa_cashout_no_entitlement_to_cash_out` (sub-7-yr). Citation form `SA LSL Act 1987 s.5` (Act-level only per TBD-SA-03 RESOLVED — documented limitation, parallel to TBD-WA-02).
+- **WC overlap with LSL trigger date** → literal s.4 rate + `sa_lsl_calculated_at_wc_reduced_rate_warning` advisory per TBD-SA-08 RESOLVED.
+- **Continuous service (s.6)** — 2-month re-employment tolerance for non-casual; 3-month/6-month heuristic for casual with seasonal-shutdown carve-out per TBD-SA-02 RESOLVED. WC counts as service AND triggers 156-wk substitution separately per TBD-SA-05 RESOLVED. UPL "extends-the-line" — doesn't count toward service but doesn't break continuity.
 - `calculateSA` + safe wrapper. Export `SA_RULE_SET`.
 
 ### T6.3 · SA fixtures (M) — F3, AC2, AC3, AC12, AC13
 
-`TC-SA-NNN.json` fixtures.
+`TC-SA-NNN.json` fixtures — convert the 64 single-mode + 3 bulk fixtures from `docs/qa/test-cases-sa.md` v1.0 into the engine-test JSON format. All 67 fixtures stand as drafted per the Resolutions section (no fixture-value changes). Key fixture groups: APA worked examples (TC-SA-001 → -010); sub-7-yr and 7–10-yr qualifying-reason cases (TC-SA-011 → -018); 10+ yr full payout incl. misconduct (TC-SA-019 → -023); SA-unique unlawful-worker-termination (TC-SA-024 → -028); continuous service (TC-SA-029 → -036); PH-INCLUSIVE headliner (TC-SA-037 → -040); ordinary pay incl. higher-duties (TC-SA-041 → -047); casual 156-wk averaging with WC/UPL substitution (TC-SA-048 → -052); 15-yr / 20-yr continuous accrual (TC-SA-053 → -054); cash-out advisory three-tier (TC-SA-055 → -058); WC overlap (TC-SA-059); transfer of business (TC-SA-060); as-at snapshot (TC-SA-061 → -062); cross-jurisdiction (TC-SA-063 → -064); bulk (TC-SA-BULK-001 → -003).
 
 ### T6.4 · SA integration (S)
 
+Wire SA orchestrator into `dispatch.calculate` switch. SA-only single-mode form fields (conditional on `state === 'SA'`): `extraInputs.sa_worker_notice_compliance` checkbox (default checked = compliant), `extraInputs.sa_higher_duties_active` checkbox + conditional `extraInputs.sa_higher_duties_weekly_rate` numeric field. SA-only optional bulk-CSV columns. Cross-state regression confirms NSW + VIC + QLD + WA still green.
+
 ### T6.5 · [P] SA docs page scaffold (S)
+
+`website/src/app/calculator/about/sa/page.tsx` placeholder.
 
 ### T6.6 · SA per-state launch gate (AC4b). Blocks Phase 7.
 
