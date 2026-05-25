@@ -16,7 +16,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 
 | Epic | Status | % done (est) | Pipeline | Open bugs | Closed bugs | Notes |
 |------|--------|--------------|----------|-----------|-------------|-------|
-| E1 · NSW Calculator | ✅ done | 100% | ●●●●● | 0 | 6 (Q-01..Q-04 fixed in PR #3; Q-05/Q-06 pre-existing single-mode items, separate cleanup ticket) | **SHIPPED 2026-05-24.** Phases 1+2+3 live on https://lsl-calculator.vercel.app (`lsl.austpayroll.com.au` pending DNS). PR #3 squash-merged at `50061f5`. Architectural fix removed server-side pdfjs (issue #5) in favour of Anthropic document content block. 319 unit tests + 92 Playwright across 4 browsers. Phase 7 (opt-in logins) deferred post-launch. |
+| E1 · NSW Calculator | ✅ done | 100% | ●●●●● | 0 | 6 (Q-01..Q-04 fixed in PR #3; Q-05/Q-06 pre-existing single-mode items, separate cleanup ticket) | **SHIPPED 2026-05-24.** Phases 1+2+3 live on https://www.lslcalculator.com.au (also reachable at lsl-calculator.vercel.app). PR #3 squash-merged at `50061f5`. Architectural fix removed server-side pdfjs (issue #5) in favour of Anthropic document content block. 319 unit tests + 92 Playwright across 4 browsers. Phase 7 (opt-in logins) deferred post-launch. |
 | E2 · All-State Coverage | 🔄 in flight | 55% | ●●●◐○ | 0 | 0 | Spec v0.3.1 + impl-plan v0.3.1 (Phase 4 acceptance criteria updated 2026-05-25) + tasks committed (10 phases, 76 tasks). **Phases 1+3 MERGED to `main`** (PR #8 `56ae5fd`, PR #10 `93854f3`, PR #11 `0bddbbc`). NSW + VIC both LIVE as of 2026-05-25 — state selector, dispatcher, VIC engine (61 fixtures byte-identical), VIC hard-error cash-out, product rename "LSL Calculator". **Phase 4 (QLD) T4.0 SIGNED OFF 2026-05-25** by Tracy Angwin (PM): `docs/qa/test-cases-qld.md` v1.0 on branch `pm/qld-test-cases`, 58 active fixtures (5 deferred) covering QLD IR Act 2016 ss.93–110 + s.134 + historical cliffs (s.96 = 23 Jun 1990, s.103 = 30 Mar 1994). **All 6 TBDs resolved** — see Resolutions section in the document. **Cross-state termination-enum refactor (DEV-CROSS-1) tracked separately** in `dev-findings.md` — to land as its own state-agnostic PR between QLD v1 launch and WA Phase 5; 5 QLD fixtures deferred until then. T4.1 onwards unblocked for developer. |
 | E3 · Audit Upload and Variance Report | ☐ planned | 0% | ○○○○○ | 0 | 0 | Moved ahead of API integrations on PM direction (2026-05-21). CSV-only ingest. |
 | E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. Depends on E2 having ≥2-3 states encoded. |
@@ -25,7 +25,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 
 ### E1 · NSW Calculator
 - **Phase**: **SHIPPED 2026-05-24**. Phases 1+2+3 in production.
-- **Pipeline**: ●●●●● (Stage 5 · Shipped — live on lsl-calculator.vercel.app; custom domain `lsl.austpayroll.com.au` pending DNS at Cloudflare)
+- **Pipeline**: ●●●●● (Stage 5 · Shipped — live on https://www.lslcalculator.com.au, also reachable at lsl-calculator.vercel.app)
 - **Merge commit**: `50061f5` on `main` (squash of PR #3, which followed up PR #1's earlier Phases 1+2 ship)
 - **Issue #5 (P1)**: server-side pdfjs DOMMatrix crash on Vercel — fixed by removing pdfjs server-side entirely and using Anthropic document content block. Architectural improvement, not a band-aid.
 - **Branch**: `001-nsw-calculator` (historical, no longer active); `phase-3-pdf-followup` (merged via PR #3)
@@ -43,7 +43,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 - **PM sign-offs (2026-05-21)**: PM-A mobile = responsive best-effort; PM-B bulk trigger = `as_at` default; OQ-B LLM = Anthropic Claude API no-retention; all 8 Phase-0 TBDs resolved.
 - **Pre-flight blockers** (still open from product.md §14):
   - APA portal hosting + auth model (working default: standalone + deep-link)
-- **Post-launch follow-ups**: (1) Cloudflare DNS for `lsl.austpayroll.com.au` (soft gate, Vercel-issued URL already live); (2) Q-05 + Q-06 pre-existing single-mode browser-only items — separate cleanup ticket; (3) issue #4 (P3 UX) on empty service-event rows blocking Calculate; (4) Phase 7 opt-in logins when there's customer pull for them.
+- **Post-launch follow-ups**: (1) Q-05 + Q-06 pre-existing single-mode browser-only items — separate cleanup ticket; (2) issue #4 (P3 UX) on empty service-event rows blocking Calculate; (3) Phase 7 opt-in logins when there's customer pull for them. ~~Cloudflare DNS for `lsl.austpayroll.com.au`~~ resolved 2026-05-25 — domain switched to `www.lslcalculator.com.au`, now live.
 - **Phase 7 scope (added 2026-05-23)**: opt-in user accounts with email + password (no magic links, no SSO, no OAuth). Adds `profiles` + `saved_calculations` Supabase tables with RLS, signup/login/reset flows, "my calculations" history view, and an account-deletion path. Triggers a privacy-notice revision (S1 changes from "no server-side employee data" to "permitted for authenticated users only").
 
 ### E2 · All-State Coverage

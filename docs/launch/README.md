@@ -26,7 +26,7 @@ In rough order of dependency:
 - [x] Branch protection enforced on `main` (CI must pass before merge)
 - [x] Vercel production project `lsl-calculator` created on team `infiniteleverage-2` (Sydney region, root dir `website/`)
 - [x] GitHub integration connected; preview build on `001-nsw-calculator` green (41s build)
-- [x] Production domain `lsl.austpayroll.com.au` mapped — **DNS step at Cloudflare still pending**: add `A lsl 76.76.21.21` to austpayroll.com.au DNS, or change the subdomain to use Vercel nameservers. Soft gate (Vercel-issued URL works without this).
+- [x] Production domain `www.lslcalculator.com.au` live (DNS configured, Vercel domain configured — 2026-05-25). Standalone domain replaced the originally-planned `lsl.austpayroll.com.au` subdomain.
 - [ ] `ANTHROPIC_API_KEY` set in Vercel Production environment — see LAUNCH-GUARD hard gate
 - [x] PR #1 moved from draft → ready for review (28+ commits, 262/262 vitest, 20/20 Playwright, CI green)
 - [ ] Final manual smoke on Vercel-issued URL after env var is set
