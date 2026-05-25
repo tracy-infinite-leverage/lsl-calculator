@@ -137,3 +137,54 @@ This is the AC4b item engine work couldn't close. Empty payload per spec S2 (no 
 (local only — operator will run `git push`)
 
 See `git log main..HEAD` for the up-to-date list.
+
+---
+
+## Addendum — 2026-05-25 — QA-flagged NSW citation leaks (P1 + 2x P2)
+
+QA pass on this branch flagged 4 NSW citations leaking into VIC-user UI surfaces. The P1 + both P2 fixes landed on the same branch in a single follow-up commit. P3 items (engine-internal "v1 NSW only" dead text, transfer-of-business label, NSW-only sample CSV) explicitly deferred to a future PR.
+
+### Fixes applied
+
+**PR11-P1-01 — Bulk identity dialog labelled VIC "(E2 — not yet computable)"**
+- File: `website/src/app/(calculator)/calculator/bulk/_components/identity-form-dialog.tsx`
+- Replaced the hardcoded `s !== 'NSW' && ' (E2 — not yet computable)'` suffix with a `isStateEncoded(s)` check (same helper the `<StateSelector>` already uses).
+- Encoded states (NSW + VIC today) render plain `NSW` / `VIC`; unshipped states render `<STATE> (coming soon)` and are `disabled`. This now stays in sync with `STATE_REGISTRY` automatically — when QLD ships, no edit needed here.
+
+**PR11-P2-01 — Gross-pay hint hardcoded "per NSW LSA s.3(2)" for all users**
+- File: `website/src/app/(calculator)/calculator/single/_components/single-mode-form.tsx`
+- Took the state-aware path (option (a) per QA brief). Added a small `grossPayHint` derived value:
+  - NSW: `"…per NSW LSA s.3(2)…"`
+  - VIC: `"…per VIC LSL Act 2018 s.15…"`
+  - Other (defensive — should not happen pre-launch since other states are blocked at the selector): generic `"…per the governing jurisdiction's LSL Act…"`
+- The `<Field>` `hint` prop now reads from this computed value. Switching the state selector flips the hint in real time.
+
+**PR11-P2-02 — Classifier-confirm modal fires for VIC users (no Cat A/B/C in VIC)**
+- File: `website/src/app/(calculator)/calculator/single/_components/single-mode-form.tsx`
+- Took option (a) per QA brief — gated the modal trigger on `governingJurisdiction === 'NSW'`. VIC's `value-of-week.ts` branches internally on employment shape; it does not consume a user-confirmed `categoryOverride` for its averaging path. NSW's `value-of-week.ts` does. Gating the trigger surface (not the engine) keeps the classifier still callable internally — VIC's engine does call `classify()` for diagnostics-only (warnings + `result.category`), which is unchanged.
+- Comment in code explicitly calls out the gate criterion: "add the next state to this gate when (and only when) that state's engine consumes a user-confirmed `categoryOverride`."
+
+### New test
+
+- `website/e2e/bulk-identity-dialog.spec.ts` — Playwright spec. Mocks `/api/normalize-csv` (no Anthropic dependency in CI), pastes a wage-history-only CSV, opens the resulting identity dialog, and asserts:
+  1. VIC option label is plain `VIC` (no `(E2 …)`, no `(coming soon)`)
+  2. NSW option label is plain `NSW`
+  3. QLD option still carries `(coming soon)` — guards against accidentally stripping the suffix from all options.
+
+### Verification (post-fix re-run)
+
+| Gate | Result |
+|---|---|
+| `npm run test` (unit) | **517/517 passed** in 1.79s (24 test files) — no engine regression |
+| `npx tsc --noEmit` | clean (no output) |
+| `npm run build` | clean — `Compiled successfully in 1.7s`, 10 routes generated |
+| `npx playwright test` (dev mode) | **27/27 passed** in 5.5s (26 existing + 1 new) |
+| `PLAYWRIGHT_PRODUCTION_BUILD=1 npx playwright test` | **27/27 passed** in 7.8s |
+
+**NSW byte-identical re-verified: HOLDS.** No engine code touched; all 60 NSW gold-standard fixtures + `dispatch.test.ts` byte-identity test still pass.
+
+### Things to know
+
+- The previous QA-REPORT.md is preserved as-is for audit trail; these fixes will get re-QA'd separately.
+- The classifier still runs inside the VIC engine's `calculate()` (diagnostics path only — see `states/vic/index.ts:172` comment). Only the user-facing disambiguation modal is gated.
+- A pre-existing uncommitted tweak to `app/page.tsx` ("Calculate for many" → "Calculate for multiple employees") was found in the working tree at the start of this session. It was stashed (`git stash` entry: "wip-page-tsx-tweak-not-mine") to keep the bug-fix commit clean — operator can `git stash pop` to recover.
