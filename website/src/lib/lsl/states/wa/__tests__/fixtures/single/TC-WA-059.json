@@ -1,0 +1,33 @@
+{
+  "name": "TC-WA-059",
+  "title": "Casual loaded rate — incl. casual loading per s.9 (as amended 2022)",
+  "source": "WA LSL Act 1958 s.9 (as amended 2022); DEMIRS casual",
+  "input": {
+    "employee": {
+      "id": "TC-WA-059",
+      "startDate": "2016-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1280.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "66560.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursLast52Weeks": 1664,
+        "hoursAccrualBlock1": 16640
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1280.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.9", "rule": "ordinary-pay.casual-loaded-rate-accrual-period-avg" }
+    ]
+  }
+}

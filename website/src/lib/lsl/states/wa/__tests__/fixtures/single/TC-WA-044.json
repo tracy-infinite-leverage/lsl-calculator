@@ -1,0 +1,34 @@
+{
+  "name": "TC-WA-044",
+  "title": "Tenure straddles 2022-06-20 but wage history annual-only → fallback to single-regime (post-2022)",
+  "source": "spec F7 / AC8",
+  "input": {
+    "employee": {
+      "id": "TC-WA-044",
+      "startDate": "2015-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2015-05-25", "periodEnd": "2026-05-25", "grossPay": "940000.00", "frequency": "other", "periodDays": 4017, "note": "Single 11-yr aggregate — no monthly granularity" }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2021-12-01", "endDate": "2021-12-30", "note": "30 days sick — data granularity insufficient" }
+      ],
+      "extraInputs": {
+        "regimeSplitDataInsufficient": true
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "warnings": ["wa_regime_split_data_insufficient"],
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.post-2022" }
+    ]
+  }
+}

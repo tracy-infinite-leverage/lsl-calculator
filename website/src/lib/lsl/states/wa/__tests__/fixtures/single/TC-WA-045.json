@@ -1,0 +1,31 @@
+{
+  "name": "TC-WA-045",
+  "title": "Long-tenure employee with paid-sick events but no per-day breakdown → fallback + advisory",
+  "source": "spec F7 / AC8",
+  "input": {
+    "employee": {
+      "id": "TC-WA-045",
+      "startDate": "2010-01-01",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1600.00",
+      "wageHistory": [
+        { "periodStart": "2010-01-01", "periodEnd": "2026-05-25", "grossPay": "1352000.00", "frequency": "other", "periodDays": 5984, "note": "Aggregate only" }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2018-06-01", "endDate": "2018-06-25", "note": "Aggregate sick days for 2018" }
+      ],
+      "extraInputs": {
+        "regimeSplitDataInsufficient": true
+      }
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1600.00",
+    "warnings": ["wa_regime_split_data_insufficient"]
+  }
+}

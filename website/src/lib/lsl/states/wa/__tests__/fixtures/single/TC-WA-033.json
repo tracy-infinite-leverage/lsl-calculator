@@ -1,0 +1,29 @@
+{
+  "name": "TC-WA-033",
+  "title": "Unpaid leave 8 weeks post-2022 — does NOT count, no break",
+  "source": "WA LSL Act 1958 s.6 (as amended)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-033",
+      "startDate": "2018-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2024-01-01", "endDate": "2024-02-29", "note": "8 wks unpaid leave" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.post-2022.lwop-does-not-count-but-no-break" }
+    ]
+  }
+}

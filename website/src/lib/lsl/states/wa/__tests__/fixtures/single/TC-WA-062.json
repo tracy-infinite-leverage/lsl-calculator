@@ -1,0 +1,28 @@
+{
+  "name": "TC-WA-062",
+  "title": "13 yrs FT voluntary resignation → 11.2667 wks (continuous accrual)",
+  "source": "WA LSL Act 1958 s.8(1); TBD-WA-04 RESOLVED — continuous 1/60",
+  "input": {
+    "employee": {
+      "id": "TC-WA-062",
+      "startDate": "2013-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(1)", "rule": "accrual.qualifying-period-10yr" }
+    ]
+  }
+}

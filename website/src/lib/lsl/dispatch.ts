@@ -17,6 +17,7 @@ import type { StateRuleSet } from '@/lib/lsl/states/StateRuleSet';
 import { NSW_RULE_SET } from '@/lib/lsl/states/nsw';
 import { VIC_RULE_SET } from '@/lib/lsl/states/vic';
 import { QLD_RULE_SET } from '@/lib/lsl/states/qld';
+import { WA_RULE_SET } from '@/lib/lsl/states/wa';
 
 /**
  * Registry of state → rule set. Add one entry per state as it ships.
@@ -28,7 +29,8 @@ const STATE_REGISTRY: Partial<Record<State, StateRuleSet>> = {
   NSW: NSW_RULE_SET,
   VIC: VIC_RULE_SET,
   QLD: QLD_RULE_SET,
-  // WA: WA_RULE_SET   ← Phase 5
+  WA: WA_RULE_SET,
+  // SA: SA_RULE_SET   ← Phase 6
   // ...
 };
 

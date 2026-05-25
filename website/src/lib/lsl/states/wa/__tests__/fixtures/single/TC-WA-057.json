@@ -1,0 +1,31 @@
+{
+  "name": "TC-WA-057",
+  "title": "Commission-only employee — 365-day average per DEMIRS",
+  "source": "WA LSL Act 1958 s.9; DEMIRS results-based pay",
+  "input": {
+    "employee": {
+      "id": "TC-WA-057",
+      "startDate": "2014-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1610.96",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "84000.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "commissionEarningsLast365Days": "84000.00"
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1610.96",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.9", "rule": "ordinary-pay.results-based-pay-365-day-average" }
+    ]
+  }
+}

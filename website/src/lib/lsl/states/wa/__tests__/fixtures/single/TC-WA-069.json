@@ -1,0 +1,24 @@
+{
+  "name": "TC-WA-069",
+  "title": "WA + NSW service, NSW nominated → blocked at WA engine (dispatcher routes to NSW)",
+  "source": "spec F13 / AC14",
+  "input": {
+    "employee": {
+      "id": "TC-WA-069",
+      "startDate": "2015-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA", "NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "78000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "blocked_cross_jurisdiction",
+    "warnings": ["cross_jurisdiction_pending"]
+  }
+}

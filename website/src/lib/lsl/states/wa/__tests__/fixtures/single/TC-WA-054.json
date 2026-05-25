@@ -1,0 +1,34 @@
+{
+  "name": "TC-WA-054",
+  "title": "Casual employee whose entire tenure pre-dates 2022-06-20",
+  "source": "DEMIRS — pre-2022 no specific casual rules",
+  "input": {
+    "employee": {
+      "id": "TC-WA-054",
+      "startDate": "2010-05-25",
+      "endDate": "2020-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "900.00",
+      "wageHistory": [
+        { "periodStart": "2010-05-25", "periodEnd": "2020-05-25", "grossPay": "468000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2014-11-01", "endDate": "2015-01-31", "note": "3-mo casual gap during pre-2022 block" }
+      ],
+      "extraInputs": {
+        "currentHourlyRate": "36.00",
+        "hoursAccrualBlock1": 13000
+      }
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["wa_pre_2022_casual_no_specific_rules"],
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.pre-2022.casual-no-specific-rules-general-applies" }
+    ]
+  }
+}

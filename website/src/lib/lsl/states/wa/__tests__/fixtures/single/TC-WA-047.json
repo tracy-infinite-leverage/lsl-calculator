@@ -1,0 +1,30 @@
+{
+  "name": "TC-WA-047",
+  "title": "WC absence entirely post-2024-07-01 → counts in full",
+  "source": "WCIM Act 2023 (WA); DEMIRS post-2024",
+  "input": {
+    "employee": {
+      "id": "TC-WA-047",
+      "startDate": "2015-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2015-05-25", "periodEnd": "2026-05-25", "grossPay": "971600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2024-08-01", "endDate": "2025-01-29", "note": "6 mo WC entirely post-2024-07-01" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "expected_citations": [
+      { "section": "WCIM Act 2023 (WA)", "rule": "workers-comp-counts-from-2024-07-01" }
+    ]
+  }
+}

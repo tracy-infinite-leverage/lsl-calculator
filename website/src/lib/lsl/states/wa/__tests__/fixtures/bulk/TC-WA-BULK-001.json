@@ -1,0 +1,86 @@
+{
+  "name": "TC-WA-BULK-001",
+  "title": "5-employee WA-only fixture, mixed tenures and triggers",
+  "source": "spec F17 + AC16; test-cases-wa.md TC-WA-BULK-001",
+  "input": {
+    "employees": [
+      {
+        "id": "W01",
+        "startDate": "2014-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["WA"],
+        "governingJurisdiction": "WA",
+        "currentWeeklyGross": "1884.62",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "98000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "W02",
+        "startDate": "2018-05-25",
+        "endDate": "2026-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["WA"],
+        "governingJurisdiction": "WA",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "78000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+      },
+      {
+        "id": "W03",
+        "startDate": "2017-05-25",
+        "employmentType": "part_time",
+        "statesOfService": ["WA"],
+        "governingJurisdiction": "WA",
+        "currentWeeklyGross": "750.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "39000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "W04",
+        "startDate": "2015-05-25",
+        "endDate": "2026-05-25",
+        "employmentType": "casual",
+        "statesOfService": ["WA"],
+        "governingJurisdiction": "WA",
+        "currentWeeklyGross": "1057.69",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "55000.00", "frequency": "other", "periodDays": 365 }
+        ],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+      },
+      {
+        "id": "W05",
+        "startDate": "2020-05-25",
+        "endDate": "2026-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["WA"],
+        "governingJurisdiction": "WA",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "78000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "serious_misconduct" }
+      }
+    ],
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "summary": { "computed": 5, "blocked": 0, "failed": 0 },
+    "rowStatuses": {
+      "W01": "computed",
+      "W02": "computed",
+      "W03": "computed",
+      "W04": "computed",
+      "W05": "computed"
+    }
+  }
+}

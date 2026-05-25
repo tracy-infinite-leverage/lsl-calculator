@@ -1,0 +1,25 @@
+{
+  "name": "TC-WA-068",
+  "title": "11 yrs as-at → 9.5333 wks (above qualifying threshold)",
+  "source": "WA LSL Act 1958 s.8(1); TBD-WA-04 — continuous accrual",
+  "input": {
+    "employee": {
+      "id": "TC-WA-068",
+      "startDate": "2015-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "78000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable"
+  }
+}

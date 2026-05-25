@@ -1,0 +1,31 @@
+{
+  "name": "TC-WA-005",
+  "title": "7 yrs FT serious-misconduct dismissal → $0 (sub-10-yr full forfeiture)",
+  "source": "APA p.67; WA LSL Act 1958 s.8(3)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-005",
+      "legalName": "MisconductSub10WAFixture",
+      "startDate": "2019-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2019-05-25", "periodEnd": "2026-05-25", "grossPay": "618800.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["sub_10yr_misconduct_excluded_wa"],
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(3)", "rule": "accrual.7-to-10yr.serious-misconduct-excluded" }
+    ]
+  }
+}

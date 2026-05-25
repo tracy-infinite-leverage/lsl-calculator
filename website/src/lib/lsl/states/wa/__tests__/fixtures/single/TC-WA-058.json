@@ -1,0 +1,32 @@
+{
+  "name": "TC-WA-058",
+  "title": "Piecework employee — 365-day average",
+  "source": "WA LSL Act 1958 s.9; DEMIRS results-based pay (piecework)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-058",
+      "startDate": "2014-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1200.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "62400.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [],
+      "categoryOverride": "C",
+      "categoryOverrideConfirmed": true,
+      "extraInputs": {
+        "commissionEarningsLast365Days": "62400.00"
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.9", "rule": "ordinary-pay.results-based-pay-365-day-average" }
+    ]
+  }
+}

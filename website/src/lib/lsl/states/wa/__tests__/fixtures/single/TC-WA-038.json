@@ -1,0 +1,30 @@
+{
+  "name": "TC-WA-038",
+  "title": "Transfer of business pre-2022 — preserved per transmission-of-business rule",
+  "source": "WA LSL Act 1958 s.6 (pre-2022)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-038",
+      "startDate": "2014-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "936000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "transfer_of_business", "startDate": "2020-07-01", "note": "Pre-2022 transmission of business" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.pre-2022.transfer-of-business-preserves" }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "TC-WA-048",
+  "title": "WC absence spanning 2024-07-01 → partial counted",
+  "source": "WCIM Act 2023 (WA); DEMIRS date-of-absence cutoff",
+  "input": {
+    "employee": {
+      "id": "TC-WA-048",
+      "startDate": "2014-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1060400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2024-04-01", "endDate": "2024-09-30", "note": "6 mo WC straddling 2024-07-01" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "warnings": ["wa_workers_comp_pre_2024_excluded"],
+    "expected_citations": [
+      { "section": "WCIM Act 2023 (WA)", "rule": "workers-comp-counts-from-2024-07-01" }
+    ]
+  }
+}

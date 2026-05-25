@@ -1,0 +1,28 @@
+{
+  "name": "TC-WA-063",
+  "title": "12 yrs cash-out request → ADVISORY (non-blocking) + computed value",
+  "source": "WA LSL Act 1958 s.5 (as amended 2022); DEMIRS — cash-out post-accrual only",
+  "input": {
+    "employee": {
+      "id": "TC-WA-063",
+      "startDate": "2014-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "warnings": ["wa_cashout_post_accrual_advisory"],
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.5", "rule": "cash-out.post-accrual-written-agreement" }
+    ]
+  }
+}

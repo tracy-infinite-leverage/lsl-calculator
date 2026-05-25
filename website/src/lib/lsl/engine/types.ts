@@ -240,7 +240,20 @@ export interface Warning {
     | 'qld_lsl_calculated_at_wc_reduced_rate_warning'
     | 'pre_1994_casual_cliff_qld'
     | 'pre_1990_service_advisory_qld'
-    | 'employment_type_transition_qld';
+    | 'employment_type_transition_qld'
+    // WA-specific (E2 Phase 5 — see docs/qa/test-cases-wa.md Resolutions section)
+    | 'sub_7yr_no_entitlement_wa'
+    | 'sub_10yr_misconduct_excluded_wa'
+    | 'wa_10yr_plus_misconduct_partial_forfeiture'
+    | 'wa_cashout_post_accrual_advisory'
+    | 'wa_cashout_pre_accrual_not_authorised'
+    | 'wa_cashout_no_entitlement_to_cash_out'
+    | 'wa_lsl_calculated_at_wc_reduced_rate_warning'
+    | 'wa_pre_2022_casual_no_specific_rules'
+    | 'wa_regime_split_applied'
+    | 'wa_regime_split_data_insufficient'
+    | 'wa_workers_comp_pre_2024_excluded'
+    | 'wa_workers_comp_paid_concurrent';
   message: string;
   rowRef?: string;
 }
