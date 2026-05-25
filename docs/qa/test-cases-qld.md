@@ -1,14 +1,76 @@
 # QLD LSL Calculator — Gold-Standard Test Cases
 
-**Status**: DRAFT v1 · Pending PM sign-off — Phase 4 T4.0
-**Version**: v1.0-draft
+**Status**: SIGNED OFF · Tracy Angwin (PM) · 2026-05-25
+**Version**: v1.0
 **Date**: 2026-05-25
 **Spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
 **Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` Phase 4 (QLD)
-**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T4.0 (BLOCKING — gates T4.1+)
+**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T4.0 (SIGNED OFF — T4.1 onwards unblocked)
 **Source-of-truth Act**: *Industrial Relations Act 2016* (Qld) — Chapter 2 Part 3 Division 9 (sections 93–110) + Chapter 2 Part 3 Division 12 (section 134 — general continuity of service)
 
-> **PM sign-off (pending — Tracy)**: 6 TBDs flagged at the bottom of this file remain open. Per E2 AC4b, the per-state launch gate is (1) PM sign-off on this file + (2) the gold-standard suite passing 100% green on the merge commit. **T4.1 (QLD rule-set scaffold) is BLOCKED until PM resolves the open TBDs and signs this file.**
+> **PM sign-off**: Tracy Angwin · 2026-05-25. All 6 TBDs resolved (see **Resolutions** section immediately below). T4.1 (QLD rule-set scaffold) is unblocked for the developer agent. Five fixtures that depend on a state-agnostic termination-reason enum redesign have been moved to the **Deferred to cross-state termination-enum refactor** appendix and will be reinstated in a small follow-up PR once **DEV-CROSS-1** lands (see dev-findings.md).
+
+---
+
+## Resolutions
+
+This section records the PM resolutions applied on 2026-05-25 for each TBD raised during the v1.0-draft research pass. The original TBD register is preserved further below for traceability.
+
+### TBD-QLD-01 — [Severity 1] 15-year accrual + threshold inclusivity → RESOLVED
+
+**Operator decision (Tracy Angwin, 2026-05-25)**: **Accept PM's reading.** Accrual is continuous at 1/60 — no discrete step at 15 yrs. The 13-week figure at 15 yrs is the arithmetic outcome (15 × 8.6667/10 = 13.00005 ≈ 13.0), not a separate accrual band. Thresholds (7, 10, 15 yrs) are **inclusive** at exact-day boundary — same as VIC's resolved 7-yr inclusivity.
+
+**Engine encoding**: `years_of_continuous_service >= 7.0000`, `>= 10.0000`, `>= 15.0000`. Accrual formula `years × 8.6667 / 10` applied continuously across all tenure bands ≥ 10 yrs. TC-QLD-047 and TC-QLD-048 expected outputs reflect the continuous reading and are unchanged.
+
+### TBD-QLD-02 — [Severity 1] Historical cliffs (s.96 general, s.103 casual) → RESOLVED
+
+**Operator decision (Tracy Angwin, 2026-05-25)**: **Accept PM's reading.**
+- **s.103 (30 March 1994 casual cliff)**: HARD-ANCHOR. Engine MUST anchor casual service to 1994-03-30 when `employmentType = 'casual' && startDate < 1994-03-30`. The Act language is unambiguous and the cliff is operationally meaningful for long-tenure casuals.
+- **s.96 (23 June 1990 general cliff)**: ADVISORY-ONLY. Engine uses the actual start date in the accrual computation and emits a `pre_1990_service_advisory_qld` warning when `startDate < 1990-06-23`. Rationale: the cliff carves out a transitional exception that may or may not engage depending on industrial-award history; the calculator cannot adjudicate that and so surfaces the advisory and proceeds with the user-supplied date. In practice the cliff is moot for current calculations (pre-1990 starters have 35+ years of post-cliff service to draw on).
+- **TC-QLD-038 transition (casual-to-permanent)**: the cliff applies only to the casual portion. Permanent service from the transition date onward counts fully; pre-1994 casual hours are excluded.
+
+**Engine encoding**: see `continuous-service-rules.ts` per-state file (T4.2). Fixtures TC-QLD-035 (advisory only), TC-QLD-036 (hard-anchor to 1994-03-30), TC-QLD-037 (no cliff for permanent pre-1990 starter — advisory only), TC-QLD-038 (casual-portion-only cliff) all stand as drafted.
+
+### TBD-QLD-03 — [Severity 2] Casual rate-of-pay averaging window → RESOLVED
+
+**PM recommendation applied (Tracy Angwin, 2026-05-25)**: single **52-week lookback** per Business QLD's published formula `(total ordinary hours ÷ 52) × 8.6667 ÷ 10` and RosterElf's worked examples. NOT a 3-tier "greater of" like VIC s.15(2). This matches the simpler s.105 statutory wording and the explicit Business QLD guidance.
+
+**Engine encoding**: QLD `value-of-week.ts` reads `hoursLast52Weeks` (already on the Employee shape, used by VIC's casual path), divides by 52, multiplies by the loaded hourly rate per s.105. No `weekly_avg_52w / 260w / whole` triplet required for QLD — simpler than VIC. Fixtures TC-QLD-009, TC-QLD-024, TC-QLD-042 expected `weekly_avg` values stand as drafted.
+
+**No architectural surprise**: the engine already supports a 52-wk-only path (NSW casual handling); QLD reuses that pattern.
+
+### TBD-QLD-04 — [Severity 2] Cash-out advisory granularity → RESOLVED
+
+**PM recommendation applied (Tracy Angwin, 2026-05-25)**:
+1. **NO user-supplied s.110 ground required.** The calculator computes the value; the legal authority (industrial instrument vs QIRC order on financial hardship / compassionate grounds) is the user's responsibility. A single advisory message covers all s.110 grounds.
+2. **YES emit BOTH a base s.110 advisory AND a sub-10-yr-specific advisory** when `years_of_continuous_service < 10`. Strengthens user awareness that pre-10-yr cash-out is rarely authorised by industrial instrument and typically requires a QIRC order.
+3. **Pass through with $0 at sub-7-yr** (TC-QLD-051). The calculator does not refuse the cash_out trigger; it surfaces that there's nothing to cash out via the `sub_7yr_no_entitlement_qld` warning plus a `qld_cashout_no_entitlement_to_cash_out` advisory.
+
+**Engine encoding**: trigger-handlers.ts emits the warning codes per the fixture expectations. Fixtures TC-QLD-049, TC-QLD-050, TC-QLD-051, TC-QLD-052 all stand as drafted.
+
+**No architectural surprise**: the warning-emission pattern is identical to NSW/VIC; only the message text and code names are QLD-specific.
+
+### TBD-QLD-05 — [Severity 2] Workers Compensation rate of pay → RESOLVED
+
+**Operator decision (Tracy Angwin, 2026-05-25)**: **Accept PM's reading.** Apply the literal s.98 ordinary-rate-at-leave-time. QLD has NO equivalent of VIC s.17 "higher of pre-injury rate or current rate" — the engine pays LSL at whatever rate is in force when the leave is taken, even if that is a temporarily reduced WC rate.
+
+**Additional engine behaviour (added per operator instruction)**: emit a non-blocking warning when a `workers_comp_absence` event overlaps the LSL trigger date OR when the trigger date falls within an active WC episode. Warning code: `qld_lsl_calculated_at_wc_reduced_rate_warning`. Message text: *"LSL has been calculated at the rate in force at the time leave is taken under QLD IR Act 2016 s.98. The employee appears to be on workers compensation at a reduced rate. If feasible, defer taking LSL until the employee is back on their ordinary rate; QLD has no statutory higher-of-rates equivalent to VIC s.17."*
+
+**Engine encoding**: QLD `value-of-week.ts` always returns the current rate (no auto-uplift). `trigger-handlers.ts` checks for WC-event overlap with the trigger window and emits the advisory warning where applicable. TC-QLD-029 expected `value_of_week` is `1800.00` (current rate); the fixture now also expects the new warning code.
+
+**No architectural surprise**: same pattern as VIC's cashing-out warning; one new warning code added.
+
+### TBD-QLD-06 — [Severity 2] Termination-reason enum design → RESOLVED via cross-state refactor deferral
+
+**Operator decision (Tracy Angwin, 2026-05-25)**: **Spin off as a separate cross-state PR.** Do NOT bundle the termination-reason enum redesign into the QLD per-state PR. The redesign will apply to WA/SA/TAS/ACT/NT as well (each has analogous qualifying-reason taxonomies) and belongs in a state-agnostic refactor.
+
+**Engine encoding for QLD v1**: use the **existing** `Trigger.reason` enum values (`voluntary_resignation`, `redundancy`, `serious_misconduct`, `illness_incapacity`, `death`). Five fixtures that genuinely require the new disambiguation (employee-vs-employer-initiated illness, `unfair_dismissal`, `employer_initiated_not_misconduct`, `domestic_pressing_necessity`, `poor_performance`) are **DEFERRED** to a follow-up PR. See the **Deferred to cross-state termination-enum refactor** appendix at the end of this document for the full list and rationale.
+
+**Tracked task**: **DEV-CROSS-1** added to `dev-findings.md` for the termination-reason enum redesign. Developer agent owns the refactor; once it lands, the deferred fixtures will be reinstated via a small follow-up PR.
+
+**No architectural surprise**: this is the cleanest path — keep QLD scope tight, defer the cross-cutting refactor to a single state-agnostic PR.
+
+---
 
 ---
 
@@ -46,7 +108,7 @@ Each test case has:
 - **Ordinary pay** (s.98 + s.99): paid at the ordinary rate **excluding overtime** at the time the leave is taken. For commission/piece-rate workers, the average commission over the year before the leave period is used (s.99). Casuals are paid at their **loaded casual hourly rate** (s.105) — including casual loading.
 - **Continuous service** (s.93 + s.134): paid working time and paid leave count. Re-employment within **3 months** of termination preserves prior service (s.134). Unpaid leave does not count toward service but does not break continuity. Casual employees: continuous service ends if a gap between contracts exceeds **3 months** (s.103).
 - **Public holidays during LSL** (s.97 + Business QLD): **EXCLUSIVE** — a PH falling within an LSL window is NOT counted as a day of LSL (matches NSW and VIC; differs from SA which is inclusive).
-- **Cashing out** (s.110): permitted ONLY if (a) an industrial instrument (modern award, certified agreement, bargaining award) authorises it, OR (b) the Queensland Industrial Relations Commission orders it on **financial hardship or compassionate** grounds. Cashing-out is NOT a criminal offence in QLD (unlike VIC). Engine emits a **non-blocking advisory** citation note when a `cash_out` trigger is received, NOT a hard error. See §I for the resolved behaviour and TBD-QLD-04 below for the open question on how strictly to validate the s.110 grounds at the engine layer.
+- **Cashing out** (s.110): permitted ONLY if (a) an industrial instrument (modern award, certified agreement, bargaining award) authorises it, OR (b) the Queensland Industrial Relations Commission orders it on **financial hardship or compassionate** grounds. Cashing-out is NOT a criminal offence in QLD (unlike VIC). Engine emits a **non-blocking advisory** citation note when a `cash_out` trigger is received, NOT a hard error. See §I for the resolved behaviour. Per TBD-QLD-04 (RESOLVED), the engine does NOT require user-supplied s.110 ground — a single advisory message covers all grounds; sub-10-yr cash-out gets a stronger advisory; sub-7-yr passes through with $0.
 - **Citations**: every case lists the minimum expected citations. The rules engine MAY emit additional citations; tests assert array-membership, not array-equality.
 
 ---
@@ -90,11 +152,11 @@ QLD has TWO historical date cliffs in the LSL regime, both of which pre-date the
 
 Service performed for the same employer before 23 June 1990 is generally NOT counted as continuous service for the purpose of computing the qualifying period (s.95(2)) UNLESS specific transitional savings apply. In practice this means an employee who started before 23 June 1990 and has been continuously employed since has their "official start date" for LSL purposes treated as 23 June 1990 (the earliest the modern continuous-service rules begin to count) — UNLESS a prior industrial award or contract preserved their pre-1990 service.
 
-**What this means for v1**: in practice, an employee with start date pre-1990 who is calculating a 2026 LSL entitlement has well over 30 years of post-1990 service and the cliff is moot for the accrual calculation. The engine **MUST** still surface this in the citation block as an advisory when `startDate < 1990-06-23` AND `as-at/termination date ≥ 1990-06-23 + 10 years`, but it does NOT alter the computed weeks or dollars. **See TBD-QLD-02 below for the open question on whether to expose this as an advisory warning or just a citation note.**
+**What this means for v1**: in practice, an employee with start date pre-1990 who is calculating a 2026 LSL entitlement has well over 30 years of post-1990 service and the cliff is moot for the accrual calculation. The engine **MUST** surface this as an advisory warning (`pre_1990_service_advisory_qld`) when `startDate < 1990-06-23`, but does NOT alter the computed weeks or dollars per the resolved TBD-QLD-02. See Resolutions section above.
 
 ### s.103 — Continuity of service for casual employees: 30 March 1994
 
-The 30 March 1994 cliff applies specifically to **casual employees**. Before 30 March 1994, casual employees had no entitlement to LSL at all in Queensland. From 30 March 1994 onward, all continuous service of a casual employee is taken into account. The engine **MUST** treat any casual service before 30 March 1994 as zero hours for the s.95 accrual calculation, and start counting service from 30 March 1994 forward. **See TBD-QLD-02 (same TBD covers both cliffs).**
+The 30 March 1994 cliff applies specifically to **casual employees**. Before 30 March 1994, casual employees had no entitlement to LSL at all in Queensland. From 30 March 1994 onward, all continuous service of a casual employee is taken into account. The engine **MUST** treat any casual service before 30 March 1994 as zero hours for the s.95 accrual calculation, and start counting service from 30 March 1994 forward. Per the resolved TBD-QLD-02: this cliff is a **HARD ANCHOR** — engine sets the effective service start to 1994-03-30 when `employmentType = 'casual' && startDate < 1994-03-30` and emits the `pre_1994_casual_cliff_qld` warning.
 
 ---
 
@@ -102,8 +164,8 @@ The 30 March 1994 cliff applies specifically to **casual employees**. Before 30 
 
 | Source / Theme | Test IDs | Count |
 |---|---|---|
-| APA PDF QLD worked examples (pp.49–64) | TC-QLD-001 → TC-QLD-010 | 10 |
-| Sub-7-year and 7–10-year qualifying-reason cases (s.95(3)/(4)) | TC-QLD-011 → TC-QLD-019 | 9 |
+| APA PDF QLD worked examples (pp.49–64) | TC-QLD-001 → TC-QLD-010 (TC-QLD-005, -007, -008 deferred) | 7 active + 3 deferred |
+| Sub-7-year and 7–10-year qualifying-reason cases (s.95(3)/(4)) | TC-QLD-011 → TC-QLD-019 (TC-QLD-015, -016 deferred) | 7 active + 2 deferred |
 | 10+ year automatic payout (any reason, incl. misconduct) (s.95(2)) | TC-QLD-020 → TC-QLD-024 | 5 |
 | Continuous-service edge cases (s.134, s.103) | TC-QLD-025 → TC-QLD-034 | 10 |
 | Historical-cliff cases (s.96, s.103) | TC-QLD-035 → TC-QLD-038 | 4 |
@@ -114,7 +176,11 @@ The 30 March 1994 cliff applies specifically to **casual employees**. Before 30 
 | As-at snapshot trigger | TC-QLD-054 → TC-QLD-055 | 2 |
 | Cross-jurisdiction (QLD + other state) | TC-QLD-056 → TC-QLD-057 | 2 |
 | Bulk-mode fixtures | TC-QLD-BULK-001 → TC-QLD-BULK-003 | 3 |
-| **Total** | | **63** |
+| **Total active fixtures for v1 QLD launch** | | **58** |
+| **Deferred to cross-state termination-enum refactor (DEV-CROSS-1)** | TC-QLD-005, -007, -008, -015, -016 | **5** |
+| **Grand total (active + deferred)** | | **63** |
+
+> **Deferred fixtures** are listed in full in the **Deferred to cross-state termination-enum refactor** appendix at the end of this document. They are NOT required for the QLD v1 launch gate (AC4b); they will be reinstated in a follow-up PR once DEV-CROSS-1 (the termination-reason enum redesign) lands.
 
 ---
 
@@ -303,6 +369,8 @@ expected_citations:
 
 ### TC-QLD-005 — 8 yrs FT employer dismissal for illness, pro-rata payout
 
+> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture requires `terminationInitiator: 'employer'` to disambiguate s.95(3)(c) from s.95(3)(b). Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
+
 - **Source**: APA p.52; QLD IR Act 2016 s.95(3)(c) — employer dismisses for the employee's illness
 - **Category**: Pro-rata at termination — employer-initiated, illness
 
@@ -380,11 +448,13 @@ expected_citations:
 
 **Notes**
 
-QLD does not have a VIC-style separate s.10 "death of employee" provision with a mandated 52-week ordinary-pay-averaging formula. The standard s.98 ordinary-rate-at-leave-time applies, with the leave-time anchor for a death trigger being the date of death (engine MUST anchor lookback to terminationDate, not asAtDate). **See TBD-QLD-05 below — open question on whether the rate used for a deceased employee is the rate at date of death or the rate they would have been on for ordinary-rate-at-leave-time purposes. APA training and Business QLD both implicitly point to "rate at date of death".**
+QLD does not have a VIC-style separate s.10 "death of employee" provision with a mandated 52-week ordinary-pay-averaging formula. The standard s.98 ordinary-rate-at-leave-time applies, with the leave-time anchor for a death trigger being the date of death (engine MUST anchor lookback to terminationDate, not asAtDate). Per the resolved TBD-QLD-05: the engine applies the literal s.98 rate at time of leave/termination — for a death trigger, that is the rate at date of death. APA training and Business QLD both support this reading.
 
 ---
 
 ### TC-QLD-007 — 9 yrs FT employer dismissal NOT for conduct, pro-rata payable
+
+> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture uses the new enum value `employer_initiated_not_misconduct` which does not yet exist on `Trigger.reason`. Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
 
 - **Source**: APA p.51; QLD IR Act 2016 s.95(3)(d)
 - **Category**: Pro-rata at termination — generic employer dismissal
@@ -424,6 +494,8 @@ s.95(3)(d) catches any employer-initiated dismissal NOT due to employee's "condu
 ---
 
 ### TC-QLD-008 — 8 yrs FT unfair dismissal finding, pro-rata payable
+
+> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture uses the new enum value `unfair_dismissal` which does not yet exist on `Trigger.reason`. Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
 
 - **Source**: APA p.51; QLD IR Act 2016 s.95(3)(e)
 - **Category**: Pro-rata at termination — unfair dismissal
@@ -507,7 +579,7 @@ expected_citations:
 
 **Notes**
 
-QLD casual treatment differs from VIC's 3-tier averaging (s.15(2)). QLD uses the hours-based calculation built on s.105 (loaded hourly rate), with continuous service rule per s.103 (3-month casual gap break). The 52-week hours figure drives the weekly average computation. **TBD-QLD-03 below** flags the open question of whether QLD applies a single 52-wk lookback OR a multi-tier "greater of" similar to VIC. Business QLD's published formula is `(total ordinary hours ÷ 52) × 8.6667 ÷ 10` which implies a simple 52-wk lookback at the time of leave/termination — confirmed by RosterElf.
+QLD casual treatment differs from VIC's 3-tier averaging (s.15(2)). QLD uses the hours-based calculation built on s.105 (loaded hourly rate), with continuous service rule per s.103 (3-month casual gap break). The 52-week hours figure drives the weekly average computation. Per the resolved TBD-QLD-03: QLD applies a **single 52-wk lookback** (NOT a multi-tier "greater of"), per Business QLD's published formula `(total ordinary hours ÷ 52) × 8.6667 ÷ 10` and RosterElf's worked examples.
 
 ---
 
@@ -598,7 +670,7 @@ expected_citations:
 
 **Notes**
 
-Same numeric outcome as VIC sub-7-yr (TC-VIC-015) and NSW sub-5-yr cases. Engine MUST cite QLD IR Act 2016 s.95(3), NOT NSW LSA s.4 or VIC s.6. **TBD-QLD-06 below**: open question on whether to emit the `sub_7yr_review_industrial_instrument` warning code (which exists in `engine/types.ts` for VIC use) or introduce a QLD-specific code. Recommendation in this draft is to reuse the existing state-agnostic enum value with QLD-specific message text.
+Same numeric outcome as VIC sub-7-yr (TC-VIC-015) and NSW sub-5-yr cases. Engine MUST cite QLD IR Act 2016 s.95(3), NOT NSW LSA s.4 or VIC s.6. The warning code `sub_7yr_no_entitlement_qld` is QLD-specific; the engine reuses the existing state-agnostic warning enum infrastructure with QLD-specific message text (same pattern as VIC's `sub_7yr_review_industrial_instrument` from TBD-VIC-07).
 
 ---
 
@@ -638,7 +710,7 @@ expected_citations:
 
 **Notes**
 
-The Act language "at least 7 years continuous service" is read inclusive at the exact 7-yr boundary (consistent with VIC's "after completing 7 years" interpretation, TBD-VIC-06 resolution). Engine threshold is `years_of_continuous_service >= 7.0000`. **TBD-QLD-01 below** flags the precise threshold semantics for confirmation.
+The Act language "at least 7 years continuous service" is read inclusive at the exact 7-yr boundary (consistent with VIC's "after completing 7 years" interpretation, TBD-VIC-06 resolution). Engine threshold is `years_of_continuous_service >= 7.0000`. Per the resolved TBD-QLD-01: thresholds at 7, 10, and 15 yrs are all inclusive at exact-day boundary.
 
 ---
 
@@ -719,6 +791,8 @@ QLD diverges from VIC here: VIC pays out at 7+ yrs regardless of misconduct (TC-
 
 ### TC-QLD-015 — 8 yrs FT poor-performance dismissal → $0 (capacity/performance excluded)
 
+> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture uses the new enum value `poor_performance` which does not yet exist on `Trigger.reason`. Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
+
 - **Source**: QLD IR Act 2016 s.95(3)(d)
 - **Category**: Negative — sub-10-yr performance dismissal
 
@@ -740,11 +814,13 @@ expected_citations:
 
 **Notes**
 
-Reuses TC-QLD-014's input shape but with `reason: poor_performance`. Engine MUST treat `serious_misconduct`, `poor_performance`, `incapacity_dismissal` as semantically equivalent for s.95(3)(d) exclusion purposes. The user-facing taxonomy of termination reasons drives this — see **TBD-QLD-06** for the open question on how granular the trigger-reason enum should be.
+Reuses TC-QLD-014's input shape but with `reason: poor_performance`. Engine MUST treat `serious_misconduct`, `poor_performance`, `incapacity_dismissal` as semantically equivalent for s.95(3)(d) exclusion purposes. Per the resolved TBD-QLD-06: the `poor_performance` enum value is part of the cross-state termination-reason enum redesign and this fixture is DEFERRED until DEV-CROSS-1 lands.
 
 ---
 
 ### TC-QLD-016 — 7 yrs FT domestic pressing necessity resignation → pro-rata payable
+
+> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture uses the new enum value `domestic_pressing_necessity` which does not yet exist on `Trigger.reason`. Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
 
 - **Source**: QLD IR Act 2016 s.95(3)(b); Business Chamber QLD — case-law examples
 - **Category**: Pro-rata at termination — domestic pressing necessity
@@ -768,7 +844,7 @@ expected_citations:
 
 **Notes**
 
-"Domestic or other pressing necessity" per s.95(3)(b) covers forced caregiver obligations and severe family-relationship strain unable to be remedied by the employer. The calculator does NOT adjudicate whether a given reason qualifies — the user asserts it. **TBD-QLD-06** covers the trigger-reason enum design.
+"Domestic or other pressing necessity" per s.95(3)(b) covers forced caregiver obligations and severe family-relationship strain unable to be remedied by the employer. The calculator does NOT adjudicate whether a given reason qualifies — the user asserts it. Per the resolved TBD-QLD-06: this fixture is DEFERRED until DEV-CROSS-1 lands (new enum value `domestic_pressing_necessity`).
 
 ---
 
@@ -1085,23 +1161,25 @@ QLD treats ALL unpaid leave the same way: no service accrual, no break. Unlike V
 
 ---
 
-### TC-QLD-029 — Workers Compensation counts as continuous service (s.134)
+### TC-QLD-029 — Workers Compensation counts as continuous service (s.134) + WC-reduced-rate advisory
 
 ```yaml
 employee:
   id: TC-QLD-029
   startDate: 2018-05-25
   employmentType: full_time
-  currentWeeklyGross: 1800.00            # rate at time of leave/termination per s.98
+  currentWeeklyGross: 1500.00            # reduced WC rate at time of as-at — partial-capacity WC payment
   extraInputs:
-    preInjuryWeeklyRate: 1500.00          # for reference; NOT used in QLD calculation
+    preInjuryWeeklyRate: 1800.00          # for reference; NOT used in QLD calculation
   serviceEvents:
-    - { type: workers_comp_absence, startDate: 2025-08-01, endDate: 2026-02-01, note: "6 mo WC — counts as continuous service per Business QLD; rate of pay at time of leave is s.98 controlling rate" }
+    - { type: workers_comp_absence, startDate: 2025-08-01, endDate: 2026-05-25, note: "Active WC at as-at date — engine emits reduced-rate advisory per TBD-QLD-05 resolution" }
 trigger: { kind: as_at, asAtDate: 2026-05-25 }
 expected:
   continuity_preserved: true
-  days_counting_as_service: 184            # WC period counts
-  value_of_week: 1800.00                   # current rate per s.98, NOT pre-injury rate (unlike VIC s.17)
+  days_counting_as_service: 297            # WC period counts
+  value_of_week: 1500.00                   # current (reduced WC) rate per s.98, NOT pre-injury rate — QLD has no s.17 equivalent
+  warnings:
+    - { code: qld_lsl_calculated_at_wc_reduced_rate_warning, message: "LSL has been calculated at the rate in force at the time leave is taken under QLD IR Act 2016 s.98. The employee appears to be on workers compensation at a reduced rate. If feasible, defer taking LSL until the employee is back on their ordinary rate; QLD has no statutory higher-of-rates equivalent to VIC s.17." }
 expected_citations:
   - { section: QLD IR Act 2016 s.134, rule: continuous-service.workers-comp-counts, pdfPage: 56 }
   - { section: QLD IR Act 2016 s.98,  rule: ordinary-pay.ordinary-rate-at-leave-time, pdfPage: 53 }
@@ -1109,7 +1187,7 @@ expected_citations:
 
 **Notes**
 
-**Critical divergence from VIC**: VIC has s.17 explicit "higher of pre-injury or current rate" for WC employees. QLD has NO equivalent provision — the standard s.98 "ordinary rate at time of leave" applies, full stop. **TBD-QLD-05 below** flags this for confirmation. If an employee on WC has had their rate reduced (e.g. partial-capacity WC payments), the QLD engine pays at the reduced current rate, NOT the pre-injury rate. This may produce undesirable user-facing outcomes — flagged for PM review.
+**Critical divergence from VIC**: VIC has s.17 explicit "higher of pre-injury or current rate" for WC employees. QLD has NO equivalent provision — the standard s.98 "ordinary rate at time of leave" applies, full stop. Per the resolved TBD-QLD-05: the engine applies the literal s.98 rate (even if it is the reduced WC rate) AND emits a `qld_lsl_calculated_at_wc_reduced_rate_warning` advisory when a `workers_comp_absence` event overlaps the trigger date OR when the trigger date falls within an active WC episode. The advisory suggests deferring LSL until the employee is back on their ordinary rate, if feasible. This surfaces the WC-rate-divergence-from-VIC behaviour to the user without changing the statutory math.
 
 ---
 
@@ -1216,7 +1294,7 @@ expected_citations:
 
 **Notes**
 
-QLD s.134(2) preserves continuity for industrial disputes and slackness-of-trade stand-downs (similar to VIC s.12(7)/(8)). Whether the stand-down period itself COUNTS toward accrual is more ambiguous in QLD — the Act lists what preserves continuity but is less explicit about what counts as service. Business QLD's "continuous service refers to paid working time and paid leave" implies stand-down periods (unpaid) do not count. The engine treats stand-down as continuity-preserving but accrual-excluding. **See TBD-QLD-02 below for the open question on whether QLD's treatment of stand-down accrual differs from VIC's explicit s.14(c) exclusion.**
+QLD s.134(2) preserves continuity for industrial disputes and slackness-of-trade stand-downs (similar to VIC s.12(7)/(8)). Whether the stand-down period itself COUNTS toward accrual is more ambiguous in QLD — the Act lists what preserves continuity but is less explicit about what counts as service. Business QLD's "continuous service refers to paid working time and paid leave" implies stand-down periods (unpaid) do not count. The engine treats stand-down as continuity-preserving but accrual-excluding. Per the resolved TBD-QLD-02: this aligns with VIC's explicit s.14(c) exclusion as a sensible default; the engine emits the citation note and the user can override via service-event editing if they have a contrary industrial-instrument provision.
 
 ---
 
@@ -1256,7 +1334,7 @@ expected_citations:
 
 **Notes**
 
-The s.96 cliff is rarely operative in practice — an employee with pre-1990 start has at minimum 35.9 years of post-1990 service to 2026, well past the qualifying period. The engine surfaces the cliff as an advisory citation rather than altering the calculation. **TBD-QLD-02 below** is the open question on whether to emit a warning here or just a citation-block note.
+The s.96 cliff is rarely operative in practice — an employee with pre-1990 start has at minimum 35.9 years of post-1990 service to 2026, well past the qualifying period. Per the resolved TBD-QLD-02: the engine surfaces the cliff as a `pre_1990_service_advisory_qld` non-blocking warning AND uses the actual start date in the accrual computation (advisory-only treatment). No hard-anchor for the general cliff.
 
 ---
 
@@ -1351,7 +1429,7 @@ expected_citations:
 
 **Notes**
 
-**TBD-QLD-02** also covers this: when an employee transitions from casual to permanent mid-tenure, does the cliff apply only to the casual portion (likely) or to the full pre-1994 tenure (unlikely)? Recommendation in this draft is "cliff applies only to casual portion" — i.e. the cliff strips pre-1994 casual hours but does NOT strip pre-1994 permanent service. PM confirmation needed.
+Per the resolved TBD-QLD-02: when an employee transitions from casual to permanent mid-tenure, the cliff applies only to the casual portion. The cliff strips pre-1994 casual hours but does NOT strip post-cliff permanent service. The engine emits both the casual cliff warning AND the employment-type-transition warning.
 
 ---
 
@@ -1459,7 +1537,7 @@ expected_citations:
 
 **Notes**
 
-s.100 specifies QIRC arbitration for piecework-rate disputes. The calculator does NOT compute the dispute resolution — it trusts the user-supplied weekly gross. **TBD-QLD-04** flags this for confirmation.
+s.100 specifies QIRC arbitration for piecework-rate disputes. The calculator does NOT compute the dispute resolution — it trusts the user-supplied weekly gross. (Note: TBD-QLD-04's resolution governs cash-out advisory granularity, not piecework — the piecework treatment was uncontested in the v1.0-draft and stands as written.)
 
 ### TC-QLD-045 — Above-award rate honoured
 
@@ -1511,7 +1589,7 @@ expected_citations:
 
 **Notes**
 
-Critical to verify the engine applies the discrete 15-yr step. Between 10 and 15 yrs, accrual is continuous at 1/60 per year (12 yr → 10.4000 wks, 14 yr → 12.1333 wks). At exactly 15 yrs and above, the 13-wk total applies. **TBD-QLD-01** flags the question of whether 15.0 yrs hits 13.0 wks (discrete step at year boundary) OR whether 14.99 yrs interpolates smoothly to 12.99 wks (continuous accrual) — Business QLD's plain-English summary implies the discrete step but the Act language needs PM confirmation. This draft assumes continuous accrual at 1/60 with no discrete step (so 15.0 yrs = 15 × 8.6667/10 = 13.00005 ≈ 13.00 wks anyway). If the discrete step is the correct reading, the engine MUST flatten 10-14.99-yr accrual to exactly 8.6667 and step to 13.0 at exactly 15.0 yrs.
+Per the resolved TBD-QLD-01: accrual is **continuous at 1/60** with no discrete step at 15 yrs. Between 10 and 15 yrs, accrual proceeds smoothly (12 yr → 10.4000 wks, 14 yr → 12.1333 wks). The 13-wk figure at 15 yrs is the arithmetic outcome of `15 × 8.6667 / 10 = 13.00005 ≈ 13.0`, not a separate accrual band. Thresholds at 7, 10, 15 yrs are inclusive at exact-day boundary.
 
 ---
 
@@ -1528,7 +1606,7 @@ expected_citations:
 
 **Notes**
 
-After the 15-yr step, accrual continues at 1/60. Engine treats accrual as continuous post-15. Same TBD-QLD-01 applies.
+Accrual continues at 1/60 across all tenure bands ≥ 10 yrs. Per the resolved TBD-QLD-01, the engine treats accrual as continuous (no discrete step) — no flatten-and-jump at 15 yrs.
 
 ---
 
@@ -1583,7 +1661,7 @@ This is the **second critical engine branching point** distinguishing VIC (hard 
 - NSW + `cash_out` → `status: failed`, error code `cashout_not_in_v1_scope` (NSW doesn't model cash-out in v1)
 - NT + `cash_out` (Phase 9) → hard error like VIC, citing NT s.12
 
-**TBD-QLD-04**: should the engine require user input confirming the s.110 ground (financial hardship / compassionate / industrial instrument)? Draft recommendation: NO — the calculator computes the value; the legal authority is the user's responsibility. The advisory message surfaces the requirement.
+Per the resolved TBD-QLD-04: the engine does NOT require user input confirming the s.110 ground (financial hardship / compassionate / industrial instrument). The calculator computes the value; the legal authority is the user's responsibility. A single advisory message covers all s.110 grounds.
 
 ---
 
@@ -1604,7 +1682,7 @@ expected_citations:
 
 **Notes**
 
-The cash-out advisory takes a STRONGER form below 10 yrs because the entitlement hasn't yet vested. This is one of the trickier QLD-specific behaviours and **TBD-QLD-04** flags it for confirmation. Recommendation in this draft is to emit BOTH advisories (the standard s.110 one AND a sub-10-yr-specific one).
+The cash-out advisory takes a STRONGER form below 10 yrs because the entitlement hasn't yet vested. Per the resolved TBD-QLD-04: the engine emits BOTH advisories (the standard s.110 one AND a sub-10-yr-specific one).
 
 ---
 
@@ -1890,11 +1968,13 @@ This is the critical fixture proving the per-state cash-out branching: QLD compu
 
 ---
 
-# Items flagged `TBD-QLD-NN` — OPEN for PM resolution
+# Items flagged `TBD-QLD-NN` — ALL RESOLVED (preserved for traceability)
 
-Below are the open questions raised during research that need operator decision before T4.1 (QLD rule-set scaffold) can begin. Each has a severity rating (1 = launch-blocker, 2 = should-resolve, 3 = nice-to-have).
+> **All 6 TBDs were resolved on 2026-05-25.** See the **Resolutions** section near the top of this document for the final outcomes. The original research-pass questions are preserved below for traceability and to document the alternatives considered.
 
-### TBD-QLD-01 — [Severity 1] 15-year accrual: discrete step or continuous? Threshold inclusivity
+Below are the open questions raised during research. Each had a severity rating (1 = launch-blocker, 2 = should-resolve, 3 = nice-to-have). Each is now marked **RESOLVED** with a back-reference to the Resolutions section.
+
+### TBD-QLD-01 — [Severity 1] 15-year accrual: discrete step or continuous? Threshold inclusivity → RESOLVED (see Resolutions section above — accept PM's reading, continuous + inclusive)
 
 **Question**: s.95(2)(b) confers "a period that bears to 8.6667 weeks the proportion that the employee's further period of continuous service bears to 10 years" for service beyond 10 years. Plain-English summaries (Business QLD, RosterElf) say "+4.3333 weeks after a further 5 years (13 weeks total at 15 years)" — implying a continuous-accrual reading where 12 yrs = 10.4 wks, 13 yrs = 11.2667 wks, 14 yrs = 12.1333 wks, 15 yrs = 13.0 wks. The Act language is plainly proportionate.
 
@@ -1910,7 +1990,7 @@ There is also a **threshold inclusivity** question parallel to the VIC one (TBD-
 
 ---
 
-### TBD-QLD-02 — [Severity 1] Historical cliffs — engine treatment
+### TBD-QLD-02 — [Severity 1] Historical cliffs — engine treatment → RESOLVED (see Resolutions section above — accept PM's reading, hard-anchor s.103 casual cliff; advisory-only s.96 general cliff)
 
 **Question**: How does the engine treat the two historical cliffs?
 - **s.96** (general, 23 June 1990): does the engine emit an advisory warning, or just a citation note? Does pre-1990 service get fully excluded (anchor service to 1990-06-23) or fully included (anchor to actual start, surface advisory only)?
@@ -1929,7 +2009,7 @@ The cliffs are largely moot for current calculations (a pre-1990 starter has 35+
 
 ---
 
-### TBD-QLD-03 — [Severity 2] Casual rate-of-pay averaging window
+### TBD-QLD-03 — [Severity 2] Casual rate-of-pay averaging window → RESOLVED (see Resolutions section above — single 52-wk lookback per Business QLD)
 
 **Question**: For casual employees, does s.105 use a 52-week lookback (like Business QLD's published formula `(total ordinary hours ÷ 52) × 8.6667 ÷ 10`), or a multi-tier "greater of" like VIC's s.15(2)? The Act's wording at s.105 is less specific than VIC's, and APA training pages 54–55 are derived examples.
 
@@ -1941,7 +2021,7 @@ The cliffs are largely moot for current calculations (a pre-1990 starter has 35+
 
 ---
 
-### TBD-QLD-04 — [Severity 2] Cash-out advisory behaviour — granularity
+### TBD-QLD-04 — [Severity 2] Cash-out advisory behaviour — granularity → RESOLVED (see Resolutions section above — no ground required; stronger sub-10-yr advisory; pass-through with $0 at sub-7-yr)
 
 **Question**: For a `cash_out` trigger in QLD:
 1. Does the engine require the user to specify the s.110 ground (financial hardship, compassionate, industrial instrument)?
@@ -1959,7 +2039,7 @@ The cliffs are largely moot for current calculations (a pre-1990 starter has 35+
 
 ---
 
-### TBD-QLD-05 — [Severity 2] Workers Compensation rate of pay — no QLD equivalent of VIC s.17
+### TBD-QLD-05 — [Severity 2] Workers Compensation rate of pay — no QLD equivalent of VIC s.17 → RESOLVED (see Resolutions section above — accept PM's reading; apply literal s.98 + emit `qld_lsl_calculated_at_wc_reduced_rate_warning` advisory)
 
 **Question**: VIC s.17 provides "higher of pre-injury rate or current rate" for WC employees taking LSL. QLD has NO equivalent provision — Business QLD interpretive guidance silently uses the standard s.98 "ordinary rate at time of leave". For an employee on partial-capacity WC at a reduced rate, this means LSL is paid at the reduced rate.
 
@@ -1973,7 +2053,7 @@ This produces user-facing outcomes that may seem unfair (employee earned full ra
 
 ---
 
-### TBD-QLD-06 — [Severity 2] Termination-reason enum design — granularity for s.95(3) qualifying reasons
+### TBD-QLD-06 — [Severity 2] Termination-reason enum design — granularity for s.95(3) qualifying reasons → RESOLVED via cross-state refactor deferral (see Resolutions section above — spun off as DEV-CROSS-1; 5 fixtures deferred)
 
 **Question**: The engine's current `Trigger.reason` enum (NSW + VIC) needs new values to capture QLD's s.95(3) qualifying-reason taxonomy:
 - `voluntary_resignation` — does NOT qualify under s.95(3)
@@ -2012,15 +2092,46 @@ The illness/incapacity case is tricky: s.95(3)(b) (employee illness resignation)
 
 ---
 
-## Signature line
+## Deferred to cross-state termination-enum refactor (DEV-CROSS-1)
 
-```
-Signed: <pending PM sign-off — Tracy Angwin>
-Date:   <pending>
-```
+The following five fixtures depend on a state-agnostic refactor of the engine's termination-reason enum and `Trigger` shape. The refactor is tracked separately as **DEV-CROSS-1** in `.specify/features/002-all-state-coverage/dev-findings.md` and will be delivered as its own PR after the QLD v1 launch.
 
-> PM-only sign-off per E2 spec RES-6 / AC4. No APA-specialist co-signer required. Sign-off here completes T4.0 and unblocks T4.1 (QLD rule-set scaffold). 6 TBDs remain open — see TBD register above; all should be resolved before T4.2 (rules + orchestrator) so the engine encoding can proceed without re-work.
+Each deferred fixture is preserved in the body of this document (above) with a banner reading *"DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1)"*. They remain authoritative as the gold-standard expectations — they are simply not loaded into the engine test suite for the QLD v1 launch. When DEV-CROSS-1 lands, these fixtures will be added back via a small follow-up PR (estimated S — under half a day).
+
+| Fixture ID | Section | Why it depends on the refactor |
+|---|---|---|
+| **TC-QLD-005** | §A — APA worked examples | Requires `terminationInitiator: 'employer'` to disambiguate s.95(3)(c) (employer dismissal for employee illness, pays out) from s.95(3)(b) (employee illness resignation, also pays out). Without the initiator field, the engine cannot map `illness_incapacity` to the correct sub-paragraph. |
+| **TC-QLD-007** | §A — APA worked examples | Requires the new enum value `employer_initiated_not_misconduct` for s.95(3)(d) "dismissal for a reason other than the employee's conduct, capacity or performance" — distinct from `redundancy` (which is a subset of s.95(3)(d) but more specific). |
+| **TC-QLD-008** | §A — APA worked examples | Requires the new enum value `unfair_dismissal` for s.95(3)(e). No existing enum value captures this. |
+| **TC-QLD-015** | §B — Sub-10-yr qualifying-reason cases | Requires the new enum value `poor_performance` to test the s.95(3)(d) capacity/performance exclusion as a distinct case from `serious_misconduct` (already covered by TC-QLD-014). |
+| **TC-QLD-016** | §B — Sub-10-yr qualifying-reason cases | Requires the new enum value `domestic_pressing_necessity` for s.95(3)(b) (employee-initiated only). The current enum has no equivalent — `voluntary_resignation` does NOT capture the qualifying-reason semantics. |
+
+**Fixtures NOT deferred** that touch s.95(3) qualifying reasons (and therefore remain in QLD v1 scope):
+
+- **TC-QLD-002** (`voluntary_resignation` → $0) — existing enum value.
+- **TC-QLD-003** (`redundancy` → pro-rata) — existing enum value; engine maps `redundancy` directly to s.95(3)(d).
+- **TC-QLD-004** (`illness_incapacity` + employee-initiated → pro-rata) — engine defaults to employee-initiated when no `terminationInitiator` is supplied; this fixture validates the default path.
+- **TC-QLD-006** (`death` → pro-rata to estate) — existing enum value.
+- **TC-QLD-011, TC-QLD-013, TC-QLD-019** (sub-7-yr `redundancy` → $0) — existing enum value.
+- **TC-QLD-012** (exactly 7 yrs `redundancy` → pro-rata) — existing enum value.
+- **TC-QLD-014** (sub-10-yr `serious_misconduct` → $0) — existing enum value.
+- **TC-QLD-017** (sub-10-yr casual `voluntary_resignation` → $0) — existing enum value.
+- **TC-QLD-018** (PT `illness_incapacity` + employee-initiated → pro-rata) — engine defaults to employee-initiated when no `terminationInitiator` is supplied; same default-path validation as TC-QLD-004.
+- **TC-QLD-022** (10+ yr `serious_misconduct` → FULL PAYOUT) — existing enum value; critical regression test for the 10-yr misconduct flip.
+
+These fixtures are sufficient to validate the s.95(2) (10-yr automatic) and s.95(3)(a)/(d) (death, redundancy, voluntary resignation, serious misconduct) sub-paragraphs at the v1 launch gate. The five deferred fixtures cover the remaining s.95(3)(b)/(c)/(e) sub-paragraphs and will be added once DEV-CROSS-1 lands.
 
 ---
 
-*End of test-cases-qld.md v1.0-draft — pending PM sign-off.*
+## Signature line
+
+```
+Signed: Tracy Angwin (PM)
+Date:   2026-05-25
+```
+
+> PM-only sign-off per E2 spec RES-6 / AC4. No APA-specialist co-signer required. Sign-off here completes T4.0 and unblocks T4.1 (QLD rule-set scaffold). All 6 TBDs resolved — see Resolutions section near the top. 5 fixtures deferred to DEV-CROSS-1 cross-state termination-enum refactor; they do not block the QLD v1 launch gate (AC4b).
+
+---
+
+*End of test-cases-qld.md v1.0 — SIGNED OFF Tracy Angwin (PM) 2026-05-25.*
