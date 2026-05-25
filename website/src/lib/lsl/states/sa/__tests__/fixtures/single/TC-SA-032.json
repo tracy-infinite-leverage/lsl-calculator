@@ -1,0 +1,31 @@
+{
+  "name": "TC-SA-032",
+  "title": "Unpaid parental leave does not count toward service but does NOT break continuity",
+  "source": "SA LSL Act 1987 s.6",
+  "input": {
+    "employee": {
+      "id": "TC-SA-032",
+      "startDate": "2015-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2015-05-25", "periodEnd": "2026-05-25", "grossPay": "972400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "unpaid_parental_leave", "startDate": "2019-01-01", "endDate": "2019-12-31" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.6", "rule": "continuous-service.unpaid-leave-extends-the-line" }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "TC-SA-052",
+  "title": "Casual 10 yrs taking 13 wks, value-of-week at 156-wk avg × loaded rate",
+  "source": "SA LSL Act 1987 s.5(1) + s.4 — casual 156-wk averaging at 10-yr full entitlement",
+  "input": {
+    "employee": {
+      "id": "TC-SA-052",
+      "startDate": "2016-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1275.00",
+      "wageHistory": [
+        { "periodStart": "2023-05-26", "periodEnd": "2026-05-25", "grossPay": "198900.00", "frequency": "other", "periodDays": 1095 }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "42.50",
+        "hoursLast156Weeks": 4680
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 13.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1275.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.4",    "rule": "ordinary-pay.casual-156wk-all-hours-average-with-loading" },
+      { "section": "SA LSL Act 1987 s.5(1)", "rule": "accrual.qualifying-period-10yr-13wks" }
+    ]
+  }
+}

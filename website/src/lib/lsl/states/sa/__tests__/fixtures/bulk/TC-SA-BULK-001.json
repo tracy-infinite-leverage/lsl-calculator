@@ -1,0 +1,90 @@
+{
+  "name": "TC-SA-BULK-001",
+  "title": "5-employee SA-only fixture, mixed tenures and triggers",
+  "source": "spec F17 + AC16; impl-plan §2 / Phase 6",
+  "input": {
+    "employees": [
+      {
+        "id": "S01",
+        "startDate": "2014-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["SA"],
+        "governingJurisdiction": "SA",
+        "currentWeeklyGross": "1884.62",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "98000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "S02",
+        "startDate": "2018-05-25",
+        "endDate": "2026-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["SA"],
+        "governingJurisdiction": "SA",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "78000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+      },
+      {
+        "id": "S03",
+        "startDate": "2017-05-25",
+        "employmentType": "part_time",
+        "statesOfService": ["SA"],
+        "governingJurisdiction": "SA",
+        "currentWeeklyGross": "750.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "39000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "S04",
+        "startDate": "2015-05-25",
+        "endDate": "2026-05-25",
+        "employmentType": "casual",
+        "statesOfService": ["SA"],
+        "governingJurisdiction": "SA",
+        "currentWeeklyGross": "1057.69",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "55000.00", "frequency": "other", "periodDays": 365 }
+        ],
+        "serviceEvents": [],
+        "extraInputs": {
+          "currentHourlyRate": "33.05",
+          "hoursLast156Weeks": 4992
+        },
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+      },
+      {
+        "id": "S05",
+        "startDate": "2020-05-25",
+        "endDate": "2026-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["SA"],
+        "governingJurisdiction": "SA",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "78000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "serious_misconduct" }
+      }
+    ],
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "summary": { "computed": 5, "blocked": 0, "failed": 0 },
+    "rowStatuses": {
+      "S01": "computed",
+      "S02": "computed",
+      "S03": "computed",
+      "S04": "computed",
+      "S05": "computed"
+    }
+  }
+}

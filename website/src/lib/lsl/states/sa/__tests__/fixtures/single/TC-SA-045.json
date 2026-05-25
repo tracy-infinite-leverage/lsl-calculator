@@ -1,0 +1,30 @@
+{
+  "name": "TC-SA-045",
+  "title": "Commission worker, 52-wk income lookback",
+  "source": "SafeWork SA — commission/target/per-piece — 52-wk income window (NOT 156)",
+  "input": {
+    "employee": {
+      "id": "TC-SA-045",
+      "startDate": "2017-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "3000.00",
+      "categoryOverride": "C",
+      "categoryOverrideConfirmed": true,
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "156000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["sa_commission_52wk_lookback_applied"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.4", "rule": "ordinary-pay.commission-52wk-income-lookback" }
+    ]
+  }
+}

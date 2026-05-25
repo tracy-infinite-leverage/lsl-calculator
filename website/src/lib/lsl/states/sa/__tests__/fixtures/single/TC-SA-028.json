@@ -1,0 +1,32 @@
+{
+  "name": "TC-SA-028",
+  "title": "9 yrs FT abandonment of employment (no notice) → $0",
+  "source": "SA LSL Act 1987 s.5(3) — unlawful-worker-termination",
+  "input": {
+    "employee": {
+      "id": "TC-SA-028",
+      "startDate": "2017-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-25", "periodEnd": "2026-05-25", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "sa_worker_notice_compliance": false
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "warnings": ["unlawful_worker_termination_excluded_sa"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5(3)", "rule": "accrual.7-to-10yr.unlawful-worker-termination-excluded" }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "TC-SA-026",
+  "title": "8 yrs FT resignation with proper notice, pro-rata 10.4 wks (positive control for TC-SA-025)",
+  "source": "SA LSL Act 1987 s.5(3)",
+  "input": {
+    "employee": {
+      "id": "TC-SA-026",
+      "startDate": "2018-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2018-05-25", "periodEnd": "2026-05-25", "grossPay": "707200.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "sa_worker_notice_compliance": true
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5(3)", "rule": "accrual.7-to-10yr.any-reason-except-misconduct-or-unlawful-termination" }
+    ]
+  }
+}

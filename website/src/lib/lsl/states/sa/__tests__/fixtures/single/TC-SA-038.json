@@ -1,0 +1,28 @@
+{
+  "name": "TC-SA-038",
+  "title": "4 wks LSL period over Easter (2 PHs) → leave ends as scheduled, not extended",
+  "source": "SA LSL Act 1987 s.5 — PH-inclusive",
+  "input": {
+    "employee": {
+      "id": "TC-SA-038",
+      "startDate": "2016-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-25", "periodEnd": "2026-05-25", "grossPay": "780000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2027-03-29", "leaveWeeks": 4.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5", "rule": "trigger.taking-leave.ph-inclusive-no-extension" }
+    ]
+  }
+}

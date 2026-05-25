@@ -1,0 +1,34 @@
+{
+  "name": "TC-SA-007",
+  "title": "Casual 12 yrs, taking 13 wks at $40/hr × avg 32 h/wk (156-wk average)",
+  "source": "APA p.85; SA LSL Act 1987 s.4 (as amended 2015); SafeWork SA casual",
+  "input": {
+    "employee": {
+      "id": "TC-SA-007",
+      "legalName": "CasualSATaking",
+      "startDate": "2014-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1280.00",
+      "wageHistory": [
+        { "periodStart": "2023-05-26", "periodEnd": "2026-05-25", "grossPay": "199680.00", "frequency": "other", "periodDays": 1095 }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursLast156Weeks": 4992
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 13.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1280.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.4", "rule": "ordinary-pay.casual-156wk-all-hours-average-with-loading" },
+      { "section": "SA LSL Act 1987 s.5", "rule": "trigger.taking-leave.ph-inclusive-no-extension" }
+    ]
+  }
+}

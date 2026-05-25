@@ -1,0 +1,29 @@
+{
+  "name": "TC-SA-058",
+  "title": "Cash-out request at 10 yrs exact — ADVISORY (just-eligible)",
+  "source": "SA LSL Act 1987 s.5; TBD-SA-06",
+  "input": {
+    "employee": {
+      "id": "TC-SA-058",
+      "startDate": "2016-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-25", "periodEnd": "2026-05-25", "grossPay": "936000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "warnings": ["sa_cashout_post_accrual_advisory"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5", "rule": "cashout.post-10yr-written-agreement-required" }
+    ]
+  }
+}

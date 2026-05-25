@@ -1,0 +1,31 @@
+{
+  "name": "TC-SA-031",
+  "title": "Paid parental leave (any duration) counts in full",
+  "source": "SA LSL Act 1987 s.6",
+  "input": {
+    "employee": {
+      "id": "TC-SA-031",
+      "startDate": "2016-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-25", "periodEnd": "2026-05-25", "grossPay": "884000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2020-01-01", "endDate": "2020-07-01", "note": "paid parental" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.6", "rule": "continuous-service.paid-leave-counts" }
+    ]
+  }
+}

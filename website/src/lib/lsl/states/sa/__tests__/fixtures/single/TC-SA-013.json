@@ -1,0 +1,29 @@
+{
+  "name": "TC-SA-013",
+  "title": "9 yrs FT illness-incapacity (employee-initiated), pro-rata 11.7 wks",
+  "source": "SA LSL Act 1987 s.5(3)",
+  "input": {
+    "employee": {
+      "id": "TC-SA-013",
+      "startDate": "2017-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-25", "periodEnd": "2026-05-25", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "illness_incapacity", "terminationInitiator": "employee" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5(3)", "rule": "accrual.7-to-10yr.any-reason-except-misconduct-or-unlawful-termination" }
+    ]
+  }
+}

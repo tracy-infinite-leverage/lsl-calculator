@@ -1,0 +1,30 @@
+{
+  "name": "TC-SA-043",
+  "title": "Varied PT hours, 156-wk averaging",
+  "source": "SA LSL Act 1987 s.4 — 156-wk averaging for PT",
+  "input": {
+    "employee": {
+      "id": "TC-SA-043",
+      "startDate": "2016-05-25",
+      "employmentType": "part_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1203.33",
+      "wageHistory": [
+        { "periodStart": "2023-05-26", "periodEnd": "2026-05-25", "grossPay": "187720.00", "frequency": "other", "periodDays": 1095 }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "38.00",
+        "hoursLast156Weeks": 4940
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 13.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.4", "rule": "ordinary-pay.part-time-156wk-average" }
+    ]
+  }
+}

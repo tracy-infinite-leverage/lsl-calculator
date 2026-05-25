@@ -1,0 +1,25 @@
+{
+  "name": "TC-SA-063",
+  "title": "SA + NSW service, NSW nominated → routed to NSW engine (8.6667 wks at 10 yrs, NOT 13)",
+  "source": "Cross-jurisdiction — engine MUST route to nominated state",
+  "input": {
+    "employee": {
+      "id": "TC-SA-063",
+      "startDate": "2016-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA", "NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-25", "periodEnd": "2026-05-25", "grossPay": "936000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "blocked_cross_jurisdiction",
+    "warnings": ["cross_jurisdiction_pending"]
+  }
+}
