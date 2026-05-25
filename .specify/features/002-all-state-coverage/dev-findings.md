@@ -1,7 +1,7 @@
 # Dev Findings — All-State Coverage (E2)
 
 **Source spec**: `.specify/features/002-all-state-coverage/spec.md` v0.1.0
-**Date**: 2026-05-23
+**Date**: 2026-05-23 (DEV-CROSS-1 added 2026-05-25)
 **Owner**: developer agent (resolves these in Phase 0 of `dev-feature-plan`)
 
 These findings are routed from `pm-analyze-split` and are out-of-scope for PM resolution. They concern technical architecture, NFRs in engineering units, and implementation detail.
@@ -13,6 +13,46 @@ These findings are routed from `pm-analyze-split` and are out-of-scope for PM re
 _None._
 
 ## MEDIUM severity
+
+### DEV-CROSS-1 · Termination-reason enum redesign (state-agnostic refactor)
+
+**Surfaced from**: TBD-QLD-06 (Phase 4 PM resolution, 2026-05-25). The same disambiguation surfaces for WA/SA/TAS/ACT/NT — each has analogous qualifying-reason taxonomies — so this is routed here rather than retrofitted per-state.
+
+**Section**: F2, F16, AC1, AC11, AC18; affects `engine/types.ts` Trigger interface; affects single-mode form UI for every state phase ≥ QLD.
+
+**Issue**: The current `Trigger.reason` enum (NSW + VIC) is too coarse to express the QLD s.95(3) qualifying-reason taxonomy AND will be too coarse for the equivalent provisions in WA/SA/TAS/ACT/NT. Specifically:
+- `voluntary_resignation` — does NOT qualify under QLD s.95(3); MAY qualify in some other states.
+- `illness_incapacity` — qualifies under QLD s.95(3)(b) IF employee-initiated, QLD s.95(3)(c) IF employer-initiated. NSW LSA s.4(2)(a)(iii)(b) has its own illness-employee-initiated distinction. ACT and TAS have separate illness provisions.
+- `domestic_pressing_necessity` — qualifies under QLD s.95(3)(b) (employee-initiated only). No current enum value.
+- `death` — qualifies in all states.
+- `redundancy` — qualifies broadly; existing enum value is fine.
+- `employer_initiated_not_misconduct` — qualifies under QLD s.95(3)(d); equivalent provisions in WA/SA/TAS. No current enum value.
+- `serious_misconduct` — does NOT qualify in QLD sub-10-yr (s.95(3)(d) excludes "conduct"); MAY qualify in VIC (no misconduct exception).
+- `poor_performance` — does NOT qualify in QLD sub-10-yr (s.95(3)(d) excludes "performance"). No current enum value as a distinct case from `serious_misconduct`.
+- `incapacity_dismissal` — Ambiguous: in QLD it conflicts with s.95(3)(c) (employer dismissal for illness, pays out) vs s.95(3)(d) (employer dismissal for capacity, does NOT pay out).
+- `unfair_dismissal` — qualifies under QLD s.95(3)(e); analogous in NSW/VIC unfair-dismissal jurisdictions. No current enum value.
+
+The illness/incapacity case is particularly tricky: in QLD, s.95(3)(b) (employee illness resignation) and s.95(3)(c) (employer illness dismissal) both pay out, but s.95(3)(d) (employer dismissal for capacity/performance) does NOT pay out. The engine needs to disambiguate by both `reason` AND who initiated the termination.
+
+**Recommendation** (final design TBD by developer agent during refactor PR):
+1. Add `terminationInitiator: 'employee' | 'employer'` as a sibling field to `Trigger.reason` on the termination trigger variant. Default to `'employee'` when not supplied (matches the most common case = resignation).
+2. Add new `reason` enum values: `domestic_pressing_necessity`, `unfair_dismissal`, `employer_initiated_not_misconduct`, `poor_performance`.
+3. Distinguish `incapacity_dismissal` from `poor_performance` explicitly at the user-facing form level (different dropdown options).
+4. Combine `reason` + `terminationInitiator` to determine each state's sub-paragraph mapping inside that state's `trigger-handlers.ts`.
+5. Update existing NSW + VIC orchestrators to accept the new enum values (no behaviour change — they don't currently consume the new values, so the cases are no-ops).
+6. Update single-mode form UI: conditional `terminationInitiator` field appears when `trigger.kind === 'termination' && (reason === 'illness_incapacity')` (other states may surface it for additional reason values; QLD is the first).
+
+**Scope**: state-agnostic refactor PR — touches `engine/types.ts`, every per-state `trigger-handlers.ts` (NSW, VIC currently shipped; QLD wired in T4.2 to expect the new shape but tolerate the v1 enum subset), single-mode form UI, plus a small form-state migration in `formToEngine.ts`.
+
+**Sequencing**: deliver as its own PR between QLD v1 launch (Phase 4 launch gate) and WA Phase 5 start. After it lands, reinstate the 5 deferred QLD fixtures (TC-QLD-005, -007, -008, -015, -016 per `docs/qa/test-cases-qld.md` "Deferred to cross-state termination-enum refactor" appendix) via a small follow-up PR (estimated S — under half a day).
+
+**Why not bundle into QLD v1**: bundling would (a) inflate the QLD per-state PR with code that has no QLD-specific behaviour, (b) force NSW + VIC orchestrators to be updated inside the QLD PR (cross-cutting change inside a per-state PR), and (c) couple the QLD launch gate (AC4b) to a refactor that touches every state's surface. The cleaner path is a tight QLD v1 PR using the existing enum, then DEV-CROSS-1 as a state-agnostic refactor, then a small QLD follow-up adding the 5 fixtures.
+
+**Pre-flight blocker for**: WA Phase 5 (T5.2 pre-2022 rules will want the disambiguation). Should land before WA Phase 5 starts.
+
+**Effort estimate**: M (1–2 days for the refactor + tests; under half a day for the QLD-fixtures follow-up).
+
+---
 
 ### DEV-E2-M1 · Engine-vs-rule-set boundary contract
 
