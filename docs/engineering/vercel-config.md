@@ -52,5 +52,5 @@ Vercel validates `vercel.json` on every deploy. The `$schema` directive in the f
 - [ ] Vercel production project on Pro plan (or Enterprise)
 - [ ] Production region confirmed as `syd1`
 - [ ] `ANTHROPIC_API_KEY` set in Production environment (no-retention tier key)
-- [ ] Domain mapped (e.g. `lsl.austpayroll.com.au` or chosen production URL)
+- [x] Domain mapped to `www.lslcalculator.com.au` (live 2026-05-25)
 - [ ] Branch protection on `main` requires `test` + `playwright` CI checks (see `ci.md`)
