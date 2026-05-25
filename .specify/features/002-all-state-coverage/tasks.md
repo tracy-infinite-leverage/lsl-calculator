@@ -1,14 +1,16 @@
 # Tasks — All-State Coverage (E2)
 
-**Source plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.1
+**Source plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.2
 **Branch**: `002-all-state-coverage`
-**Date**: 2026-05-24 (last updated)
+**Date**: 2026-05-25 (last updated)
 **Sizing legend**: S (≤ 4h), M (½ – 1.5 days), L (2–4 days), XL (> 4 days, split before starting)
 **[P] marker**: task can run in parallel with sibling tasks in the same phase (no shared file mutation, no dependency)
 
 **2026-05-24 update**: T3.0 SIGNED OFF (PM Tracy Angwin). T3.1-T3.4 re-scoped per `docs/qa/test-cases-vic.md` TBD-VIC-01 resolution — one VIC rule set with date-aware continuous-service handling instead of two parallel rule sets. F5 citation corrected s.67 → s.34 per TBD-VIC-12.
 
-**2026-05-25 update**: T4.0 SIGNED OFF (PM Tracy Angwin). All 6 TBDs resolved in `docs/qa/test-cases-qld.md` v1.0 — see file's Resolutions section. T4.2 acceptance criteria updated to reflect the resolved interpretations (15-yr continuous accrual; s.103 hard-anchor casual cliff + s.96 advisory-only general cliff; 52-wk casual lookback; cash-out advisory granularity; WC-reduced-rate advisory). Termination-reason enum redesign deferred to a separate state-agnostic PR (DEV-CROSS-1 — see dev-findings.md); 5 QLD fixtures deferred until that refactor lands. T4.1 onwards unblocked.
+**2026-05-25 update (QLD)**: T4.0 SIGNED OFF (PM Tracy Angwin). All 6 TBDs resolved in `docs/qa/test-cases-qld.md` v1.0 — see file's Resolutions section. T4.2 acceptance criteria updated to reflect the resolved interpretations (15-yr continuous accrual; s.103 hard-anchor casual cliff + s.96 advisory-only general cliff; 52-wk casual lookback; cash-out advisory granularity; WC-reduced-rate advisory). Termination-reason enum redesign deferred to a separate state-agnostic PR (DEV-CROSS-1 — see dev-findings.md); 5 QLD fixtures deferred until that refactor lands. T4.1 onwards unblocked.
+
+**2026-05-25 update (WA)**: T5.0 SIGNED OFF (PM Tracy Angwin). All 16 TBDs resolved in `docs/qa/test-cases-wa.md` v1.0 — see file's Resolutions section. T5.1-T5.4 re-scoped per TBD-WA-01 resolution — one WA rule set with date-aware continuous-service handling instead of two parallel rule sets (parallel to VIC's earlier re-scope). New task T5.0.5 (WA schema extension via DEV-CROSS-2) added as a state-agnostic refactor PR that lands BEFORE WA T5.1 begins. T5.1 BLOCKED on DEV-CROSS-2 (same blocking pattern as QLD's deferred fixtures were blocked on DEV-CROSS-1). Phase 5 effort estimate revised L (5–8 d) → M–L (4–6 d); total dev-days estimate revised 34–50 → 32–48.
 
 Per AC4a, **Phases 3 through 9 (per-state encoding) execute strictly sequentially** in the order VIC → QLD → WA → SA → ACT → TAS → NT. Phases 1 and 2 run before Phase 3 and can overlap with each other (different code paths). Phase 10 runs after Phase 9 ships.
 
@@ -294,41 +296,97 @@ Same shape as T3.9. Only after this gate may Phase 5 (WA) start.
 
 ---
 
-## Phase 5 — WA (RES-1 #3, dual-regime + Workers Comp sub-cutoff)
+## Phase 5 — WA (RES-1 #3) — re-scoped 2026-05-25 per TBD-WA-01
 
-### T5.0 · [BLOCKING] PM-signed test-cases-wa.md (L) — AC4, AC4a, AC4b
+### T5.0 · [BLOCKING] PM-signed test-cases-wa.md (L) — AC4, AC4a, AC4b — ✅ SIGNED OFF 2026-05-25
 
-APA PDF pp.65–79 + WA edge cases including: pre-2022 employee, post-2022 employee, 2022-straddler with sufficient data, 2022-straddler with insufficient data (single-regime fallback), Workers Comp absence entirely pre-2024 (excluded), Workers Comp absence entirely post-2024 (included), Workers Comp spanning 2024-07-01 (partial). ≥ 5 edge cases total.
+`docs/qa/test-cases-wa.md` v1.0 — PM-signed-off 2026-05-25 by Tracy Angwin on branch `pm/wa-test-cases`. 73 test cases (70 single-mode + 3 bulk; case IDs TC-WA-001 → TC-WA-070 + TC-WA-BULK-001 → TC-WA-BULK-003). All 16 TBDs resolved (see Resolutions section in the document) — TBD-WA-01 load-bearing dual-regime architecture resolved to single rule set with date-aware continuous-service handling; TBD-WA-08, -12, -13, -14 + slackness-of-trade signal deferred to a state-agnostic schema extension PR (DEV-CROSS-2) that lands BEFORE T5.1; remaining 11 Sev-2/3 TBDs resolved inline per PM's recommendations. 5 fixtures (TC-WA-029, TC-WA-030, TC-WA-049, TC-WA-052, TC-WA-060) remain in the active launch-gate suite pending DEV-CROSS-2.
 
-### T5.1 · WA rule-set scaffold (S) — AC1
+### T5.0.5 · [BLOCKING — pre-flight for T5.1] DEV-CROSS-2 · WA schema extension (S–M) — see dev-findings.md
 
-Dual-regime structure: `rules-pre-2022/`, `rules-post-2022/`, `__tests__/fixtures/{pre-2022, post-2022, straddling}/`.
+State-agnostic `engine/types.ts` extensions that the WA per-state PR (Phase 5) will consume. Same pattern as DEV-CROSS-1 (which landed at `bd2d284` between QLD launch and WA Phase 5 start). Bundles four schema additions into a single cross-state PR rather than retrofitting per-state:
 
-### T5.2 · WA pre-2022 rules (L) — F2, AC7
+- `slacknessOfTrade?: boolean` on `employer_initiated_termination_and_rehire` event type (defaults `false`).
+- `paidConcurrent?: boolean` and `returnToWorkProgram?: boolean` on `workers_comp_absence` event type (both default `false`).
+- `reasonableExpectationOfReturn?: boolean` on `unpaid_parental_leave` event type (defaults `false`).
+- `mealsAndAccommodationCashValueWeekly?: number` on `Employee` interface (defaults `0`).
 
-Encode pre-2022 LSL Act 1958 (WA) provisions per APA PDF.
+Updates NSW + VIC + QLD orchestrators to accept the new fields (no behaviour change — they don't currently consume them, so the cases are no-ops). Updates single-mode form UI to render the new fields conditionally where appropriate (slackness-of-trade checkbox on employer-rehire event editor; paid-concurrent + RTW checkboxes on WC event editor; reasonable-expectation checkbox on UPL event editor for casual employees; meals/accommodation cash value field on employee profile). Form-state migration in `formToEngine.ts` populates the new fields.
 
-### T5.3 · WA post-2022 rules (L) — F2, F8, AC7, AC9
+**Pre-flight blocker for**: WA T5.1 (rule-set scaffold). Without DEV-CROSS-2, fixtures TC-WA-029, TC-WA-030, TC-WA-049, TC-WA-052, TC-WA-060 cannot pass — the engine would have no schema field to consult.
 
-Encode post-2022 LSL Act 1958 (WA) provisions. Include the **2024-07-01 Workers Comp sub-cutoff** in `rules-post-2022/continuous-service-rules.ts`: Workers Comp absences count as service only when `absenceDate >= 2024-07-01`. Pre-cutoff portions excluded.
+**Verification**: typecheck clean; NSW + VIC + QLD gold-standard suites still 100% green at byte-identical outputs (the new optional fields default to falsy and have no behaviour effect on existing fixtures).
 
-### T5.4 · WA orchestrator + regime selector (L) — F7, AC7, AC8
+**Effort**: S–M (½–1.5 days).
 
-Mirrors VIC orchestrator pattern. Regime cutoff 2022-06-20. Sufficient-granularity check + single-regime fallback. Emit `wa_regime_split_data_insufficient` and `wa_workers_comp_pre_2024_excluded` page events.
+### T5.1 · WA rule-set scaffold (S) — AC1 — re-scoped 2026-05-25 (TBD-WA-01) — BLOCKED on T5.0.5
 
-### T5.5 · WA fixtures (M) — F3, AC2, AC3
+Create (one rule set with date-aware continuous-service handling per impl-plan v0.3.2 P0.2):
+```
+website/src/lib/lsl/states/wa/
+├── index.ts                                       (stub — calculateWA orchestrator)
+├── rules/
+│   ├── accrual-table.ts                           (stub — s.8 single accrual table, continuous 1/60, thresholds inclusive)
+│   ├── value-of-week.ts                           (stub — s.9 fixed-rate + accrual-period averaging + 365-day results-based)
+│   ├── trigger-handlers.ts                        (stub — s.8(3) termination matrix incl. 10+yr partial forfeiture; s.5 three-tier cash-out advisory)
+│   └── continuous-service/
+│       ├── index.ts                               (stub — date-aware module selector by accrual-block fully-accrued date)
+│       ├── rules-pre-20jun2022.ts                 (stub — pre-2022 s.6 rules)
+│       ├── rules-post-20jun2022.ts                (stub — post-2022 s.6 rules)
+│       └── workers-comp-override.ts               (stub — WCIM Act 2023 (WA) 2024-07-01 override on top of post-2022 module)
+└── __tests__/{gold-standard.test.ts, fixtures/{single, straddling, workers-comp, bulk}/}
+```
 
-`TC-WA-NNN.json` fixtures.
+### T5.2 · WA continuous-service-rule modules (M) — F2, F7, F8, AC7, AC8, AC9 — re-scoped 2026-05-25
+
+Encode the two date-aware continuous-service modules plus the WC override:
+- `rules/continuous-service/rules-post-20jun2022.ts`: paid sickness counts in full (no 15-day cap); casual continuity expanded with `slacknessOfTrade` 6-mo tolerance + general 2-mo non-slackness tolerance; paid parental counts; casual UPL with `reasonableExpectationOfReturn: true` counts; broader Fair Work-style transfer-of-business.
+- `rules/continuous-service/rules-pre-20jun2022.ts`: 15-day sickness cap (working days proportionate to normal pattern per TBD-WA-09 RESOLVED); UPL excluded; no specific casual rules (general s.6 2-mo/6-mo applies + `wa_pre_2022_casual_no_specific_rules` advisory per TBD-WA-10 RESOLVED); pre-2022 transmission-of-business.
+- `rules/continuous-service/workers-comp-override.ts`: applied AFTER the pre/post-2022 module selects. For any `workers_comp_absence` event, days on or after 2024-07-01 count regardless of which module is active. Pre-2024-07-01 portions follow the selected module's rule. Paid-concurrent and RTW-program exceptions honoured via the DEV-CROSS-2 schema fields. Citation: "WCIM Act 2023 (WA)" (Act-level only — sub-section TBD per TBD-WA-02 RESOLVED documented limitation).
+- `rules/continuous-service/index.ts`: for each accrual block on the employee's record, determines whether the block's "fully accrued" date is before or on/after 2022-06-20 (inclusive of 2022-06-20 in the post-2022 set per TBD-WA-11 RESOLVED) and selects the appropriate module. For blocks straddling absences, split into segments by date and apply each module to its segment. Also emits `wa_regime_split_applied` warning (transparency — fires even when numerical outcome is identical) and `wa_regime_split_data_insufficient` warning + post-2022 fallback when data granularity is insufficient (per spec AC8).
+
+### T5.3 · WA accrual + value-of-week + trigger-handlers (M) — F2, AC1, AC7 — re-scoped 2026-05-25
+
+Encode the single WA rule set (no pre/post split at this layer — s.8 entitlement formula is undivided):
+- `rules/accrual-table.ts`: WA LSL Act 1958 s.8 — continuous 1/60 accrual across all tenure bands ≥ 10 yrs (NO discrete step at 15 yrs per TBD-WA-04 RESOLVED). Thresholds at 7, 10, 15, 20, 25 yrs all inclusive at exact-day boundary.
+- `rules/value-of-week.ts`: s.9 fixed-rate path; varied-hours accrual-period averaging (partial-block averaging covers partial duration only per TBD-WA-06 RESOLVED); casual loaded rate (incl. casual loading per s.9 as amended 2022); 365-day rolling average for commission/piece/results-based; meals/accommodation cash value added when supplied via DEV-CROSS-2 field. WC handling per TBD-WA-05 RESOLVED: ALWAYS return current rate at time of leave (literal s.9). NO equivalent of VIC's s.17 higher-of-rates.
+- `rules/trigger-handlers.ts`: `termination` trigger with s.8(3) matrix — sub-7-yr returns $0 (with `sub_7yr_no_entitlement_wa` warning, including for death per TBD-WA-16 RESOLVED no-carve-out); 7+yr "any reason except serious misconduct" pays out pro-rata; sub-10-yr serious misconduct returns $0 with `sub_10yr_misconduct_excluded_wa` warning; 10+yr serious misconduct returns `max(0, last_fully_accrued_block_weeks - leave_already_taken_against_that_block)` per TBD-WA-07 RESOLVED with `wa_10yr_plus_misconduct_partial_forfeiture` warning. `cash_out` trigger per TBD-WA-03 RESOLVED: three distinct advisory codes (post-accrual / pre-first-milestone advisory not blocked per TBD-WA-15 RESOLVED / sub-7-yr no entitlement). `taking_leave` trigger: s.9 PH-exclusive. **WC-overlap advisory per TBD-WA-05 RESOLVED**: when ANY `workers_comp_absence` event in `employee.serviceEvents` overlaps the trigger date, emit `wa_lsl_calculated_at_wc_reduced_rate_warning` advisory.
+
+### T5.4 · WA orchestrator (M) — F5, F7, AC1, AC7, AC8 — re-scoped 2026-05-25
+
+Implement `calculateWA(employee, trigger)` per impl-plan v0.3.2 P0.2:
+1. Compute effective service start with WA 2-mo non-slackness / 6-mo slackness re-employment tolerances (the 6-mo tolerance uses the `slacknessOfTrade` field added via DEV-CROSS-2).
+2. Walk `serviceEvents` and accrual blocks; route each through the date-aware continuous-service module (sum `days_excluded_from_service`). Apply WC override at 2024-07-01 to any WC absence events.
+3. Compute years of continuous service = (elapsed since effective start) − sum(days_excluded).
+4. Apply s.8 accrual once (no regime sum — single formula across total period of continuous employment).
+5. Apply value-of-week per the employee's classification (with partial-block averaging for varied-hours; loaded rate for casual; 365-day for results-based).
+6. Apply trigger handler. Emit citations: pre/post-2022 continuous-service modules per which fired; s.8 accrual; s.9 ordinary-pay; WCIM Act 2023 (WA) if WC override fired (Act-level citation). Emit `wa_regime_split_applied` warning when service straddles 2022-06-20 (even if numerical outcome is identical — transparency).
+
+Add `calculateWASafe` wrapper. Export `WA_RULE_SET: StateRuleSet`.
+
+### T5.5 · WA fixtures (M) — F3, AC2, AC3 — re-scoped 2026-05-25
+
+Translate every row in `test-cases-wa.md` v1.0 into `__tests__/fixtures/single/TC-WA-NNN.json` and `__tests__/fixtures/bulk/`. Build all 73 fixtures (70 single + 3 bulk). 5 fixtures (TC-WA-029, TC-WA-030, TC-WA-049, TC-WA-052, TC-WA-060) depend on the DEV-CROSS-2 schema fields landing first (T5.0.5).
 
 ### T5.6 · WA integration (S) — AC1
 
-Append `'WA'` to `ENCODED_STATES`; CI matrix; dispatch case.
+Append `'WA'` to `ENCODED_STATES`; add WA case to `dispatch.calculate` (maps to `calculateWA`); add `wa` shard to CI matrix in `.github/workflows/test.yml`.
 
 ### T5.7 · [P] WA docs page scaffold (S) — F21
 
 `website/src/app/calculator/about/wa/page.tsx`.
 
-### T5.8 · WA per-state launch gate (AC4b) — same shape as T3.9. Blocks Phase 6.
+### T5.8 · WA per-state launch gate (AC4b)
+
+Before merging T5.1–T5.6 to `main`:
+- PM-signed `test-cases-wa.md` (T5.0) — confirmed.
+- DEV-CROSS-2 merged (T5.0.5) — confirmed.
+- WA gold-standard suite 100% green in CI on merge commit (all 73 fixtures pass — including the 5 DEV-CROSS-2-dependent fixtures).
+- Cross-state regression confirms NSW + VIC + QLD still green.
+- Update `docs/product/epic-status.md`: WA → Stage 5 (Shipped).
+- Update `ENCODED_STATES` documentation comment.
+
+**Only after this gate** may Phase 6 (SA) start (AC4a).
 
 ---
 
@@ -502,15 +560,15 @@ Hand off to QA for one final end-to-end pass before flipping the `NEXT_PUBLIC_ST
 | 2 | 5 | 0 |
 | 3 (VIC) | 10 (incl. T3.0 blocking) | 2 (T3.7, T3.8) |
 | 4 (QLD) | 7 | 1 (T4.5) |
-| 5 (WA) | 9 | 1 (T5.7) |
+| 5 (WA) | 10 (incl. T5.0 + T5.0.5 blocking) | 1 (T5.7) |
 | 6 (SA) | 7 | 1 (T6.5) |
 | 7 (ACT) | 8 | 1 (T7.6) |
 | 8 (TAS) | 7 | 1 (T8.5) |
 | 9 (NT) | 7 | 1 (T9.5) |
 | 10 (closeout) | 6 | 0 |
-| **Total** | **76** | **11** |
+| **Total** | **77** | **11** |
 
-State distribution across the 7 new states (Phases 3–9): 55 tasks total, averaging 7.9 tasks per state. VIC and WA (dual-regime) carry the highest task count (10 and 9). QLD/SA/TAS/NT each at 7 tasks. ACT at 8 (one extra task for the form-conditional overtime input).
+State distribution across the 7 new states (Phases 3–9): 56 tasks total. VIC and WA carry the highest task count (10 each — both also include their respective blocking PM-sign-off task; WA additionally includes T5.0.5 DEV-CROSS-2 pre-flight). QLD/SA/TAS/NT each at 7 tasks. ACT at 8 (one extra task for the form-conditional overtime input).
 
 ---
 

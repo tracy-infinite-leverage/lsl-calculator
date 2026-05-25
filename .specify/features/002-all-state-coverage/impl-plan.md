@@ -1,11 +1,28 @@
 # Impl Plan — All-State Coverage (E2)
 
 **Source spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
-**Version**: 0.3.1 (2026-05-25 — Phase 4 QLD TBDs resolved)
+**Version**: 0.3.2 (2026-05-25 — Phase 5 WA TBDs resolved + DEV-CROSS-2 added)
 **Branch**: `002-all-state-coverage`
 **Date**: 2026-05-25
 **Owner**: developer agent
-**Status**: Phase 4 (QLD) TBDs resolved — ready for T4.1 (rule-set scaffold).
+**Status**: Phase 5 (WA) TBDs resolved; T5.0 SIGNED OFF; DEV-CROSS-2 added (state-agnostic WA schema extension PR); T5.1 BLOCKED on DEV-CROSS-2.
+
+**v0.3.2 change log (2026-05-25)**:
+1. **Phase 5 (WA) re-scoped** per `docs/qa/test-cases-wa.md` v1.0 (PM-signed Tracy Angwin) TBD-WA-01 resolution. The "two parallel rule sets (`rules-pre-2022/` + `rules-post-2022/`)" model is replaced by **one WA rule set with date-aware continuous-service handling**. Two continuous-service-rule *modules* (selected by accrual-block "fully accrued" date vs 2022-06-20) feed the same s.8 accrual formula. A third date-aware override at 2024-07-01 for Workers Comp via WCIM Act 2023 sits on top of the post-2022 module. P0.2 (WA portion) updated; Phase 5 effort estimate revised L (5–8 d) → M–L (4–6 d). ~2 dev-days saved.
+2. **WA schema extension deferred to a separate cross-state PR (DEV-CROSS-2)** — see `dev-findings.md`. Adds `slacknessOfTrade?: boolean` to `employer_initiated_termination_and_rehire`, `paidConcurrent?: boolean` + `returnToWorkProgram?: boolean` to `workers_comp_absence`, `reasonableExpectationOfReturn?: boolean` to `unpaid_parental_leave`, `mealsAndAccommodationCashValueWeekly?: number` to `Employee`. Same pattern as DEV-CROSS-1 — lands BEFORE WA engine code (T5.1) begins. Pre-flight blocker for T5.1.
+3. **Phase 5 (WA) TBDs 02–07, 09–11, 15, 16 resolved inline** per the test-cases-wa.md Resolutions section. Highlights:
+   - WCIM Act 2023 (WA) citation form: Act-level only in v1; sub-section TBD via quarterly review (TBD-WA-02).
+   - Three distinct cash-out advisory codes (post-accrual, pre-first-milestone, no-entitlement) (TBD-WA-03).
+   - 15-yr accrual continuous + threshold inclusivity (TBD-WA-04 — parallel to QLD).
+   - WC rate: literal s.9 + `wa_lsl_calculated_at_wc_reduced_rate_warning` advisory (TBD-WA-05 — parallel to QLD).
+   - Accrual-period averaging: partial duration only (TBD-WA-06).
+   - 10+yr misconduct partial-forfeiture: `(last_fully_accrued_block - leave_already_taken_against_that_block)` (TBD-WA-07).
+   - Pre-2022 sickness 15-day cap: working days proportionate to normal pattern (TBD-WA-09).
+   - Pre-2022 casual: general s.6 rules + advisory (TBD-WA-10).
+   - 2022-06-20 cutoff: ON-the-day → post-2022 (strict "on or after") (TBD-WA-11).
+   - Pre-first-milestone cash-out: advisory not blocked (TBD-WA-15).
+   - Sub-7-yr death: no carve-out (TBD-WA-16).
+4. **Total dev-days re-estimate**: 34–50 → **32–48** (~2 dev-days saved on WA re-scope; DEV-CROSS-2 adds S–M = ½–1.5 days but reduces WA Phase 5 by the same magnitude through reusable schema).
 
 **v0.3.1 change log**:
 1. **2026-05-24 — Phase 3 (VIC) re-scoped** per `docs/qa/test-cases-vic.md` TBD-VIC-01 resolution. The "two parallel rule sets (`rules-pre-2018/` + `rules-post-2018/`)" model is replaced by **one VIC rule set with date-aware continuous-service handling**. Two continuous-service-rule *modules* (selected by absence start date) feed the same s.6 accrual formula. P0.2 decision and Phase 3 effort estimate revised. ~2 dev-days saved (8 → 6).
@@ -69,18 +86,19 @@ This is **the contract**. Every new state implements this shape. The dispatcher 
 
 ---
 
-### P0.2 — DEV-E2-M2 · Dual-regime state encoding (VIC, WA) (RESOLVED — re-scoped 2026-05-24)
+### P0.2 — DEV-E2-M2 · Dual-regime state encoding (VIC, WA) (RESOLVED — re-scoped 2026-05-24 for VIC, 2026-05-25 for WA)
 
 **VIC re-scope (TBD-VIC-01, 2026-05-24)**: the original v0.3.0 plan called for two parallel rule sets per state (`vic-pre-2018/` and `vic-post-2018/`). Per the resolution recorded in `docs/qa/test-cases-vic.md` TBD-VIC-01, this is replaced by **one VIC rule set with date-aware continuous-service handling**. VIC LSL Act 2018 s.6 calculates entitlement on the employee's *total* period of continuous employment — singular, undivided. The transitional rules in s.57 affect *which absences count* toward continuous employment, not the entitlement-weeks formula. The pre/post-1/11/2018 split therefore applies to *per-absence rule selection* (which continuous-service-rule module to invoke for each historical absence) and NOT to two parallel entitlement engines.
+
+**WA re-scope (TBD-WA-01, 2026-05-25)**: same architectural pattern as VIC. Per the resolution recorded in `docs/qa/test-cases-wa.md` TBD-WA-01, the original v0.3.0/v0.3.1 plan ("two parallel rule sets `rules-pre-2022/` + `rules-post-2022/`") is replaced by **one WA rule set with date-aware continuous-service handling**. The IR Legislation Amendment Act 2021 changed continuous-employment rules only — the WA LSL Act 1958 s.8 accrual formula and s.8(3) pro-rata threshold are unchanged across the 2022-06-20 cutoff. Two continuous-service-rule *modules* (`rules-pre-20jun2022.ts` + `rules-post-20jun2022.ts`) selected by accrual-block "fully accrued" date feed the same s.8 accrual formula. A third date-aware override at 2024-07-01 for Workers Comp absences (via WCIM Act 2023) sits on top of the post-2022 module.
 
 **Three candidate patterns** evaluated against the criterion "testability of each regime in isolation":
 
 - (a) Engine-level `selectRuleSetByDate(state, employee)` per segment, engine sums segments. Rejected: forces the engine to know about state-specific regime cutoffs, leaks state knowledge into shared code.
-- (b) Per-state dispatcher module that internally branches between two parallel rule sets selected by date. Rejected for VIC after TBD-VIC-01: the s.6 entitlement formula applies to total continuous employment, not segments, so two parallel entitlement engines is the wrong model.
-- (c) **VIC: one rule set with two continuous-service-rule modules selected by absence start date. Selected.**
-- WA: pattern (b) remains correct — WA's 2022 amendment is structurally different (changed accrual structure, not just continuous-service treatment). WA layout unchanged.
+- (b) Per-state dispatcher module that internally branches between two parallel rule sets selected by date. Rejected for VIC after TBD-VIC-01 and for WA after TBD-WA-01: the s.6 / s.8 entitlement formula applies to total continuous employment, not segments, so two parallel entitlement engines is the wrong model.
+- (c) **VIC and WA: one rule set with two continuous-service-rule modules selected by absence start date / accrual-block-fully-accrued date. Selected.**
 
-**Decision (VIC): one rule set; absence-start-date-aware continuous-service rule selection.**
+**Decision (VIC and WA): one rule set per state; date-aware continuous-service rule selection.**
 
 VIC layout:
 ```
@@ -113,11 +131,45 @@ website/src/lib/lsl/states/vic/
 
 This is simpler than the original (b) pattern: one accrual table, one value-of-week, one trigger-handlers module — only the continuous-service handling is date-aware. Effort estimate revised downward by ~2 days (8 → 6).
 
-**WA layout unchanged** — follows the original pattern (b) with cutoff = 2022-06-20 (`rules-pre-2022` / `rules-post-2022`). WA's 2022 amendment changed the accrual structure itself, so two parallel rule sets remain the right model. WA Workers Comp counting only from 2024-07-01 (F8) is encoded inside `rules-post-2022/continuous-service-rules.ts` as a date-aware override.
+**WA layout (re-scoped 2026-05-25 per TBD-WA-01)** — follows the VIC pattern: one rule set with date-aware continuous-service handling.
+
+WA layout:
+```
+website/src/lib/lsl/states/wa/
+├── index.ts                                       # calculateWA orchestrator — single entitlement path
+├── rules/
+│   ├── accrual-table.ts                           # s.8 single accrual table (continuous 1/60; thresholds inclusive)
+│   ├── value-of-week.ts                           # s.9 fixed-rate + accrual-period averaging + 365-day results-based + casual loaded rate
+│   ├── trigger-handlers.ts                        # s.8(3) termination matrix incl. 10+yr partial-forfeiture; s.5 cash-out advisory (three tiers); s.9 PH-exclusive
+│   └── continuous-service/
+│       ├── index.ts                               # selects pre-2022 or post-2022 module per accrual-block fully-accrued date
+│       ├── rules-pre-20jun2022.ts                 # 15-day sickness cap; UPL excluded; no specific casual rules; pre-2022 transmission-of-business
+│       ├── rules-post-20jun2022.ts                # paid sickness counts in full; casual continuity expanded; paid parental counts; broader Fair Work transfer-of-business
+│       └── workers-comp-override.ts               # date-aware override at 2024-07-01 via WCIM Act 2023 — sits on top of post-2022 module
+└── __tests__/
+    ├── gold-standard.test.ts                      # all WA fixtures
+    └── fixtures/
+        ├── single/                                # employees entirely within one regime, or where the split is irrelevant
+        ├── straddling/                            # employees whose accrual blocks fully accrued across 2022-06-20
+        ├── workers-comp/                          # WC absences pre/on/post 2024-07-01
+        └── bulk/                                  # bulk-mode CSV fixtures
+```
+
+`calculateWA(employee, trigger)`:
+1. Determine effective service start (with **WA 2-mo non-slackness / 6-mo slackness re-employment tolerances**).
+2. Walk `employee.serviceEvents`; for each accrual block on the employee's record, determine the "fully accrued" date and select the appropriate continuous-service rule module (pre-20-Jun-2022 if fully accrued before 2022-06-20; post-20-Jun-2022 if on or after). For each WC absence event, apply the workers-comp-override AFTER the pre/post module selects: days on or after 2024-07-01 count regardless of which module is active.
+3. Sum days_excluded_from_service across all absences and accrual blocks.
+4. Compute total period of continuous employment = (elapsed since effective service start) − sum(days_excluded).
+5. Apply s.8 accrual formula once: `years_of_continuous_service × (8.6667 / 10)` weeks. The accrual ratio is unchanged across both pre and post 2022 rule sets.
+6. Apply s.9 to compute value-of-week per the employee's classification (fixed / varied-hours / casual loaded / 365-day results-based).
+7. Apply trigger handler. Cash-out trigger: three-tier advisory (post-accrual / pre-first-milestone / sub-7-yr no entitlement) per TBD-WA-03 RESOLVED. Misconduct at 10+ yrs: partial forfeiture per TBD-WA-07 RESOLVED — `payable = max(0, last_fully_accrued_block - leave_already_taken_against_that_block)`.
+8. Emit citations from each continuous-service-rule module that fired, plus the s.8 accrual citation, plus the WCIM Act 2023 (WA) citation if any WC override fired (Act-level citation only — sub-section TBD per TBD-WA-02 RESOLVED documented limitation).
+
+Effort estimate revised downward by ~2 days (5–8 → 4–6).
 
 **Single-regime states** (QLD, SA, TAS, ACT, NT) have no `rules-pre-X / rules-post-X` split; their `rules/` directory mirrors NSW's flat structure.
 
-**Ambiguity surfacing (F7, F12 / AC8)**: WA's regime split requires data-granularity checks (e.g., monthly pay periods that straddle the cutoff). VIC does NOT — the date-aware continuous-service handling operates on `serviceEvent.startDate`, which is always known. VIC fixture coverage therefore does not require a `regime_split_data_insufficient` warning path; the WA orchestrator retains that warning per F7.
+**Ambiguity surfacing (F7, F12 / AC8)**: WA's regime split requires data-granularity checks (e.g., when historical accrual-block fully-accrued dates cannot be reconstructed from aggregated wage history). VIC does NOT — the date-aware continuous-service handling operates on `serviceEvent.startDate`, which is always known. WA fixture coverage therefore retains `wa_regime_split_data_insufficient` warning path (TC-WA-044, TC-WA-045) per F7. The single-regime fallback is post-2022 rules (the rules currently in force, the most user-favourable choice for ambiguous data).
 
 ---
 
@@ -316,15 +368,28 @@ QLD v1 ships with the **existing** `Trigger.reason` enum values (`voluntary_resi
 
 The DEV-CROSS-1 refactor PR is expected to land between QLD v1 launch and WA Phase 5; the deferred QLD fixtures will be reinstated immediately after DEV-CROSS-1 lands (estimated S — under half a day of work).
 
-### Phase 5 — WA (RES-1 #3)
+### Phase 5 — WA (RES-1 #3) — re-scoped 2026-05-25 per TBD-WA-01
 
-**Effort estimate**: L (5–8 days) — second dual-regime state; PLUS the 2024-07-01 Workers Comp sub-cutoff.
+**Effort estimate**: M–L (4–6 days) — revised down from L (5–8 days) following TBD-WA-01 resolution. Architectural simplification: one WA rule set with date-aware continuous-service handling (not two parallel rule sets). The 2024-07-01 Workers Comp sub-cutoff is an additional date-aware override on top of the post-2022 module — a one-file override, not a separate rule set.
 
-Highlights:
-- Two sub-rule-sets `rules-pre-2022/` and `rules-post-2022/`.
-- In `rules-post-2022/continuous-service-rules.ts`, Workers Comp absences have an effective-date predicate: `countsAsService = (absenceDate >= 2024-07-01)`. Pre-2024 portions of a Workers Comp event are excluded from service.
-- F8/AC9 fixture coverage: Workers Comp event spanning 2024-07-01 (some days count, some don't).
-- F7/AC8 fixture coverage: regime-split data-insufficient fallback path.
+State-specific work beyond the generic shape:
+- **One WA rule set** with two continuous-service-rule modules (`rules/continuous-service/rules-pre-20jun2022.ts` and `rules-post-20jun2022.ts`) selected by accrual-block "fully accrued" date per P0.2 (re-scoped). PLUS `rules/continuous-service/workers-comp-override.ts` for the 2024-07-01 WCIM Act 2023 (WA) date-aware override on top of the post-2022 module.
+- **Single s.8 accrual table** — continuous 1/60 with thresholds (7, 10, 15, 20, 25 yrs) inclusive at exact-day boundary per TBD-WA-04 RESOLVED. Same accrual ratio as NSW, VIC, QLD.
+- **Single s.9 value-of-week** — fixed-rate / varied-hours / casual / 365-day results-based branches. Accrual-period partial-block averaging per TBD-WA-06 RESOLVED (average over the partial duration only, not extrapolated). WC rate of pay: literal s.9 current rate + `wa_lsl_calculated_at_wc_reduced_rate_warning` advisory when a WC episode overlaps the LSL trigger date per TBD-WA-05 RESOLVED. Meals/accommodation cash value: optional `mealsAndAccommodationCashValueWeekly` field on `Employee` added via DEV-CROSS-2.
+- **Trigger-handlers** — s.8(3) termination matrix with the WA-unique 10+yr partial-forfeiture per TBD-WA-07 RESOLVED: `payable = max(0, last_fully_accrued_block_weeks - leave_already_taken_against_that_block)`. Three-tier cash-out advisory per TBD-WA-03 RESOLVED. Sub-7-yr death returns $0 per TBD-WA-16 RESOLVED. PH-exclusive (matches NSW/VIC/QLD).
+- **2-mo non-slackness / 6-mo slackness re-employment tolerances** replace VIC's 12-week and NSW's 60-day in the orchestrator's effective-service-start logic. The 6-mo slackness tolerance uses the `slacknessOfTrade?: boolean` field added to `employer_initiated_termination_and_rehire` via DEV-CROSS-2.
+- **2022-06-20 cutoff inclusivity**: blocks fully accrued ON the date → post-2022 (strict "on or after") per TBD-WA-11 RESOLVED.
+- **Pre-2022 sickness 15-day cap**: working days proportionate to the employee's normal pattern per TBD-WA-09 RESOLVED.
+- **Pre-2022 casual continuity**: general s.6 2-mo/6-mo rules apply (no specific casual provisions pre-2022) + `wa_pre_2022_casual_no_specific_rules` advisory per TBD-WA-10 RESOLVED.
+- **WCIM Act 2023 (WA) citation form**: Act-level only in v1 — sub-section TBD per TBD-WA-02 RESOLVED documented limitation. Engine cites the Act + rule key `workers-comp-counts-from-2024-07-01`.
+- **F8/AC9 fixture coverage**: Workers Comp event spanning 2024-07-01 (TC-WA-046 → TC-WA-049).
+- **F7/AC8 fixture coverage**: regime-split data-insufficient fallback path (TC-WA-044, TC-WA-045) — fallback to post-2022 rules with `wa_regime_split_data_insufficient` advisory.
+
+**Cross-state refactor pre-flight blocker — DEV-CROSS-2**:
+
+The WA schema extension (slackness-of-trade signal + WC `paidConcurrent`/`returnToWorkProgram` + casual UPL `reasonableExpectationOfReturn` + `mealsAndAccommodationCashValueWeekly`) is bundled as a separate state-agnostic PR (tracked as **DEV-CROSS-2** in `dev-findings.md`) rather than retrofitted per-state. Same pattern as DEV-CROSS-1 (the termination-reason enum refactor that landed at `bd2d284` between QLD launch and WA Phase 5 start). DEV-CROSS-2 lands BEFORE WA T5.1 begins.
+
+5 fixtures (TC-WA-029, TC-WA-030, TC-WA-049, TC-WA-052, TC-WA-060) remain in the WA active launch-gate suite and will pass on the engine gold-standard run once DEV-CROSS-2 has landed.
 
 ### Phase 6 — SA (RES-1 #4)
 
@@ -402,15 +467,17 @@ After NT ships, the closeout phase finalises cross-cutting acceptance criteria t
 | 2 | Bulk CSV mixed-state foundation | M (2–3 days) |
 | 3 | VIC | M–L (4–6 days) — revised 2026-05-24 per TBD-VIC-01 (was 5–8 days) |
 | 4 | QLD | M (3–5 days) |
-| 5 | WA | L (5–8 days) |
+| — | DEV-CROSS-1 (state-agnostic termination-reason enum refactor) | M (1–2 days) — MERGED 2026-05-25 at `bd2d284` |
+| — | DEV-CROSS-2 (state-agnostic WA schema extension) | S–M (½–1.5 days) — PRE-FLIGHT BLOCKER for T5.1 |
+| 5 | WA | M–L (4–6 days) — revised 2026-05-25 per TBD-WA-01 (was 5–8 days) |
 | 6 | SA | M (3–5 days) |
 | 7 | ACT | L (5–7 days) |
 | 8 | TAS | M (3–4 days) |
 | 9 | NT | M (4–5 days) |
 | 10 | E2 closeout | S–M (2–3 days) |
-| **Total** | | **34–50 dev-days** (was 35–52; ~2 days saved on VIC re-scope) |
+| **Total** | | **32–48 dev-days** (was 34–50 at v0.3.1; ~2 days saved on WA re-scope; DEV-CROSS-2 add and WA reduction net out — the net is the WA architectural saving) |
 
-Effort is sequential (per AC4a) — phases 3 through 9 cannot parallelise without operator override. Phases 1 and 2 can overlap (different code paths). Phase 10 starts when NT (Phase 9) ships.
+Effort is sequential (per AC4a) — phases 3 through 9 cannot parallelise without operator override. Phases 1 and 2 can overlap (different code paths). Phase 10 starts when NT (Phase 9) ships. DEV-CROSS-1 and DEV-CROSS-2 are state-agnostic refactors that land between per-state phases (DEV-CROSS-1 between QLD launch and WA T5.1; DEV-CROSS-2 also between QLD launch and WA T5.1 — both before WA Phase 5 begins).
 
 ---
 

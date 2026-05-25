@@ -1,17 +1,95 @@
 # WA LSL Calculator — Gold-Standard Test Cases
 
-**Status**: DRAFT v1.0 (research-pass, awaiting PM sign-off) · pending TBD resolution
-**Version**: v1.0-draft
+**Status**: SIGNED OFF · Tracy Angwin (PM) · 2026-05-25
+**Version**: v1.0
 **Date**: 2026-05-25
 **Spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
-**Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` Phase 5 (WA) — **see TBD-WA-01 (load-bearing): re-scope recommendation**
-**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T5.0 (BLOCKING — PM sign-off gates T5.1 onwards)
+**Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` v0.3.2 Phase 5 (WA) — re-scoped per TBD-WA-01 resolution to single rule set with date-aware continuous-service handling
+**Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T5.0 ✅ SIGNED OFF; T5.0.5 (WA schema extension via DEV-CROSS-2) added; T5.1 blocked on DEV-CROSS-2
 **Source-of-truth Acts**:
 - *Long Service Leave Act 1958* (WA) — sections 4, 4A, 5, 6, 7, 8, 9, 10, 11, 26, 26A, 27. Cited as **"WA LSL Act 1958 s.N"**.
 - *Industrial Relations Legislation Amendment Act 2021* (WA) — commenced 20 June 2022; the amending instrument that produced today's WA LSL Act 1958 (as in force). Cited as **"IR Legislation Amendment Act 2021 (WA)"** only where the historical change point is relevant.
-- *Workers Compensation and Injury Management Act 2023* (WA) — commenced 1 July 2024. Drives the WC-counts-as-service rule from 2024-07-01 onward. Cited as **"WCIM Act 2023 (WA)"**.
+- *Workers Compensation and Injury Management Act 2023* (WA) — commenced 1 July 2024. Drives the WC-counts-as-service rule from 2024-07-01 onward. Cited as **"WCIM Act 2023 (WA)"**. The specific section that effects the consequential amendment to LSL Act 1958 s.6 is most likely s.709 (the consequential-amendments part of the 2023 Act), but this has not been independently verified against the legislation text during the v1.0 research pass — see TBD-WA-02 resolution and the documented limitation in the Resolutions section.
 
-> **PM sign-off pending**. T5.1 (WA rule-set scaffold) is **BLOCKED** until this document is signed off and **TBD-WA-01 is resolved**. The TBD-WA-01 resolution carries an impl-plan v0.3.1 §5 re-scope (parallel to the VIC TBD-VIC-01 re-scope) — see Resolutions section once decided.
+---
+
+## Resolutions (2026-05-25 — PM Tracy Angwin)
+
+All 16 TBDs are resolved as listed below. The verbatim resolution text is the authority — where individual fixtures elsewhere in this document still carry "TBD" markers in inline prose, treat the Resolutions section here as binding and the inline marker as historical context to be ignored.
+
+### TBD-WA-01 (Sev-1, LOAD-BEARING) — Dual-regime architecture
+
+**RESOLVED: Accept PM's reading. Single rule set with date-aware continuous-service handling.** Mirrors the resolved TBD-VIC-01 VIC re-scope. The accrual formula (s.8) and pro-rata rules (s.8(3)) are unchanged across the 2022-06-20 cutoff — the IR Legislation Amendment Act 2021 changed continuous-employment rules only. Two `continuous-service-rule` modules (pre-2022 + post-2022) feed the same s.8 accrual formula; a third date-aware override at 2024-07-01 for WC absences (via WCIM Act 2023) sits on top of the post-2022 module. Impl-plan v0.3.1 §5 must be re-scoped from "two parallel rule sets" to "one WA rule set with date-aware continuous-service handling" — see impl-plan v0.3.2. Effort estimate L (5–8 d) → M–L (4–6 d).
+
+### TBD-WA-02 (Sev-2) — WCIM Act 2023 (WA) section number for the continuous-employment override
+
+**RESOLVED: Cite as "WCIM Act 2023 (WA)" without sub-section reference in v1.** One targeted research pass (2026-05-25) on legislation.wa.gov.au, AustLII, Lexology, and Ability Group confirmed the WCIM Act 2023 (WA) is the conferring instrument and that the consequential-amendments part is most likely s.709, but the precise section text could not be independently verified within the v1.0 research window (the legislation pages did not load via WebFetch). Engine cites "WCIM Act 2023 (WA)" with rule key `workers-comp-counts-from-2024-07-01`. The exact sub-section may be added in a quarterly legislation review (RES-3) once verified against the consolidated Act text. **Documented limitation** — citation accuracy is to Act level, not section level. Acceptable for launch.
+
+### TBD-WA-03 (Sev-2) — Cashing-out advisory granularity
+
+**RESOLVED: Three distinct codes** (`wa_cashout_post_accrual_advisory`, `wa_cashout_pre_accrual_not_authorised`, `wa_cashout_no_entitlement_to_cash_out` + `sub_7yr_no_entitlement_wa`). Parallel to QLD's resolved TBD-QLD-04 granularity. Stronger user awareness; modest engine complexity.
+
+### TBD-WA-04 (Sev-2) — 15-year accrual continuous + threshold inclusivity
+
+**RESOLVED: Continuous accrual at 1/60 (no discrete step at 15 yrs); thresholds at 7, 10, 15, 20, 25 yrs inclusive at exact-day boundary.** Same as resolved TBD-QLD-01. Engine: `years_of_continuous_service >= 7.0000`, `>= 10.0000`, `>= 15.0000` etc. 13-week figure at 15 yrs = 15 × 8.6667 / 10 = 13.00005 ≈ 13.0.
+
+### TBD-WA-05 (Sev-2) — Workers Comp rate of pay during LSL
+
+**RESOLVED: Apply literal s.9 ordinary rate at leave time.** Same as resolved TBD-QLD-05. WA has NO equivalent of VIC's s.17 higher-of-pre-injury-or-current rule. Engine emits `wa_lsl_calculated_at_wc_reduced_rate_warning` advisory when a `workers_comp_absence` event overlaps the LSL trigger date, suggesting LSL deferral if feasible.
+
+### TBD-WA-06 (Sev-2) — Accrual-period averaging methodology, partial-block handling
+
+**RESOLVED: Average over the partial duration only.** For an employee 12 yrs in, the partial second-block average covers years 10 → 12 only, not extrapolated to 5 yrs. Aligns with DEMIRS "average weekly hours worked by the employee during the accrual period". This is a value-of-week computation rule; no schema extension required.
+
+### TBD-WA-07 (Sev-1) — 10+ yr misconduct partial-forfeiture, interaction with leave already taken
+
+**RESOLVED: Accept PM's reading. Only the LAST FULLY-ACCRUED BLOCK is payable; engine subtracts prior leave taken against that block.** Formula: `payable_weeks = max(0, last_fully_accrued_block_weeks - leave_already_taken_against_that_block)`. Post-milestone accrual is forfeited entirely (the 2.5 yrs × 8.6667/10 = 2.1667 wks in TC-WA-026 stays forfeited). For TC-WA-026, if the employee had previously taken 4 wks of LSL against the first 10-yr block, the engine would pay 4.6667 wks (8.6667 − 4.0000), not 8.6667 wks.
+
+### TBD-WA-08, TBD-WA-12, TBD-WA-13, TBD-WA-14 + slackness-of-trade signal (Sev-2/3 schema extensions) — Deferred to DEV-CROSS-2
+
+**RESOLVED: Bundle as separate WA-schema-extension PR (DEV-CROSS-2).** Same pattern as DEV-CROSS-1 (the termination-reason enum refactor). The state-agnostic `engine/types.ts` extensions (slackness-of-trade signal on `employer_initiated_termination_and_rehire`, WC `paidConcurrent` + `returnToWorkProgram` fields on `workers_comp_absence`, casual UPL `reasonableExpectationOfReturn` on `unpaid_parental_leave`, meals/accommodation cash value on `Employee`) land in a single cross-state schema extension PR before WA engine code (T5.1) begins. See `.specify/features/002-all-state-coverage/dev-findings.md` DEV-CROSS-2 for the full scope. The affected fixtures (TC-WA-029, TC-WA-049, TC-WA-052, TC-WA-060) remain in this document as **active launch-gate fixtures** — they exercise schema fields that DEV-CROSS-2 will introduce, and will pass on the engine gold-standard run once DEV-CROSS-2 has landed and T5.1 onwards is unblocked. The fixtures are listed in the "Deferred to DEV-CROSS-2 (WA schema extension)" appendix below for traceability, but they are not REMOVED from the active suite — they are PENDING the schema extension that DEV-CROSS-2 delivers.
+
+### TBD-WA-09 (Sev-2) — Pre-2022 sickness cap working days vs calendar days
+
+**RESOLVED: Working days, proportionate to the employee's normal pattern.** FT 5-day-week: 15 working days/year. PT 3-day-week: 9 working days/year (proportionate). Casual: based on the regular pattern over the prior 52 weeks. Aligns with the DEMIRS pre-2022 language and is more accurate than a flat calendar-day interpretation. The calendar-day alternative would understate the effect for FT employees and over-state it for low-day-count PT employees.
+
+### TBD-WA-10 (Sev-3) — Pre-2022 casual continuity, applying general rules
+
+**RESOLVED: Apply the general s.6 rules (2-mo non-slackness / 6-mo slackness re-employment tolerances) to any casual gap > 0 days for pre-2022 accrual blocks.** Surface the `wa_pre_2022_casual_no_specific_rules` advisory so the user is informed that the engine's choice may be more restrictive than reality (case law may have rescued some continuity that the engine does not). The user retains the option to dispute via WA Industrial Magistrates Court.
+
+### TBD-WA-11 (Sev-3) — Cutoff inclusivity at exactly 2022-06-20
+
+**RESOLVED: A block that fully accrued ON 2022-06-20 falls under POST-2022 rules** (strict reading of "on or after 20 June 2022"). PM-recommended path. This is opposite to the threshold-inclusivity convention at year-boundaries (TBD-WA-04) because the wording differs: year-boundaries are "completed N years" (inclusive at N.0000 in the qualifying set); the cutoff is "on or after 20 June 2022" (inclusive of the boundary date in the post-2022 set). Fixture TC-WA-042 (block fully accrued 2022-06-20) → first_block_rules = `post_2022`. Fixture TC-WA-043 unchanged.
+
+### TBD-WA-15 (Sev-3) — Pre-first-milestone cash-out, hard-error or advisory
+
+**RESOLVED: Advisory (status: computed + warning).** Parallel to QLD's universal advisory model and the broader WA cash-out advisory granularity (TBD-WA-03). The engine does not police lawfulness; it informs. PM-recommended path accepted.
+
+### TBD-WA-16 (Sev-3) — Death-of-employee, sub-7-yr no carve-out
+
+**RESOLVED: No carve-out. Death at sub-7-yr returns $0** (same as resignation at sub-7-yr). Engine emits the `sub_7yr_no_entitlement_wa` warning. Aligns with VIC and QLD on this point. No WA equivalent of NSW LSA s.4(2)(iii)(d) sub-5-yr death carve-out — DEMIRS guidance is silent on this and the strict reading of s.8(3) is that the 7-yr threshold applies to death as it does to other qualifying reasons.
+
+### Net effect on fixtures
+
+| Resolution | Fixture impact |
+|---|---|
+| TBD-WA-01 | Re-scope is architectural — fixtures TC-WA-001 → TC-WA-070 unchanged (PM's option (b) was the basis the fixtures were drafted on) |
+| TBD-WA-02 | Citation form unchanged — `WCIM Act 2023 (WA)` already used at Act level |
+| TBD-WA-03 | Three-tier advisory codes confirmed — TC-WA-063/064/065 unchanged |
+| TBD-WA-04 | Continuous + inclusive confirmed — TC-WA-022, TC-WA-027, TC-WA-061, TC-WA-062 unchanged |
+| TBD-WA-05 | Literal s.9 + advisory confirmed — no fixture change; the advisory is a trigger-handler concern that fires automatically on `workers_comp_absence` overlap |
+| TBD-WA-06 | Partial-duration averaging confirmed — TC-WA-009, TC-WA-051 expected outputs unchanged |
+| TBD-WA-07 | "Last fully-accrued block minus prior leave taken against it" confirmed — TC-WA-026 (no prior leave taken) unchanged; future fixtures with prior-leave interaction can be added in v2 |
+| TBD-WA-08/12/13/14 + slackness | Schema extension deferred to DEV-CROSS-2 — fixtures TC-WA-029, TC-WA-049, TC-WA-052, TC-WA-060 remain in active suite, pass once DEV-CROSS-2 lands |
+| TBD-WA-09 | Working-days proportionate confirmed — TC-WA-036 expected days_excluded_from_service (10) unchanged because the fixture employee is FT |
+| TBD-WA-10 | General-rule application confirmed — TC-WA-039, TC-WA-054 unchanged |
+| TBD-WA-11 | 2022-06-20 → post-2022 — TC-WA-042 `first_block_rules` updated to `post_2022` (was previously inline-noted as "pre_2022" pending resolution); see fixture amendment below |
+| TBD-WA-15 | Advisory confirmed — TC-WA-064 status: computed + warning, unchanged from draft |
+| TBD-WA-16 | No carve-out confirmed — no sub-7-yr death-specific fixture; the general sub-7-yr warning applies |
+
+The only fixture-value change from the draft is **TC-WA-042**: `first_block_rules: pre_2022` → `first_block_rules: post_2022` (per TBD-WA-11 resolution). All other fixtures stand as drafted.
+
+---
 
 ---
 
@@ -44,14 +122,14 @@ Each test case has:
 
 - **Currency**: AUD; half-up rounding at 0.005; 2 decimal places at display; intermediate arithmetic is unrounded — same convention as NSW (F12, AC25 in E1 spec), VIC, and QLD.
 - **Dates**: ISO `YYYY-MM-DD`. Prescribed-date anchor for fixtures is `2026-05-25` (= as-at default for v1 testing).
-- **Entitlement formula** (WA LSL Act 1958 s.8): `8.6667 weeks` at 10 years of continuous employment, plus `4.3333 weeks` for each further 5 years. Same accrual ratio as NSW, VIC, and QLD (1/60 = 8.6667/10). **This formula is unchanged across the 20 June 2022 cutoff** — the IR Legislation Amendment Act 2021 did NOT change the entitlement-weeks calculation; it changed only the continuous-employment rules (which absences count, casual/seasonal definition, parental leave treatment, transfer-of-business scope). See **TBD-WA-01 (load-bearing)** for the dual-regime re-scope recommendation.
+- **Entitlement formula** (WA LSL Act 1958 s.8): `8.6667 weeks` at 10 years of continuous employment, plus `4.3333 weeks` for each further 5 years. Same accrual ratio as NSW, VIC, and QLD (1/60 = 8.6667/10). **This formula is unchanged across the 20 June 2022 cutoff** — the IR Legislation Amendment Act 2021 did NOT change the entitlement-weeks calculation; it changed only the continuous-employment rules (which absences count, casual/seasonal definition, parental leave treatment, transfer-of-business scope). See TBD-WA-01 RESOLUTION for the single-rule-set-with-date-aware-continuous-service architecture.
 - **Pro-rata at termination** (s.8(3)): payable to an employee who has completed **at least 7 years** of continuous employment whose employment ends for any reason **other than serious misconduct**. Death is treated equivalently to other qualifying terminations (s.8(3) extends pro-rata to "the death of the employee"). Resignation, dismissal (not for serious misconduct), redundancy, and death all qualify at 7+ years. **This rule is unchanged across the 20 June 2022 cutoff**.
 - **Serious misconduct** (s.8): forfeits all pro-rata at sub-10-years; at 10+ years, the employee retains the most recent fully-accrued block (8.6667 wks at the 10-yr mark, or +4.3333 wks at each subsequent 5-yr mark) but forfeits any **unpaid accrual since the last full milestone**. This is a critical WA-specific divergence from VIC (no misconduct exception) and from NSW (sub-10-yr-only forfeiture).
 - **Ordinary pay** (s.9): for fixed-rate employees, the ordinary-time rate of pay at the time of the leave applies. For casual / seasonal / varied-hours employees, the **average weekly hours during the accrual period** are used (first 10 years = one accrual period; each subsequent 5 years = its own accrual period). Casual loading is **included** in ordinary pay. For commission / piece / results-based pay, the **365-day pre-leave average** applies (`total earnings in previous 365 days ÷ 365 × 7`).
-- **Continuous employment** (s.6): paid leave (annual, LSL, paid personal, paid carer's, public holidays, paid parental, paid compassionate, paid family-and-domestic-violence) counts; unpaid leave (including unpaid parental leave) does not count but does not break continuity in most cases. **Casual / seasonal employees**: continuous despite absences "permitted under the terms of the employment", "caused by seasonal factors", or "any other absence where the employee, due to the regular and systematic nature of the work, has a reasonable expectation of returning to work". **All of these provisions changed materially on 20 June 2022** — see TBD-WA-01.
-- **Workers compensation** (s.6 + WCIM Act 2023): WC absences **on or after 1 July 2024** count as continuous employment (WCIM Act 2023 (WA) s.[TBD-WA-02]). WC absences **before 1 July 2024** depend on when the entitlement fully accrued — if the entitlement fully accrued on or after 20 June 2022, WC days before 2024-07-01 do NOT count; if fully accrued before 20 June 2022, the legacy 15-day-per-year sickness/injury cap applies. **Crucially, the 1 July 2024 cutoff applies to the date of the absence, not to the date the entitlement accrued** (per DEMIRS guidance).
+- **Continuous employment** (s.6): paid leave (annual, LSL, paid personal, paid carer's, public holidays, paid parental, paid compassionate, paid family-and-domestic-violence) counts; unpaid leave (including unpaid parental leave) does not count but does not break continuity in most cases. **Casual / seasonal employees**: continuous despite absences "permitted under the terms of the employment", "caused by seasonal factors", or "any other absence where the employee, due to the regular and systematic nature of the work, has a reasonable expectation of returning to work". **All of these provisions changed materially on 20 June 2022** — handled via the single-rule-set + two date-aware continuous-service modules per TBD-WA-01 RESOLUTION.
+- **Workers compensation** (s.6 + WCIM Act 2023): WC absences **on or after 1 July 2024** count as continuous employment (WCIM Act 2023 (WA) — section TBD per TBD-WA-02 RESOLUTION; Act-level citation only in v1.0, exact sub-section pending quarterly review). WC absences **before 1 July 2024** depend on when the entitlement fully accrued — if the entitlement fully accrued on or after 20 June 2022, WC days before 2024-07-01 do NOT count; if fully accrued before 20 June 2022, the legacy 15-day-per-year sickness/injury cap applies. **Crucially, the 1 July 2024 cutoff applies to the date of the absence, not to the date the entitlement accrued** (per DEMIRS guidance).
 - **Public holidays during LSL** (s.9): **EXCLUSIVE** — a PH falling within an LSL window extends the leave by one day per PH (matches NSW, VIC, QLD; differs from SA which is inclusive).
-- **Cashing out** (s.5): permitted **only after the entitlement has been fully accrued** (i.e. after each completed 10-yr or 5-yr block). Cannot be cashed out in advance, cannot be substituted by topped-up hourly rates or commission. Must be a **written agreement signed by both parties**. The employee must be paid at least what they would have received at ordinary pay. Engine emits a **non-blocking advisory** when a `cash_out` trigger is received (parallel to QLD; contrast VIC's hard error). See **TBD-WA-03**.
+- **Cashing out** (s.5): permitted **only after the entitlement has been fully accrued** (i.e. after each completed 10-yr or 5-yr block). Cannot be cashed out in advance, cannot be substituted by topped-up hourly rates or commission. Must be a **written agreement signed by both parties**. The employee must be paid at least what they would have received at ordinary pay. Engine emits a **non-blocking advisory** when a `cash_out` trigger is received (parallel to QLD; contrast VIC's hard error). Three distinct advisory codes per TBD-WA-03 RESOLUTION.
 - **Transfer of business** (s.6 amended 2022): from 20 June 2022, when a business changes ownership, the employee's period of continuous employment with the old employer **transfers to the new employer**, and the accrued leave (if any) is also transferred. This applies regardless of any sale-of-business contract terms — broader than the pre-2022 "transmission of business" wording.
 - **Citations**: every case lists the minimum expected citations. The rules engine MAY emit additional citations; tests assert array-membership, not array-equality.
 
@@ -69,7 +147,7 @@ Each test case has:
 | Serious-misconduct dismissal — sub-10-yr | full forfeiture | full payout | full forfeiture (s.95(3)(d)) | **full forfeiture — NO pro-rata** | WA LSL Act 1958 s.8(3) |
 | Serious-misconduct dismissal — 10+ yrs | full payout | full payout | full payout | **PARTIAL FORFEITURE — only last fully-accrued block payable; accrual since last milestone forfeited** | WA LSL Act 1958 s.8(3); DEMIRS — "only entitled to be paid for any part of a last fully accrued entitlement which has not been taken and is not entitled to receive payment of pro rata long service leave" |
 | Accrual ratio | 1/60 (8.6667 wk per 10 yr) | 1/60 | 1/60 | **1/60 (same)** | WA LSL Act 1958 s.8 |
-| 15-year additional accrual | continuous 1/60 (no step) | continuous 1/60 | continuous 1/60 (per resolved TBD-QLD-01) | **continuous 1/60** (4.3333 wks/5 yr is the proportionate phrasing; not a discrete step) — see TBD-WA-04 | WA LSL Act 1958 s.8(1) |
+| 15-year additional accrual | continuous 1/60 (no step) | continuous 1/60 | continuous 1/60 (per resolved TBD-QLD-01) | **continuous 1/60** (4.3333 wks/5 yr is the proportionate phrasing; not a discrete step) — TBD-WA-04 RESOLVED | WA LSL Act 1958 s.8(1) |
 | Break tolerance — employer/employee-initiated | 2 mo (≤60 days) | 12 weeks | 3 months | **2 months (other reasons); 6 months (slackness of trade)** | WA LSL Act 1958 s.6; DEMIRS — "Re-employment within 2 months (non-slackness terminations); Re-employment within 6 months (slackness-of-trade terminations)" |
 | Casual continuity (post-2022) | "regular and systematic" + research §1.4 | 12 weeks unless agreement, seasonal, etc. (s.12(3)) | 3 months between contracts (s.103) | **No specific gap duration — continuity preserved where absence is "permitted under the terms of the employment", "caused by seasonal factors", or "regular and systematic" with reasonable expectation of return** | WA LSL Act 1958 s.6 (as amended 2022); DEMIRS — casuals & seasonal |
 | Casual continuity (pre-2022) | n/a | n/a | n/a | **NO SPECIFIC RULES — general s.6 absences-counted/not-counted regime applied to casuals** | DEMIRS — "there were no specific rules in place for determining casual and seasonal employees' continuous employment prior to June 2022" |
@@ -80,8 +158,8 @@ Each test case has:
 | Unpaid parental leave (pre-2022) | excluded | first 52 wks count (s.13(1)(b)) | does not count but no break (s.134) | **DOES NOT count toward service** (pre-2022 rule for casual/seasonal: parental leave entirely excluded) | DEMIRS pre-2022 guidance — "a period of parental leave does not count" |
 | Unpaid parental leave (post-2022 — casual) | n/a | (52-wk cap) | n/a | **COUNTS where the employee has reasonable expectation of return** | DEMIRS post-2022 casual guidance |
 | Workers Comp — pre-2024-07-01 | counts (NSW LSA s.4(11)) | counts (s.13(1)(b)) | counts (s.134) | **DEPENDS ON ACCRUAL DATE**: if accrued before 20 June 2022 → 15-day-per-year cap; if accrued on/after 20 June 2022 → does NOT count unless employee was on paid leave concurrently or returning-to-work | WA LSL Act 1958 s.6 + DEMIRS guidance |
-| Workers Comp — on/after 2024-07-01 | counts | counts | counts | **COUNTS regardless of accrual date** — WCIM Act 2023 (WA) overrides | WCIM Act 2023 (WA) [section TBD-WA-02]; DEMIRS — "An absence from work on income compensation on or after 1 July 2024 counts towards the length of an employee's period of continuous employment" |
-| WC rate of pay during LSL | counts as service; current ordinary rate | s.17 higher of pre-injury or current | literal s.98 ordinary rate at leave time + advisory (per TBD-QLD-05) | **NOT EXPLICITLY ADDRESSED in DEMIRS guidance — apply literal s.9 ordinary rate at leave time (parallel to QLD)** — see TBD-WA-05 | WA LSL Act 1958 s.9; DEMIRS — silent on WC pay rate |
+| Workers Comp — on/after 2024-07-01 | counts | counts | counts | **COUNTS regardless of accrual date** — WCIM Act 2023 (WA) overrides | WCIM Act 2023 (WA) (section TBD per TBD-WA-02 RESOLUTION — Act-level citation in v1.0); DEMIRS — "An absence from work on income compensation on or after 1 July 2024 counts towards the length of an employee's period of continuous employment" |
+| WC rate of pay during LSL | counts as service; current ordinary rate | s.17 higher of pre-injury or current | literal s.98 ordinary rate at leave time + advisory (per TBD-QLD-05) | **literal s.9 ordinary rate at leave time + advisory (parallel to QLD)** — TBD-WA-05 RESOLVED | WA LSL Act 1958 s.9; DEMIRS — silent on WC pay rate |
 | Transfer of business — pre-2022 | NSW LSA s.4(6) | s.11(3)–(11) | s.134 | **s.6 transmission-of-business — prior employment counts where there was a transmission of the business** | WA LSL Act 1958 s.6 (pre-2022); DEMIRS pre-2022 |
 | Transfer of business — post-2022 | as pre-2022 | as pre-2022 | as pre-2022 | **BROADER — Fair Work Act standards apply; covers insourcing/outsourcing/related-company arrangements; accrued leave transfers regardless of contract** | DEMIRS — "From 20 June 2022, when a business changes ownership, an employee's period of continuous employment with the old employer transfers to the new employer and the employee's accrued leave, if any, is also transferred. This applies regardless of anything written in a sale of business contract." |
 | Cashing out | not in scope NSW v1 | **CRIMINAL OFFENCE — s.34** | **PERMITTED via instrument or QIRC order (s.110)** — advisory | **PERMITTED only after entitlement is fully accrued; written agreement required** — non-blocking advisory | WA LSL Act 1958 s.5 (as amended 2022); DEMIRS — cash-out post-2022 |
@@ -97,9 +175,11 @@ Each test case has:
 
 ---
 
-## TBD-WA-01 (LOAD-BEARING) — Dual-regime architecture: re-scope recommendation
+## TBD-WA-01 (LOAD-BEARING) — Dual-regime architecture: ✅ RESOLVED 2026-05-25
 
-This is the **single most important finding** in this draft. The current impl-plan v0.3.1 §5 assumes WA needs two parallel rule sets (`rules-pre-2022/` + `rules-post-2022/`). After full research into the IR Legislation Amendment Act 2021 changes, the PM's reading is that **WA follows the VIC pattern — one rule set with date-aware continuous-service handling** (the pattern adopted in resolved TBD-VIC-01), not two parallel entitlement engines.
+**RESOLUTION**: Single rule set with date-aware continuous-service handling (PM-recommended option (b)). See the binding Resolutions section near the top of this document. The detail below is retained as the reasoning that produced the resolution.
+
+The original impl-plan v0.3.1 §5 assumed WA needs two parallel rule sets (`rules-pre-2022/` + `rules-post-2022/`). After full research into the IR Legislation Amendment Act 2021 changes, the PM's reading is that **WA follows the VIC pattern — one rule set with date-aware continuous-service handling** (the pattern adopted in resolved TBD-VIC-01), not two parallel entitlement engines.
 
 ### Evidence
 
@@ -146,8 +226,6 @@ This is the **single most important finding** in this draft. The current impl-pl
 
 **RES-1 #3 stays intact** — WA remains the third state encoded after VIC + QLD; the re-scope is structural inside Phase 5, not a re-ordering of phases.
 
-> **PM sign-off required**: this is a Severity-1 architectural decision. If PM accepts option (b), update impl-plan v0.3.1 §5 (parallel to the VIC §3 re-scope at v0.3.0 → v0.3.1) and continue with the test cases below as drafted. If PM accepts option (a), several fixture expected outputs change — specifically the cross-cutoff fixtures TC-WA-040 → TC-WA-046 must be re-derived under two-parallel-engine semantics.
-
 ---
 
 ## "Fully accrued" interpretation — what 20 June 2022 actually means for the engine
@@ -160,7 +238,7 @@ The 20 June 2022 cutoff applies to **when an LSL entitlement BLOCK fully accrued
 - The **first 10 years** of continuous employment is one accrual block. The block "fully accrues" on the employee's 10-year anniversary date (subject to absences that delayed the milestone).
 - Each subsequent **5-year period** is its own accrual block. The block "fully accrues" on the 15-year, 20-year, 25-year, ... anniversaries.
 
-**Engine implication (under TBD-WA-01 option (b))**:
+**Engine implication (under TBD-WA-01 RESOLVED option (b))**:
 - For each accrual block on an employee's record, determine whether that block's "fully accrued" date is before or on/after 2022-06-20.
 - For blocks that fully accrued **before 2022-06-20**: pre-2022 continuous-service rules (15-day sickness cap; UPL excluded; etc.) apply to that block's contributing service.
 - For blocks that fully accrued **on or after 2022-06-20**: post-2022 rules apply.
@@ -201,7 +279,7 @@ The engine MUST surface the regime-split via the `wa_regime_split_applied` warni
 | **Bulk-mode fixtures** | | **3** |
 | **Grand total** | | **73** |
 
-> **Note on size**: WA has the largest fixture count of any state to date (NSW 60, VIC 61, QLD 60) because of the regime-split arithmetic (4 dedicated fixtures + 2 insufficient-granularity fallback), the four-way serious-misconduct matrix (sub-7, 7–10, 10+ with last-block-fully-accrued, 10+ within-block), and the WC pre/post-2024 cutoff (4 fixtures). If PM signs off TBD-WA-01 option (b), the count may reduce — option (a) would have demanded ~10 more cross-cutoff fixtures.
+> **Note on size**: WA has the largest fixture count of any state to date (NSW 60, VIC 61, QLD 60) because of the regime-split arithmetic (4 dedicated fixtures + 2 insufficient-granularity fallback), the four-way serious-misconduct matrix (sub-7, 7–10, 10+ with last-block-fully-accrued, 10+ within-block), and the WC pre/post-2024 cutoff (4 fixtures). PM has resolved TBD-WA-01 to option (b), so the count stands at 73 — option (a) would have demanded ~10 more cross-cutoff fixtures.
 
 ---
 
@@ -489,7 +567,7 @@ trigger: { kind: taking_leave, leaveStartDate: 2026-06-01, leaveWeeks: 8.6667 }
 ```yaml
 status: computed
 years_of_continuous_service: 12.0000
-total_entitlement_weeks: 10.4000             # 12 × 8.6667/10 — continuous accrual per TBD-WA-04
+total_entitlement_weeks: 10.4000             # 12 × 8.6667/10 — continuous accrual per TBD-WA-04 RESOLVED
 weekly_avg_hours_block1: 32.00               # 16640 / 520 = 32 h/wk (first 10-yr accrual block)
 value_of_week_block1: 1280.00                # 32 × $40
 weekly_avg_hours_partial_block2: 32.00       # 3328 / 104 = 32 h/wk
@@ -593,7 +671,7 @@ expected_citations:
 
 **Notes**
 
-The "accrual period" averaging is materially different from VIC's 3-tier (52w/260w/whole) and from QLD's single-52-week lookback. WA averages within each completed or partial accrual block. **TBD-WA-06**: how does the engine handle a partial block — average over the partial duration only? (PM's reading per DEMIRS: yes — the partial second block is averaged from the second 10-yr-anniversary to the leave/termination date.)
+The "accrual period" averaging is materially different from VIC's 3-tier (52w/260w/whole) and from QLD's single-52-week lookback. WA averages within each completed or partial accrual block. TBD-WA-06 RESOLVED: partial-block averaging covers the partial duration only — the partial second block is averaged from the second 10-yr-anniversary to the leave/termination date, not extrapolated to 5 yrs.
 
 ---
 
@@ -716,7 +794,7 @@ expected_citations:
 
 **Notes**
 
-Threshold inclusivity at exactly 7.0000 yrs — same convention as VIC (TBD-VIC-06 RESOLVED inclusive) and QLD (TBD-QLD-01 RESOLVED inclusive). Engine: `years_of_continuous_service >= 7.0000`. **See TBD-WA-04** for the parallel inclusivity question on the 10-yr and 15-yr thresholds.
+Threshold inclusivity at exactly 7.0000 yrs — same convention as VIC (TBD-VIC-06 RESOLVED inclusive) and QLD (TBD-QLD-01 RESOLVED inclusive). Engine: `years_of_continuous_service >= 7.0000`. TBD-WA-04 RESOLVED extends inclusivity to the 10-yr and 15-yr thresholds.
 
 ---
 
@@ -978,7 +1056,7 @@ expected_citations:
 
 **Notes**
 
-This is the WA-specific divergence from EVERY OTHER encoded state. NSW pays full at 10+; VIC pays full regardless; QLD pays full at 10+ (per resolved s.95(2) misconduct exception drop). Only WA carries the partial-forfeiture at 10+ via s.8(3) wording "only entitled to be paid for any part of a last fully accrued entitlement which has not been taken and is not entitled to receive payment of pro rata long service leave". **TBD-WA-07** is the open question on how to encode "last fully-accrued entitlement which has not been taken" — see TBD section.
+This is the WA-specific divergence from EVERY OTHER encoded state. NSW pays full at 10+; VIC pays full regardless; QLD pays full at 10+ (per resolved s.95(2) misconduct exception drop). Only WA carries the partial-forfeiture at 10+ via s.8(3) wording "only entitled to be paid for any part of a last fully accrued entitlement which has not been taken and is not entitled to receive payment of pro rata long service leave". TBD-WA-07 RESOLVED: compute as `(last_fully_accrued_block - leave_already_taken_against_that_block)`; forfeit post-milestone accrual entirely.
 
 ---
 
@@ -1076,7 +1154,7 @@ expected_citations:
 
 **Notes**
 
-**TBD-WA-08**: how does the engine accept the `slacknessOfTrade: true` signal? Either via a new field on the `employer_initiated_termination_and_rehire` event, or via a new event type. PM's reading: new `slacknessOfTrade?: boolean` field on the existing event type, defaulting to `false`. This is a small `engine/types.ts` extension parallel to DEV-CROSS-1.
+TBD-WA-08 — RESOLVED (deferred to DEV-CROSS-2): new optional `slacknessOfTrade?: boolean` field on the existing `employer_initiated_termination_and_rehire` event type, defaulting to `false`. Lands as part of the state-agnostic WA schema extension PR (DEV-CROSS-2) before WA engine code (T5.1) begins. Same pattern as DEV-CROSS-1.
 
 ---
 
@@ -1242,7 +1320,7 @@ expected_citations:
 
 **Notes**
 
-This fixture exercises the regime-split engine path materially. Sick days excluded under the pre-2022 cap; if these same days had fallen in a post-2022 accrual block they would have been fully counted (paid sickness). **TBD-WA-09**: confirm that the 15-day cap is "working days" not "calendar days" per DEMIRS language — fixture assumes working days = the days in the event. PM's reading: working-days; calendar-day modelling would understate the impact for full-time employees.
+This fixture exercises the regime-split engine path materially. Sick days excluded under the pre-2022 cap; if these same days had fallen in a post-2022 accrual block they would have been fully counted (paid sickness). TBD-WA-09 RESOLVED: 15-day cap is "working days" proportionate to the employee's normal pattern (FT 5-day-week: 15 working days/year; PT 3-day-week: 9 working days/year; casual: based on prior 52-wk pattern). For this fixture employee (FT), this resolves to the days in the event.
 
 ---
 
@@ -1289,7 +1367,7 @@ expected:
 
 **Notes**
 
-This is a subtle edge case: a casual employee whose first 10-yr accrual block fully accrued before 2022-06-20 has their pre-2022 continuity determined under the **general** s.6 rules (no specific casual continuity test). The post-2022 "regular and systematic / reasonable expectation" framework does not retroactively apply. **TBD-WA-10**: how does the engine resolve pre-2022 casual gaps? PM's reading: apply the general 2-mo/6-mo non-slackness/slackness rule to any gap > 0 days for pre-2022 casual blocks.
+This is a subtle edge case: a casual employee whose first 10-yr accrual block fully accrued before 2022-06-20 has their pre-2022 continuity determined under the **general** s.6 rules (no specific casual continuity test). The post-2022 "regular and systematic / reasonable expectation" framework does not retroactively apply. TBD-WA-10 RESOLVED: apply the general 2-mo non-slackness / 6-mo slackness re-employment tolerances to any casual gap > 0 days for pre-2022 casual blocks. Engine surfaces the `wa_pre_2022_casual_no_specific_rules` advisory so the user is informed the engine's choice may be more restrictive than reality.
 
 ```yaml
 employee:
@@ -1309,11 +1387,11 @@ expected:
 
 ## §G — Regime-split fixtures (service straddles 2022-06-20)
 
-> These fixtures exercise the dual-regime engine path materially. Numerical outcomes change between option (a) and option (b) of TBD-WA-01.
+> These fixtures exercise the dual-regime engine path materially. PM has resolved TBD-WA-01 to option (b) — single rule set with date-aware continuous-service handling. Expected outputs reflect that resolution.
 
 ### TC-WA-040 — 13-yr employee straddling 2022-06-20, no absences → numerical outcome identical to single-regime
 
-- **Source**: spec F7 / AC7; impl-plan §5 (re-scoped per TBD-WA-01)
+- **Source**: spec F7 / AC7; impl-plan v0.3.2 §5 (re-scoped per TBD-WA-01 RESOLUTION)
 - **Category**: Regime split — identical-outcome path
 
 **Inputs**
@@ -1389,25 +1467,25 @@ expected_citations:
 
 **Notes**
 
-This is the **diagnostic regime-split fixture**. If TBD-WA-01 option (a) is adopted, the calculation would split into two parallel engines and the numerical outcome may differ (depending on whether option (a) interprets sickness exclusion before or after the regime sum). Under option (b) PM's recommendation, the days_excluded_from_service value is 30 (15+15+0); a single accrual table runs across the entire 17.92 yrs of countable service.
+This is the **diagnostic regime-split fixture**. Under TBD-WA-01 RESOLVED option (b) — single rule set with date-aware continuous-service handling — the days_excluded_from_service value is 30 (15+15+0); a single accrual table runs across the entire 17.92 yrs of countable service.
 
 ---
 
-### TC-WA-042 — 11-yr employee, first 10-yr block fully accrued just before 2022-06-20
+### TC-WA-042 — 11-yr employee, first 10-yr block fully accrued ON 2022-06-20
 
 ```yaml
 employee: { startDate: 2012-06-20, /* first 10-yr block fully accrued 2022-06-20 */, employmentType: full_time, currentWeeklyGross: 1700.00 }
 trigger: { kind: termination, terminationDate: 2026-05-25, reason: voluntary_resignation }
 expected:
   first_block_accrual_date: 2022-06-20
-  first_block_rules: pre_2022                 # accrued ON the cutoff — pre-2022 rules apply per "fully accrued before 20 June 2022" reading
+  first_block_rules: post_2022                # accrued ON the cutoff — post-2022 rules apply per "on or after 20 June 2022" strict reading (TBD-WA-11 RESOLVED)
   years_of_continuous_service: 13.9233
   total_entitlement_weeks: 12.0668
 ```
 
 **Notes**
 
-**TBD-WA-11 (boundary inclusivity)**: when an accrual block fully accrued at midnight on 2022-06-20, does it fall under pre-2022 or post-2022 rules? PM's reading: pre-2022 (the cutoff is "on or after 20 June 2022" — strict inequality favouring pre-2022 for the boundary case). Mirror question to TBD-VIC-06 / TBD-QLD-01 inclusivity at year-boundary thresholds.
+TBD-WA-11 (boundary inclusivity) RESOLVED: when an accrual block fully accrued at midnight on 2022-06-20, post-2022 rules apply (strict reading of the DEMIRS "on or after 20 June 2022" phrasing — the boundary date itself is in the post-2022 set). Mirror question to TBD-WA-04 inclusivity at year-boundary thresholds — note the convention differs because the statutory wording differs (year-boundaries are "completed N years" inclusive at N.0000 in the qualifying set; the 2022 cutoff is "on or after" inclusive of the boundary date in the post-2022 set).
 
 ---
 
@@ -1597,7 +1675,7 @@ expected:
 
 **Notes**
 
-**TBD-WA-12**: how does the engine signal "paid concurrent" or "return-to-work program" status? PM's reading: new optional fields on the `workers_comp_absence` event type (`paidConcurrent?: boolean`, `returnToWorkProgram?: boolean`). Both default `false`. This is a small `engine/types.ts` extension.
+TBD-WA-12 — RESOLVED (deferred to DEV-CROSS-2): new optional fields on the `workers_comp_absence` event type (`paidConcurrent?: boolean`, `returnToWorkProgram?: boolean`). Both default `false`. Lands as part of DEV-CROSS-2 before WA T5.1 begins.
 
 ---
 
@@ -1667,7 +1745,7 @@ expected:
 
 **Notes**
 
-**TBD-WA-13**: how does the engine signal "reasonable expectation of return"? PM's reading: new optional `reasonableExpectationOfReturn?: boolean` field on `unpaid_parental_leave` events. Defaults to `false`. The user (or pre-fill from prior employment-pattern analysis) asserts the expectation.
+TBD-WA-13 — RESOLVED (deferred to DEV-CROSS-2): new optional `reasonableExpectationOfReturn?: boolean` field on `unpaid_parental_leave` events. Defaults to `false`. The user (or pre-fill from prior employment-pattern analysis) asserts the expectation. Lands as part of DEV-CROSS-2 before WA T5.1 begins.
 
 ---
 
@@ -1792,7 +1870,7 @@ expected:
 
 **Notes**
 
-**TBD-WA-14**: how does the engine model meals/accommodation? PM's reading: new optional `mealsAndAccommodationCashValueWeekly?: number` field on Employee. If user-supplied AND normally provided (asserted by user), add to weekly gross for LSL computation. Defaults to 0.
+TBD-WA-14 — RESOLVED (deferred to DEV-CROSS-2): new optional `mealsAndAccommodationCashValueWeekly?: number` field on `Employee`. If user-supplied AND normally provided (asserted by user), add to weekly gross for LSL computation. Defaults to 0. Lands as part of DEV-CROSS-2 before WA T5.1 begins.
 
 ---
 
@@ -1820,7 +1898,7 @@ expected:
 
 **Notes**
 
-Continuous accrual between milestones (parallel to QLD TBD-QLD-01 RESOLVED continuous reading). NOT a discrete step — the 13-week figure at 15 yrs is the arithmetic outcome of 15 × 8.6667/10 = 13.00005, not a separate accrual step. See **TBD-WA-04** for the explicit PM question.
+Continuous accrual between milestones (parallel to QLD TBD-QLD-01 RESOLVED continuous reading). NOT a discrete step — the 13-week figure at 15 yrs is the arithmetic outcome of 15 × 8.6667/10 = 13.00005, not a separate accrual step. TBD-WA-04 RESOLVED confirms this for WA.
 
 ---
 
@@ -1867,7 +1945,7 @@ expected:
 
 **Notes**
 
-Engine computes the value but warns the user the transaction is not authorised. **TBD-WA-15**: should this be a hard error (status: blocked) or an advisory (status: computed + warning)? PM's reading: advisory (parallel to QLD's universal advisory model). The engine does not police legality; it informs.
+Engine computes the value but warns the user the transaction is not authorised. TBD-WA-15 RESOLVED: advisory (status: computed + warning), parallel to QLD's universal advisory model. The engine does not police legality; it informs.
 
 ---
 
@@ -2076,7 +2154,7 @@ Demonstrates per-state cash-out branching across the 4 encoded states: WA = advi
 | **WA LSL Act 1958 s.27** — Working elsewhere during LSL | Out of v1 (offence provision, not calculation) |
 | **WCIM Act 2023 (WA)** — WC counts as service from 2024-07-01 | TC-WA-046, TC-WA-047, TC-WA-048, TC-WA-049 |
 | **E2 spec F1 / F2 / AC1 / AC2** — per-state rule set + test suite | this file + encoded fixtures |
-| **E2 spec F7 / AC7** — WA dual-regime split with citations to both | TC-WA-040, TC-WA-041, TC-WA-042, TC-WA-043 (under TBD-WA-01 option (b) re-scope) |
+| **E2 spec F7 / AC7** — WA dual-regime split with citations to both | TC-WA-040, TC-WA-041, TC-WA-042, TC-WA-043 (under TBD-WA-01 RESOLVED option (b) re-scope) |
 | **E2 spec F7 / AC8** — Insufficient-granularity ambiguity warning + single-regime fallback | TC-WA-044, TC-WA-045 |
 | **E2 spec F8 / AC9** — WA Workers Comp pre-2024-07-01 excluded | TC-WA-046, TC-WA-048 |
 | **E2 spec F13 / AC14** — Cross-jurisdictional governing-state nomination | TC-WA-069, TC-WA-070 |
@@ -2085,184 +2163,67 @@ Demonstrates per-state cash-out branching across the 4 encoded states: WA = advi
 
 ---
 
-# Items flagged `TBD-WA-NN`
+# Items flagged `TBD-WA-NN` — ALL RESOLVED 2026-05-25
 
-> All TBDs ordered by severity. **Sev-1 = launch-blocker**; **Sev-2 = should-resolve-before-T5.1**; **Sev-3 = nice-to-have**.
+All 16 TBDs are resolved in the **Resolutions** section near the top of this document. The historical detail and rationale that produced each resolution is preserved in the inline notes against the fixtures themselves (TC-WA-NNN entries). The Resolutions section is the binding authority.
 
-### TBD-WA-01 — [Severity 1] **(LOAD-BEARING)** Dual-regime architecture: single rule set with date-aware continuous-service (PM rec'd option b) vs two parallel rule sets (impl-plan default option a)
-
-See the **TBD-WA-01 (LOAD-BEARING)** section near the top of this document for the full reasoning. PM recommends **option (b)** — single rule set with date-aware continuous-service handling, mirroring the VIC re-scope under TBD-VIC-01. Two continuous-service-rule modules (pre-2022 + post-2022) selected by accrual-block "fully accrued" date, plus a third date-aware override at 2024-07-01 for Workers Comp via WCIM Act 2023.
-
-**Decision needed by**: T5.1 — gates the entire rule-set scaffold.
-**What changes if PM accepts (b)**: impl-plan v0.3.1 §5 re-scoped (parallel to v0.3.1 §3 VIC re-scope); ~2 dev-days saved (5–8 → 4–6). Fixtures stand as drafted.
-**What changes if PM accepts (a)**: cross-cutoff fixtures TC-WA-040 → TC-WA-046 must be re-derived under two-parallel-engine semantics (different sub-totals reported per regime).
-
----
-
-### TBD-WA-02 — [Severity 2] WCIM Act 2023 (WA) — specific section number for the continuous-employment override
-
-The 2024-07-01 Workers Comp rule is conferred by the Workers Compensation and Injury Management Act 2023 (WA), but the specific section number that effects the LSL Act 1958 s.6 amendment was not surfaced in the publicly-accessible DEMIRS guidance or the Lexology summaries during the research pass. The engine MUST cite the section accurately for legal traceability.
-
-**PM recommendation**: confirm the section number via direct read of the WCIM Act 2023 (`mrdoc_46540.htm` at legislation.wa.gov.au) before T5.1 commences. Likely candidates: s.55, s.56, or a Schedule-based amendment.
-
-**Decision needed by**: T5.2 (continuous-service rules encoding). Until confirmed, fixtures cite "WCIM Act 2023 (WA)" without sub-section reference — this gap is acceptable for the draft but must be closed before sign-off.
-
----
-
-### TBD-WA-03 — [Severity 2] Cashing-out advisory granularity — three-tier or single-message
-
-Three advisory scenarios surface for WA cash-out: (1) post-accrual lawful (TC-WA-063), (2) pre-first-milestone (TC-WA-064), (3) sub-7-yr no entitlement (TC-WA-065). The fixtures above propose three distinct warning codes:
-- `wa_cashout_post_accrual_advisory`
-- `wa_cashout_pre_accrual_not_authorised`
-- `wa_cashout_no_entitlement_to_cash_out` + `sub_7yr_no_entitlement_wa`
-
-**PM recommendation**: ACCEPT three distinct codes (parallel to QLD's resolved TBD-QLD-04). Stronger user awareness; modest engine complexity.
-
-**Alternative**: single generic `wa_cashout_advisory` code with state-aware message text.
-
-**Decision needed by**: T5.4 (trigger-handlers.ts encoding).
+| TBD | Severity | Status | Resolution location |
+|---|---|---|---|
+| TBD-WA-01 | Sev-1 (load-bearing) | ✅ RESOLVED | Resolutions §TBD-WA-01 — single rule set with date-aware continuous-service handling |
+| TBD-WA-02 | Sev-2 | ✅ RESOLVED (with documented limitation) | Resolutions §TBD-WA-02 — Act-level citation only, section TBD via quarterly review |
+| TBD-WA-03 | Sev-2 | ✅ RESOLVED | Resolutions §TBD-WA-03 — three distinct advisory codes |
+| TBD-WA-04 | Sev-2 | ✅ RESOLVED | Resolutions §TBD-WA-04 — continuous 1/60 + inclusive thresholds |
+| TBD-WA-05 | Sev-2 | ✅ RESOLVED | Resolutions §TBD-WA-05 — literal s.9 + WC-overlap advisory |
+| TBD-WA-06 | Sev-2 | ✅ RESOLVED | Resolutions §TBD-WA-06 — partial-duration averaging |
+| TBD-WA-07 | Sev-1 | ✅ RESOLVED | Resolutions §TBD-WA-07 — last fully-accrued block minus prior leave taken |
+| TBD-WA-08 | Sev-2 | ⏳ Deferred to DEV-CROSS-2 | See "Deferred to DEV-CROSS-2" appendix |
+| TBD-WA-09 | Sev-2 | ✅ RESOLVED | Resolutions §TBD-WA-09 — working days proportionate to pattern |
+| TBD-WA-10 | Sev-3 | ✅ RESOLVED | Resolutions §TBD-WA-10 — general s.6 rules + advisory |
+| TBD-WA-11 | Sev-3 | ✅ RESOLVED | Resolutions §TBD-WA-11 — 2022-06-20 → post-2022 (strict "on or after") |
+| TBD-WA-12 | Sev-3 | ⏳ Deferred to DEV-CROSS-2 | See "Deferred to DEV-CROSS-2" appendix |
+| TBD-WA-13 | Sev-3 | ⏳ Deferred to DEV-CROSS-2 | See "Deferred to DEV-CROSS-2" appendix |
+| TBD-WA-14 | Sev-3 | ⏳ Deferred to DEV-CROSS-2 | See "Deferred to DEV-CROSS-2" appendix |
+| TBD-WA-15 | Sev-3 | ✅ RESOLVED | Resolutions §TBD-WA-15 — advisory (status: computed + warning) |
+| TBD-WA-16 | Sev-3 | ✅ RESOLVED | Resolutions §TBD-WA-16 — no sub-7-yr death carve-out |
 
 ---
 
-### TBD-WA-04 — [Severity 2] 15-year accrual: continuous or discrete? Threshold inclusivity
+## Deferred to DEV-CROSS-2 (WA schema extension)
 
-Parallel to TBD-QLD-01 (RESOLVED continuous + inclusive). WA LSL Act 1958 s.8(1) confers "8.6667 weeks at 10 years" and "4.3333 weeks at each subsequent 5 years". Plain-English Sprintlaw and RosterElf summaries imply continuous accrual at 1/60; APA's worked examples support this.
+The following four TBDs require a state-agnostic `engine/types.ts` refactor — they all introduce new optional fields on existing event types or on `Employee`. Per the operator's decision (2026-05-25), this is bundled as a separate cross-state PR (DEV-CROSS-2) that lands BEFORE WA engine code (T5.1) commences. Same pattern as DEV-CROSS-1 (termination-reason enum refactor that landed at `bd2d284` between QLD launch and WA Phase 5).
 
-**PM recommendation**:
-- Accrual is continuous at 1/60 — no discrete step at 15 yrs. 13-wk figure at 15 yrs = 15 × 8.6667/10 = 13.00005 ≈ 13.0.
-- Thresholds (7, 10, 15, 20, 25 yrs) inclusive at exact-day boundary. Engine: `years_of_continuous_service >= 7.0000`, `>= 10.0000`, etc.
+See `.specify/features/002-all-state-coverage/dev-findings.md` DEV-CROSS-2 for the full scope, sequencing, and pre-flight blocker statement.
 
-**What changes if PM rejects**: TC-WA-022 (14 yrs), TC-WA-027 (15 yrs exact), TC-WA-061 (15 yrs exact), TC-WA-062 (13 yrs) expected values would shift.
+### Scope of DEV-CROSS-2 (the state-agnostic refactor)
 
-**Decision needed by**: T5.1 — gates accrual-table.ts encoding.
+| Field | Event type / interface | Purpose | Default | Fixtures unblocked |
+|---|---|---|---|---|
+| `slacknessOfTrade?: boolean` | `employer_initiated_termination_and_rehire` | Distinguish 6-mo slackness-of-trade re-employment tolerance from 2-mo non-slackness tolerance under WA LSL Act 1958 s.6 | `false` | TC-WA-029, TC-WA-030 |
+| `paidConcurrent?: boolean` | `workers_comp_absence` | Signal WC absence overlapped paid leave (annual or LSL) — DEMIRS paid-concurrent exception under WA LSL Act 1958 s.6 | `false` | TC-WA-049 |
+| `returnToWorkProgram?: boolean` | `workers_comp_absence` | Signal employee was on a return-to-work program during the WC absence — DEMIRS RTW exception | `false` | (future fixtures in v2; surfaced for completeness) |
+| `reasonableExpectationOfReturn?: boolean` | `unpaid_parental_leave` | Signal a casual employee on UPL had a reasonable expectation of return — DEMIRS post-2022 casual rule | `false` | TC-WA-052 |
+| `mealsAndAccommodationCashValueWeekly?: number` | `Employee` | Optional weekly cash value of meals/accommodation normally provided when working — DEMIRS ordinary-pay inclusion rule | `0` | TC-WA-060 |
 
----
+### Fixtures pending DEV-CROSS-2 (remain ACTIVE in launch-gate suite)
 
-### TBD-WA-05 — [Severity 2] Workers Comp rate of pay during LSL — no explicit WA equivalent to VIC s.17
+| Fixture | Schema field needed | Note |
+|---|---|---|
+| TC-WA-029 | `slacknessOfTrade: true` on `employer_initiated_termination_and_rehire` | Will pass once DEV-CROSS-2 lands |
+| TC-WA-030 | `slacknessOfTrade: false` on the same event type (default-falsy, but the field must exist on the type for the engine to consult it) | Will pass once DEV-CROSS-2 lands |
+| TC-WA-049 | `paidConcurrent: true` on `workers_comp_absence` | Will pass once DEV-CROSS-2 lands |
+| TC-WA-052 | `reasonableExpectationOfReturn: true` on `unpaid_parental_leave` | Will pass once DEV-CROSS-2 lands |
+| TC-WA-060 | `mealsAndAccommodationCashValueWeekly: 120.00` on `Employee` | Will pass once DEV-CROSS-2 lands |
 
-DEMIRS guidance is silent on the rate of pay for LSL taken while the employee is on Workers Comp. The base rule (s.9) requires the ordinary rate at the time of leave. The question: if the employee is on partial-capacity WC at a reduced rate, does the engine pay LSL at the reduced rate (literal s.9) or at the pre-injury rate?
+**Total deferred fixtures: 5** (out of 73). These remain in the active launch-gate suite — same pattern as the 5 QLD fixtures that were temporarily deferred to DEV-CROSS-1 and reinstated at v1.1 after DEV-CROSS-1 merged at `bd2d284`. WA T5.1 (rule-set scaffold) is BLOCKED on DEV-CROSS-2 just as it would have been blocked on DEV-CROSS-1 if those two refactors had been bundled.
 
-**PM recommendation**: apply the literal s.9 ordinary rate at leave time (parallel to QLD's resolved TBD-QLD-05). WA has NO equivalent of VIC's s.17 higher-of-pre-injury-or-current rule. Emit a `wa_lsl_calculated_at_wc_reduced_rate_warning` advisory when a `workers_comp_absence` event overlaps the LSL trigger date, suggesting deferral.
+### Why this is a separate PR (not bundled into WA per-state PR)
 
-**Decision needed by**: T5.3 (value-of-week.ts encoding).
+Same logic as DEV-CROSS-1:
+1. Bundling would inflate the WA per-state PR with code that has no WA-specific behaviour (the new fields are state-agnostic types).
+2. Bundling would force NSW, VIC, QLD orchestrators to be updated inside the WA PR (cross-cutting change inside a per-state PR).
+3. Bundling would couple the WA launch gate (AC4b) to a refactor that touches every state's surface.
 
----
-
-### TBD-WA-06 — [Severity 2] Accrual-period averaging methodology — partial-block handling
-
-For varied-hours employees (TC-WA-009, TC-WA-051), the accrual-period averaging produces a partial average for the not-yet-completed second 5-yr block. The question: how is this partial average computed?
-
-**PM recommendation**: average over the **partial duration only** (i.e. for an employee 12 yrs in, the partial block 2 average covers years 10 → 12 only, not extrapolated to 5 yrs). Aligns with DEMIRS "average weekly hours worked by the employee during the accrual period (a period of employment means the accrual period for a long service leave entitlement)".
-
-**Decision needed by**: T5.3 (value-of-week.ts encoding).
-
----
-
-### TBD-WA-07 — [Severity 2] "Last fully-accrued entitlement which has not been taken" — engine encoding for 10+yr misconduct partial forfeiture
-
-For TC-WA-026 (12.5 yrs misconduct), the engine must compute the "last fully-accrued entitlement which has not been taken". The question: how does this interact with prior LSL already taken?
-
-**Scenario**: employee at 12.5 yrs has previously taken 4 wks of LSL (out of an 8.6667-wk first block). At misconduct termination, the "last fully-accrued entitlement which has not been taken" is 4.6667 wks (8.6667 − 4.0000), not 8.6667 wks.
-
-**PM recommendation**: compute as `(last_fully_accrued_block - leave_already_taken_against_that_block)`. Forfeit the post-milestone accrual entirely (the 2.5 yrs × 8.6667/10 = 2.1667 wks).
-
-**Decision needed by**: T5.4 (trigger-handlers.ts misconduct branch encoding). Affects TC-WA-026 expected output if leave-taken interaction is modelled.
-
----
-
-### TBD-WA-08 — [Severity 2] Slackness-of-trade signal — engine schema extension
-
-For TC-WA-029 (5-mo gap under slackness-of-trade tolerance), the engine needs to distinguish slackness-of-trade terminations (6-mo tolerance) from other employer-initiated terminations (2-mo tolerance).
-
-**PM recommendation**: extend the `employer_initiated_termination_and_rehire` event type with an optional `slacknessOfTrade?: boolean` field, defaulting to `false`. Small `engine/types.ts` extension parallel to DEV-CROSS-1's additive enum approach.
-
-**Decision needed by**: T5.2 (continuous-service rules encoding). Affects `engine/types.ts`.
-
----
-
-### TBD-WA-09 — [Severity 2] Pre-2022 sickness cap — working days vs calendar days
-
-DEMIRS pre-2022 guidance: "absences due to sickness or injury to the employee in excess of 15 **working days** per year of employment" do not count. The question: how does the engine compute "working days" for a part-time or casual employee?
-
-**PM recommendation**: working days = days the employee would have worked but for the absence, based on their normal pattern. For FT 5-day-week: 15 days. For PT 3-day-week: 9 days (proportionate). For casual: based on the regular pattern over the prior 52 weeks.
-
-**Alternative**: treat as calendar days uniformly (simpler; understates the effect for FT employees).
-
-**Decision needed by**: T5.2. Affects pre-2022 continuous-service rule encoding.
-
----
-
-### TBD-WA-10 — [Severity 3] Pre-2022 casual continuity — applying general rules
-
-DEMIRS: "there were no specific rules in place for determining casual and seasonal employees' continuous employment prior to June 2022". This leaves an interpretive gap for the engine.
-
-**PM recommendation**: apply the general s.6 rules (2-mo/6-mo non-slackness/slackness re-employment tolerances) to any casual gap > 0 days for pre-2022 accrual blocks. Surface the `wa_pre_2022_casual_no_specific_rules` advisory warning so the user is informed that the engine's choice may be more restrictive than reality (case law may have rescued some continuity).
-
-**Decision needed by**: T5.2. Affects pre-2022 casual fixture TC-WA-039 + TC-WA-054.
-
----
-
-### TBD-WA-11 — [Severity 3] Cutoff inclusivity at exactly 2022-06-20
-
-For TC-WA-042 (accrual block fully accrued on exactly 2022-06-20), does the block fall under pre-2022 or post-2022 rules? DEMIRS phrasing: "entitlements that fully accrue **on or after** 20 June 2022" → strict reading: ON 2022-06-20 → post-2022 rules.
-
-**PM recommendation**: ON 2022-06-20 → post-2022 (strict reading of "on or after"). This is the opposite of the threshold-inclusivity reading at year-boundaries (TBD-WA-04) because the wording is different: year-boundaries are "completed N years" (inclusive at N.0000); the cutoff is "on or after 20 June 2022" (inclusive of the boundary date in the post-2022 set).
-
-**What changes if PM rejects**: TC-WA-042 first-block-rules flips to post_2022; TC-WA-043 stands.
-
-**Decision needed by**: T5.2.
-
----
-
-### TBD-WA-12 — [Severity 3] Workers Comp event schema — paid-concurrent and RTW-program signals
-
-For TC-WA-049 (WC + paid-concurrent exception), the engine needs to know whether the WC absence overlapped paid leave or a return-to-work program.
-
-**PM recommendation**: extend the `workers_comp_absence` event type with `paidConcurrent?: boolean` and `returnToWorkProgram?: boolean` optional fields, both defaulting `false`. Small `engine/types.ts` extension.
-
-**Decision needed by**: T5.2.
-
----
-
-### TBD-WA-13 — [Severity 3] Casual UPL post-2022 — "reasonable expectation of return" signal
-
-For TC-WA-052 (casual UPL with reasonable-expectation), the engine needs the user (or pre-fill from employment-pattern analysis) to assert the expectation.
-
-**PM recommendation**: extend the `unpaid_parental_leave` event type with `reasonableExpectationOfReturn?: boolean` defaulting `false`. The user asserts the expectation; the calculator does not adjudicate it.
-
-**Decision needed by**: T5.2.
-
----
-
-### TBD-WA-14 — [Severity 3] Meals/accommodation cash value — Employee schema extension
-
-For TC-WA-060 (allowances), the engine needs to accept the cash value of meals/accommodation normally provided.
-
-**PM recommendation**: optional `mealsAndAccommodationCashValueWeekly?: number` field on Employee. Defaults to 0. User-supplied where normally provided.
-
-**Decision needed by**: T5.3 (value-of-week.ts encoding).
-
----
-
-### TBD-WA-15 — [Severity 3] Pre-first-milestone cash-out — hard-error or advisory
-
-For TC-WA-064 (9-yr cash-out attempt — below first 10-yr milestone), should the engine block (status: blocked) or advise (status: computed + warning)?
-
-**PM recommendation**: ADVISORY (status: computed + warning) — parallel to QLD's universal advisory model. The engine does not police lawfulness; it informs.
-
-**Decision needed by**: T5.4.
-
----
-
-### TBD-WA-16 — [Severity 3] Death-of-employee — Engine "extension" of pro-rata for death not yet at 7 yrs
-
-WA s.8(3) extends pro-rata to "the death of the employee" — but the 7-yr threshold for pro-rata still applies. The question: does WA have any sub-7-yr death-of-employee carve-out, parallel to NSW LSA s.4(2)(iii)(d)? DEMIRS guidance is silent.
-
-**PM recommendation**: **No carve-out.** Death at sub-7-yr returns $0 (same as resignation at sub-7-yr). Engine emits a `sub_7yr_no_entitlement_wa` warning. Aligns with VIC and QLD on this.
-
-**Alternative**: emit a non-blocking advisory specifically for death-at-sub-7-yr suggesting the user review the relevant industrial instrument or contract for more favourable terms.
-
-**Decision needed by**: T5.4 (trigger-handlers.ts).
+The cleaner path: DEV-CROSS-2 as a state-agnostic refactor PR, then WA Phase 5 per-state PR consuming the new fields.
 
 ---
 
@@ -2285,14 +2246,14 @@ WA s.8(3) extends pro-rata to "the death of the employee" — but the 7-yr thres
 ## Signature line
 
 ```
-Signed: [pending PM signoff after TBD resolution]
-Date:   [pending]
+Signed: Tracy Angwin (PM)
+Date:   2026-05-25
 ```
 
-> PM-only sign-off per E2 spec RES-6 / AC4. No APA-specialist co-signer required. Sign-off completes T5.0 and unblocks T5.1 (WA rule-set scaffold).
+> PM-only sign-off per E2 spec RES-6 / AC4. No APA-specialist co-signer required. Sign-off completes T5.0. T5.1 (WA rule-set scaffold) remains BLOCKED on DEV-CROSS-2 (the state-agnostic WA schema extension PR) per the operator's decision to bundle TBD-WA-08, -12, -13, -14 + the slackness-of-trade signal as a single cross-state refactor. Same pattern as DEV-CROSS-1.
 >
-> **Critical resolution required before sign-off**: TBD-WA-01 (dual-regime architecture). PM recommends option (b) — single rule set with date-aware continuous-service handling. If accepted, impl-plan v0.3.1 §5 must be re-scoped (parallel to v0.3.1 §3 VIC re-scope) before T5.1 commences.
+> **TBD-WA-01 (load-bearing) RESOLVED**: single rule set with date-aware continuous-service handling. Impl-plan re-scoped at v0.3.2.
 
 ---
 
-*End of test-cases-wa.md v1.0-draft — pending PM sign-off and TBD-WA-01 resolution.*
+*End of test-cases-wa.md v1.0 — PM-signed-off 2026-05-25.*
