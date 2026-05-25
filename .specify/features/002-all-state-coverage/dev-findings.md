@@ -1,7 +1,7 @@
 # Dev Findings — All-State Coverage (E2)
 
 **Source spec**: `.specify/features/002-all-state-coverage/spec.md` v0.1.0
-**Date**: 2026-05-23 (DEV-CROSS-1 added 2026-05-25)
+**Date**: 2026-05-23 (DEV-CROSS-1 added 2026-05-25; DEV-CROSS-2 added 2026-05-25)
 **Owner**: developer agent (resolves these in Phase 0 of `dev-feature-plan`)
 
 These findings are routed from `pm-analyze-split` and are out-of-scope for PM resolution. They concern technical architecture, NFRs in engineering units, and implementation detail.
@@ -51,6 +51,47 @@ The illness/incapacity case is particularly tricky: in QLD, s.95(3)(b) (employee
 **Pre-flight blocker for**: WA Phase 5 (T5.2 pre-2022 rules will want the disambiguation). Should land before WA Phase 5 starts.
 
 **Effort estimate**: M (1–2 days for the refactor + tests; under half a day for the QLD-fixtures follow-up).
+
+**Status**: ✅ MERGED 2026-05-25 at `bd2d284` (PR #14). 5 deferred QLD fixtures (TC-QLD-005, -007, -008, -015, -016) reinstated as active QLD launch-gate fixtures in `docs/qa/test-cases-qld.md` v1.1 (PR #16 at `fb52701`).
+
+---
+
+### DEV-CROSS-2 · WA schema extension (state-agnostic refactor)
+
+**Surfaced from**: TBD-WA-08, TBD-WA-12, TBD-WA-13, TBD-WA-14 + the slackness-of-trade signal (PM resolution 2026-05-25 per `docs/qa/test-cases-wa.md` v1.0). The same schema additions are state-agnostic and could be reused by SA/TAS/ACT/NT in their respective phases, so this is routed here rather than retrofitted per-state. Same bundling pattern as DEV-CROSS-1.
+
+**Section**: F2, AC1; affects `engine/types.ts` event interfaces and `Employee` interface; affects single-mode form UI for the WA phase (and potentially later phases that consume the same fields).
+
+**Issue**: WA's continuous-employment rules and ordinary-pay rules require four new optional fields that the current event/employee schemas do not carry:
+
+1. **Slackness-of-trade signal on rehire events** — WA LSL Act 1958 s.6 confers a 6-month re-employment tolerance for slackness-of-trade terminations vs the 2-month tolerance for non-slackness terminations. The engine needs to distinguish.
+2. **Workers Comp event paid-concurrent / RTW-program signals** — DEMIRS exception: WC absences pre-2024-07-01 are excluded UNLESS the employee was on paid leave concurrent with WC OR on a return-to-work program. The engine needs to know.
+3. **Casual UPL reasonable-expectation-of-return signal** — Post-2022 WA s.6 confers casual continuity during UPL where the employee has a reasonable expectation of returning to work. The user (or pre-fill from employment-pattern analysis) asserts the expectation.
+4. **Employee meals/accommodation cash value** — DEMIRS WA s.9 ordinary-pay inclusion rule: "may include the cash value of meals/accommodation normally provided". The engine needs the user-supplied cash value.
+
+**Recommendation** (final design TBD by developer agent during refactor PR):
+
+1. Add `slacknessOfTrade?: boolean` to the `employer_initiated_termination_and_rehire` event type. Default `false`. Pure additive change.
+2. Add `paidConcurrent?: boolean` and `returnToWorkProgram?: boolean` to the `workers_comp_absence` event type. Both default `false`. Pure additive changes.
+3. Add `reasonableExpectationOfReturn?: boolean` to the `unpaid_parental_leave` event type. Default `false`. Pure additive change.
+4. Add `mealsAndAccommodationCashValueWeekly?: number` to the `Employee` interface. Default `0` (or undefined, which the engine treats as 0).
+5. Update existing NSW + VIC + QLD orchestrators to accept the new fields (no behaviour change — they don't currently consume them, so the cases are no-ops).
+6. Update single-mode form UI:
+   - Slackness-of-trade checkbox on the employer-rehire event editor.
+   - Paid-concurrent + RTW checkboxes on the WC event editor.
+   - Reasonable-expectation checkbox on the UPL event editor (conditional on `employment_type === 'casual'`).
+   - Meals/accommodation cash value field on the employee profile (always visible — applies cross-state where the cash value is positive).
+7. Form-state migration in `formToEngine.ts` populates the new fields from the form values; defaults to falsy/0 when absent.
+
+**Scope**: state-agnostic refactor PR — touches `engine/types.ts`, every per-state `trigger-handlers.ts` and `continuous-service-rules.ts` (NSW, VIC, QLD currently shipped — adjusted to consume the new fields as no-ops; WA Phase 5 will be the first to consume them meaningfully), single-mode form UI, plus the form-state migration in `formToEngine.ts`.
+
+**Sequencing**: deliver as its own PR between QLD v1 launch (Phase 4 launch gate) and WA Phase 5 T5.1 start. After it lands, the 5 fixtures that depend on these fields (TC-WA-029, TC-WA-030, TC-WA-049, TC-WA-052, TC-WA-060) will pass on the engine gold-standard run when T5.1 onwards is unblocked. Same pattern as DEV-CROSS-1 (which landed at `bd2d284` between QLD launch and WA Phase 5).
+
+**Why not bundle into WA per-state PR**: bundling would (a) inflate the WA per-state PR with code that has no WA-specific behaviour (the new fields are state-agnostic types), (b) force NSW + VIC + QLD orchestrators to be updated inside the WA PR (cross-cutting change inside a per-state PR), and (c) couple the WA launch gate (AC4b) to a refactor that touches every state's surface. The cleaner path is a tight DEV-CROSS-2 state-agnostic refactor PR, then WA Phase 5 per-state PR consuming the new fields.
+
+**Pre-flight blocker for**: WA Phase 5 (T5.1 rule-set scaffold). MUST land before T5.1 begins. Task tracked as T5.0.5 in `tasks.md`.
+
+**Effort estimate**: S–M (½–1.5 days for the refactor + tests). All four additions are pure additive optional fields; defaults preserve every existing fixture byte-identically.
 
 ---
 
@@ -141,3 +182,7 @@ Before development of **state #2** begins:
 1. NSW (E1) must be at Stage 4 (Tested) at minimum, ideally Stage 5 (Shipped).
 2. DEV-E2-M2 (dual-regime pattern) — documented in `impl-plan.md`.
 3. DEV-E2-M3 (CI parallelisation strategy) — validated runtime stays under 5 minutes.
+
+Before development of **WA (Phase 5 / state #4)** begins:
+1. DEV-CROSS-1 (termination-reason enum refactor) — must be merged. ✅ MERGED 2026-05-25 at `bd2d284`.
+2. DEV-CROSS-2 (WA schema extension) — must be merged. PENDING — task T5.0.5 in `tasks.md`.
