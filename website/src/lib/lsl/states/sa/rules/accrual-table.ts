@@ -116,24 +116,47 @@ export function accrualSA(
   //    NOT partial-forfeit at 10+ yr misconduct — full s.5(1) entitlement
   //    payable. The s.5(3) disqualifiers apply only to the pro-rata branch.
   if (yearsOfService.gte(SA_FULL_QUALIFYING_YEARS)) {
-    let label = 'accrual.qualifying-period-10yr-13wks';
-    let section = 'SA LSL Act 1987 s.5(1)';
     let tenyrPlusMisconductFullPayout = false;
 
-    if (yearsOfService.gt(SA_FULL_QUALIFYING_YEARS)) {
-      label = 'accrual.continuous-1.3-per-year-after-10yrs';
-    }
+    // Base 10-yr 13-week entitlement citation — always present for 10+ yr.
+    citations.push(
+      citation(
+        'SA LSL Act 1987 s.5(1)',
+        'accrual.qualifying-period-10yr-13wks',
+        80
+      )
+    );
+    // Continuous-accrual past 10 yrs citation.
+    citations.push(
+      citation(
+        'SA LSL Act 1987 s.5(1)',
+        'accrual.continuous-1.3-per-year-after-10yrs',
+        88
+      )
+    );
+
     if (
       trigger.kind === 'termination' &&
       trigger.reason === 'serious_misconduct'
     ) {
-      label = 'accrual.10yr-full-entitlement-regardless-of-reason';
+      citations.push(
+        citation(
+          'SA LSL Act 1987 s.5(1)',
+          'accrual.10yr-full-entitlement-regardless-of-reason',
+          80
+        )
+      );
       tenyrPlusMisconductFullPayout = true;
     } else if (trigger.kind === 'termination' && trigger.reason === 'death') {
-      label = 'trigger.termination.death-vests-in-personal-representative';
-      section = 'SA LSL Act 1987 s.5';
+      citations.push(
+        citation(
+          'SA LSL Act 1987 s.5',
+          'trigger.termination.death-vests-in-personal-representative',
+          82
+        )
+      );
     }
-    citations.push(citation(section, label, 80));
+
     let payable = sub(grossWeeks, priorLeaveTakenWeeks);
     if (payable.lt(0)) payable = new Decimal(0);
     return {
