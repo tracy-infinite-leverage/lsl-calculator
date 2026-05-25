@@ -224,4 +224,4 @@ Verified by:
 
 (Local — operator runs push.)
 
-To be filled in after staging and commit.
+- `c6ef6ac` — feat(E2): DEV-CROSS-2 — WA-driven state-agnostic schema extension
