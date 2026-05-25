@@ -1,14 +1,16 @@
 # QLD LSL Calculator — Gold-Standard Test Cases
 
 **Status**: SIGNED OFF · Tracy Angwin (PM) · 2026-05-25
-**Version**: v1.0
-**Date**: 2026-05-25
+**Version**: v1.1
+**Date**: 2026-05-25 (v1.0); revised 2026-05-25 (v1.1 — DEV-CROSS-1 deferred fixtures reinstated)
 **Spec**: `.specify/features/002-all-state-coverage/spec.md` v0.3.1
 **Impl plan**: `.specify/features/002-all-state-coverage/impl-plan.md` Phase 4 (QLD)
 **Tasks**: `.specify/features/002-all-state-coverage/tasks.md` T4.0 (SIGNED OFF — T4.1 onwards unblocked)
 **Source-of-truth Act**: *Industrial Relations Act 2016* (Qld) — Chapter 2 Part 3 Division 9 (sections 93–110) + Chapter 2 Part 3 Division 12 (section 134 — general continuity of service)
 
-> **PM sign-off**: Tracy Angwin · 2026-05-25. All 6 TBDs resolved (see **Resolutions** section immediately below). T4.1 (QLD rule-set scaffold) is unblocked for the developer agent. Five fixtures that depend on a state-agnostic termination-reason enum redesign have been moved to the **Deferred to cross-state termination-enum refactor** appendix and will be reinstated in a small follow-up PR once **DEV-CROSS-1** lands (see dev-findings.md).
+> **PM sign-off**: Tracy Angwin · 2026-05-25. All 6 TBDs resolved (see **Resolutions** section immediately below). T4.1 (QLD rule-set scaffold) is unblocked for the developer agent.
+>
+> **v1.1 amendment (2026-05-25)** — DEV-CROSS-1 (the state-agnostic termination-reason enum + initiator refactor) merged in PR #14. The 5 fixtures that were deferred in v1.0 (TC-QLD-005, -007, -008, -015, -016) have been reinstated as active QLD launch-gate fixtures. The previous "Deferred to cross-state termination-enum refactor" appendix has been removed; a one-line historical note has been left in its place. All 5 reinstated fixtures pass the engine gold-standard test on first run with no engine code changes.
 
 ---
 
@@ -60,15 +62,15 @@ This section records the PM resolutions applied on 2026-05-25 for each TBD raise
 
 **No architectural surprise**: same pattern as VIC's cashing-out warning; one new warning code added.
 
-### TBD-QLD-06 — [Severity 2] Termination-reason enum design → RESOLVED via cross-state refactor deferral
+### TBD-QLD-06 — [Severity 2] Termination-reason enum design → RESOLVED via cross-state refactor (DEV-CROSS-1 merged)
 
-**Operator decision (Tracy Angwin, 2026-05-25)**: **Spin off as a separate cross-state PR.** Do NOT bundle the termination-reason enum redesign into the QLD per-state PR. The redesign will apply to WA/SA/TAS/ACT/NT as well (each has analogous qualifying-reason taxonomies) and belongs in a state-agnostic refactor.
+**Operator decision (Tracy Angwin, 2026-05-25)**: **Spin off as a separate cross-state PR.** Do NOT bundle the termination-reason enum redesign into the QLD per-state PR. The redesign applies to WA/SA/TAS/ACT/NT as well (each has analogous qualifying-reason taxonomies) and belongs in a state-agnostic refactor.
 
-**Engine encoding for QLD v1**: use the **existing** `Trigger.reason` enum values (`voluntary_resignation`, `redundancy`, `serious_misconduct`, `illness_incapacity`, `death`). Five fixtures that genuinely require the new disambiguation (employee-vs-employer-initiated illness, `unfair_dismissal`, `employer_initiated_not_misconduct`, `domestic_pressing_necessity`, `poor_performance`) are **DEFERRED** to a follow-up PR. See the **Deferred to cross-state termination-enum refactor** appendix at the end of this document for the full list and rationale.
+**Engine encoding (final)**: `TerminationReason` is now an additive cross-state enum (`voluntary_resignation`, `employer_initiated_not_misconduct`, `redundancy`, `serious_misconduct`, `illness_incapacity`, `domestic_pressing_necessity`, `death`, `unfair_dismissal`, `poor_performance`) with an optional `terminationInitiator: 'employee' | 'employer'` on the termination trigger. Delivered in **DEV-CROSS-1** (PR #14, merged 2026-05-25 — commit `bd2d284`).
 
-**Tracked task**: **DEV-CROSS-1** added to `dev-findings.md` for the termination-reason enum redesign. Developer agent owns the refactor; once it lands, the deferred fixtures will be reinstated via a small follow-up PR.
+**v1.1 update (2026-05-25)**: With DEV-CROSS-1 merged, all 5 previously deferred fixtures (TC-QLD-005, -007, -008, -015, -016) have been reinstated as active launch-gate fixtures and pass the engine gold-standard test on first run. The "Deferred to cross-state termination-enum refactor" appendix that previously held them has been removed.
 
-**No architectural surprise**: this is the cleanest path — keep QLD scope tight, defer the cross-cutting refactor to a single state-agnostic PR.
+**No architectural surprise**: the cleanest path — kept QLD scope tight in the original PR, delivered the cross-cutting refactor as its own state-agnostic PR, then reinstated the dependent fixtures.
 
 ---
 
@@ -164,8 +166,8 @@ The 30 March 1994 cliff applies specifically to **casual employees**. Before 30 
 
 | Source / Theme | Test IDs | Count |
 |---|---|---|
-| APA PDF QLD worked examples (pp.49–64) | TC-QLD-001 → TC-QLD-010 (TC-QLD-005, -007, -008 deferred) | 7 active + 3 deferred |
-| Sub-7-year and 7–10-year qualifying-reason cases (s.95(3)/(4)) | TC-QLD-011 → TC-QLD-019 (TC-QLD-015, -016 deferred) | 7 active + 2 deferred |
+| APA PDF QLD worked examples (pp.49–64) | TC-QLD-001 → TC-QLD-010 | 10 |
+| Sub-7-year and 7–10-year qualifying-reason cases (s.95(3)/(4)) | TC-QLD-011 → TC-QLD-019 | 9 |
 | 10+ year automatic payout (any reason, incl. misconduct) (s.95(2)) | TC-QLD-020 → TC-QLD-024 | 5 |
 | Continuous-service edge cases (s.134, s.103) | TC-QLD-025 → TC-QLD-034 | 10 |
 | Historical-cliff cases (s.96, s.103) | TC-QLD-035 → TC-QLD-038 | 4 |
@@ -176,11 +178,11 @@ The 30 March 1994 cliff applies specifically to **casual employees**. Before 30 
 | As-at snapshot trigger | TC-QLD-054 → TC-QLD-055 | 2 |
 | Cross-jurisdiction (QLD + other state) | TC-QLD-056 → TC-QLD-057 | 2 |
 | Bulk-mode fixtures | TC-QLD-BULK-001 → TC-QLD-BULK-003 | 3 |
-| **Total active fixtures for v1 QLD launch** | | **58** |
-| **Deferred to cross-state termination-enum refactor (DEV-CROSS-1)** | TC-QLD-005, -007, -008, -015, -016 | **5** |
-| **Grand total (active + deferred)** | | **63** |
+| **Total active single-mode fixtures for v1 QLD launch** | | **57** |
+| **Bulk-mode fixtures** | | **3** |
+| **Grand total** | | **60** |
 
-> **Deferred fixtures** are listed in full in the **Deferred to cross-state termination-enum refactor** appendix at the end of this document. They are NOT required for the QLD v1 launch gate (AC4b); they will be reinstated in a follow-up PR once DEV-CROSS-1 (the termination-reason enum redesign) lands.
+> **v1.1 note (2026-05-25)**: TC-QLD-005, -007, -008, -015, -016 — previously deferred pending DEV-CROSS-1 — are now active. The "Deferred to cross-state termination-enum refactor" appendix has been removed.
 
 ---
 
@@ -369,7 +371,7 @@ expected_citations:
 
 ### TC-QLD-005 — 8 yrs FT employer dismissal for illness, pro-rata payout
 
-> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture requires `terminationInitiator: 'employer'` to disambiguate s.95(3)(c) from s.95(3)(b). Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
+> **Reinstated in v1.1 (2026-05-25)** — DEV-CROSS-1 (PR #14) merged the `terminationInitiator` field and the cross-state termination-reason enum. Fixture is now active.
 
 - **Source**: APA p.52; QLD IR Act 2016 s.95(3)(c) — employer dismisses for the employee's illness
 - **Category**: Pro-rata at termination — employer-initiated, illness
@@ -454,7 +456,7 @@ QLD does not have a VIC-style separate s.10 "death of employee" provision with a
 
 ### TC-QLD-007 — 9 yrs FT employer dismissal NOT for conduct, pro-rata payable
 
-> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture uses the new enum value `employer_initiated_not_misconduct` which does not yet exist on `Trigger.reason`. Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
+> **Reinstated in v1.1 (2026-05-25)** — DEV-CROSS-1 (PR #14) added the `employer_initiated_not_misconduct` enum value. Fixture is now active.
 
 - **Source**: APA p.51; QLD IR Act 2016 s.95(3)(d)
 - **Category**: Pro-rata at termination — generic employer dismissal
@@ -495,7 +497,7 @@ s.95(3)(d) catches any employer-initiated dismissal NOT due to employee's "condu
 
 ### TC-QLD-008 — 8 yrs FT unfair dismissal finding, pro-rata payable
 
-> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture uses the new enum value `unfair_dismissal` which does not yet exist on `Trigger.reason`. Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
+> **Reinstated in v1.1 (2026-05-25)** — DEV-CROSS-1 (PR #14) added the `unfair_dismissal` enum value (s.95(3)(e)). Fixture is now active.
 
 - **Source**: APA p.51; QLD IR Act 2016 s.95(3)(e)
 - **Category**: Pro-rata at termination — unfair dismissal
@@ -791,7 +793,7 @@ QLD diverges from VIC here: VIC pays out at 7+ yrs regardless of misconduct (TC-
 
 ### TC-QLD-015 — 8 yrs FT poor-performance dismissal → $0 (capacity/performance excluded)
 
-> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture uses the new enum value `poor_performance` which does not yet exist on `Trigger.reason`. Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
+> **Reinstated in v1.1 (2026-05-25)** — DEV-CROSS-1 (PR #14) added the `poor_performance` enum value. Fixture is now active and tests the s.95(3)(d) performance exclusion as a distinct case from `serious_misconduct`.
 
 - **Source**: QLD IR Act 2016 s.95(3)(d)
 - **Category**: Negative — sub-10-yr performance dismissal
@@ -814,13 +816,13 @@ expected_citations:
 
 **Notes**
 
-Reuses TC-QLD-014's input shape but with `reason: poor_performance`. Engine MUST treat `serious_misconduct`, `poor_performance`, `incapacity_dismissal` as semantically equivalent for s.95(3)(d) exclusion purposes. Per the resolved TBD-QLD-06: the `poor_performance` enum value is part of the cross-state termination-reason enum redesign and this fixture is DEFERRED until DEV-CROSS-1 lands.
+Reuses TC-QLD-014's input shape but with `reason: poor_performance`. Engine MUST treat `serious_misconduct`, `poor_performance`, `incapacity_dismissal` as semantically equivalent for s.95(3)(d) exclusion purposes. The `poor_performance` enum value was added by DEV-CROSS-1 (PR #14) along with `unfair_dismissal`, `employer_initiated_not_misconduct`, `domestic_pressing_necessity`, and the optional `terminationInitiator` field on the termination trigger. This fixture is active as of v1.1 (2026-05-25).
 
 ---
 
 ### TC-QLD-016 — 7 yrs FT domestic pressing necessity resignation → pro-rata payable
 
-> **DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1).** This fixture uses the new enum value `domestic_pressing_necessity` which does not yet exist on `Trigger.reason`. Reinstated in follow-up PR after the cross-state Trigger refactor lands. See Deferred appendix at end of document.
+> **Reinstated in v1.1 (2026-05-25)** — DEV-CROSS-1 (PR #14) added the `domestic_pressing_necessity` enum value (s.95(3)(b) employee-initiated). Fixture is now active.
 
 - **Source**: QLD IR Act 2016 s.95(3)(b); Business Chamber QLD — case-law examples
 - **Category**: Pro-rata at termination — domestic pressing necessity
@@ -844,7 +846,7 @@ expected_citations:
 
 **Notes**
 
-"Domestic or other pressing necessity" per s.95(3)(b) covers forced caregiver obligations and severe family-relationship strain unable to be remedied by the employer. The calculator does NOT adjudicate whether a given reason qualifies — the user asserts it. Per the resolved TBD-QLD-06: this fixture is DEFERRED until DEV-CROSS-1 lands (new enum value `domestic_pressing_necessity`).
+"Domestic or other pressing necessity" per s.95(3)(b) covers forced caregiver obligations and severe family-relationship strain unable to be remedied by the employer. The calculator does NOT adjudicate whether a given reason qualifies — the user asserts it. The `domestic_pressing_necessity` enum value was added by DEV-CROSS-1 (PR #14); this fixture is active as of v1.1 (2026-05-25).
 
 ---
 
@@ -2092,34 +2094,9 @@ The illness/incapacity case is tricky: s.95(3)(b) (employee illness resignation)
 
 ---
 
-## Deferred to cross-state termination-enum refactor (DEV-CROSS-1)
+## Historical note — DEV-CROSS-1 deferred fixtures (v1.0 → v1.1)
 
-The following five fixtures depend on a state-agnostic refactor of the engine's termination-reason enum and `Trigger` shape. The refactor is tracked separately as **DEV-CROSS-1** in `.specify/features/002-all-state-coverage/dev-findings.md` and will be delivered as its own PR after the QLD v1 launch.
-
-Each deferred fixture is preserved in the body of this document (above) with a banner reading *"DEFERRED to cross-state termination-enum refactor (DEV-CROSS-1)"*. They remain authoritative as the gold-standard expectations — they are simply not loaded into the engine test suite for the QLD v1 launch. When DEV-CROSS-1 lands, these fixtures will be added back via a small follow-up PR (estimated S — under half a day).
-
-| Fixture ID | Section | Why it depends on the refactor |
-|---|---|---|
-| **TC-QLD-005** | §A — APA worked examples | Requires `terminationInitiator: 'employer'` to disambiguate s.95(3)(c) (employer dismissal for employee illness, pays out) from s.95(3)(b) (employee illness resignation, also pays out). Without the initiator field, the engine cannot map `illness_incapacity` to the correct sub-paragraph. |
-| **TC-QLD-007** | §A — APA worked examples | Requires the new enum value `employer_initiated_not_misconduct` for s.95(3)(d) "dismissal for a reason other than the employee's conduct, capacity or performance" — distinct from `redundancy` (which is a subset of s.95(3)(d) but more specific). |
-| **TC-QLD-008** | §A — APA worked examples | Requires the new enum value `unfair_dismissal` for s.95(3)(e). No existing enum value captures this. |
-| **TC-QLD-015** | §B — Sub-10-yr qualifying-reason cases | Requires the new enum value `poor_performance` to test the s.95(3)(d) capacity/performance exclusion as a distinct case from `serious_misconduct` (already covered by TC-QLD-014). |
-| **TC-QLD-016** | §B — Sub-10-yr qualifying-reason cases | Requires the new enum value `domestic_pressing_necessity` for s.95(3)(b) (employee-initiated only). The current enum has no equivalent — `voluntary_resignation` does NOT capture the qualifying-reason semantics. |
-
-**Fixtures NOT deferred** that touch s.95(3) qualifying reasons (and therefore remain in QLD v1 scope):
-
-- **TC-QLD-002** (`voluntary_resignation` → $0) — existing enum value.
-- **TC-QLD-003** (`redundancy` → pro-rata) — existing enum value; engine maps `redundancy` directly to s.95(3)(d).
-- **TC-QLD-004** (`illness_incapacity` + employee-initiated → pro-rata) — engine defaults to employee-initiated when no `terminationInitiator` is supplied; this fixture validates the default path.
-- **TC-QLD-006** (`death` → pro-rata to estate) — existing enum value.
-- **TC-QLD-011, TC-QLD-013, TC-QLD-019** (sub-7-yr `redundancy` → $0) — existing enum value.
-- **TC-QLD-012** (exactly 7 yrs `redundancy` → pro-rata) — existing enum value.
-- **TC-QLD-014** (sub-10-yr `serious_misconduct` → $0) — existing enum value.
-- **TC-QLD-017** (sub-10-yr casual `voluntary_resignation` → $0) — existing enum value.
-- **TC-QLD-018** (PT `illness_incapacity` + employee-initiated → pro-rata) — engine defaults to employee-initiated when no `terminationInitiator` is supplied; same default-path validation as TC-QLD-004.
-- **TC-QLD-022** (10+ yr `serious_misconduct` → FULL PAYOUT) — existing enum value; critical regression test for the 10-yr misconduct flip.
-
-These fixtures are sufficient to validate the s.95(2) (10-yr automatic) and s.95(3)(a)/(d) (death, redundancy, voluntary resignation, serious misconduct) sub-paragraphs at the v1 launch gate. The five deferred fixtures cover the remaining s.95(3)(b)/(c)/(e) sub-paragraphs and will be added once DEV-CROSS-1 lands.
+In v1.0 of this document (2026-05-25), five fixtures — **TC-QLD-005, -007, -008, -015, -016** — were deferred to a follow-up PR pending DEV-CROSS-1, the state-agnostic termination-reason enum + initiator refactor. DEV-CROSS-1 merged in **PR #14 on 2026-05-25 (commit `bd2d284`)**, adding the new enum values (`employer_initiated_not_misconduct`, `unfair_dismissal`, `domestic_pressing_necessity`, `poor_performance`) and the optional `terminationInitiator: 'employee' | 'employer'` field on the termination trigger. The five fixtures were then reinstated as active QLD launch-gate fixtures in v1.1 (same day) and are documented above in §A and §B alongside the rest of the gold-standard set.
 
 ---
 
@@ -2130,8 +2107,10 @@ Signed: Tracy Angwin (PM)
 Date:   2026-05-25
 ```
 
-> PM-only sign-off per E2 spec RES-6 / AC4. No APA-specialist co-signer required. Sign-off here completes T4.0 and unblocks T4.1 (QLD rule-set scaffold). All 6 TBDs resolved — see Resolutions section near the top. 5 fixtures deferred to DEV-CROSS-1 cross-state termination-enum refactor; they do not block the QLD v1 launch gate (AC4b).
+> PM-only sign-off per E2 spec RES-6 / AC4. No APA-specialist co-signer required. Sign-off completed T4.0 (v1.0) and unblocked T4.1 (QLD rule-set scaffold). All 6 TBDs resolved — see Resolutions section near the top.
+>
+> **v1.1 amendment (2026-05-25)** — 5 fixtures previously deferred to DEV-CROSS-1 (TC-QLD-005, -007, -008, -015, -016) have been reinstated and pass the engine gold-standard test. Total active single-mode fixtures now 57 (was 52 in v1.0). Plus 3 bulk-mode = 60 grand total.
 
 ---
 
-*End of test-cases-qld.md v1.0 — SIGNED OFF Tracy Angwin (PM) 2026-05-25.*
+*End of test-cases-qld.md v1.1 — SIGNED OFF Tracy Angwin (PM) 2026-05-25 (v1.0 sign-off carries forward; v1.1 reinstates 5 fixtures previously deferred to DEV-CROSS-1).*
