@@ -1,0 +1,31 @@
+{
+  "name": "TC-SA-036",
+  "title": "Employer stand-down does not break continuity (same as industrial action)",
+  "source": "SA LSL Act 1987 s.6",
+  "input": {
+    "employee": {
+      "id": "TC-SA-036",
+      "startDate": "2016-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-25", "periodEnd": "2026-05-25", "grossPay": "884000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "employer_stand_down", "startDate": "2020-04-01", "endDate": "2020-07-01" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.6", "rule": "continuous-service.stand-down-continuous-but-no-accrual" }
+    ]
+  }
+}

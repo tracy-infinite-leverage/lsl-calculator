@@ -1,0 +1,80 @@
+{
+  "name": "TC-SA-BULK-003",
+  "title": "Mixed-state cash-out advisory + hard-error matrix (5 states)",
+  "source": "spec F17 — per-state cash-out branching",
+  "input": {
+    "employees": [
+      {
+        "id": "CO-S01",
+        "startDate": "2014-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["SA"],
+        "governingJurisdiction": "SA",
+        "currentWeeklyGross": "1800.00",
+        "wageHistory": [
+          { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1123200.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "CO-S02",
+        "startDate": "2018-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["SA"],
+        "governingJurisdiction": "SA",
+        "currentWeeklyGross": "1800.00",
+        "wageHistory": [
+          { "periodStart": "2018-05-25", "periodEnd": "2026-05-25", "grossPay": "748800.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "CO-V01",
+        "startDate": "2014-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["VIC"],
+        "governingJurisdiction": "VIC",
+        "currentWeeklyGross": "1800.00",
+        "wageHistory": [
+          { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1123200.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "CO-Q01",
+        "startDate": "2014-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["QLD"],
+        "governingJurisdiction": "QLD",
+        "currentWeeklyGross": "1800.00",
+        "wageHistory": [
+          { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1123200.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "CO-W01",
+        "startDate": "2014-05-25",
+        "employmentType": "full_time",
+        "statesOfService": ["WA"],
+        "governingJurisdiction": "WA",
+        "currentWeeklyGross": "1800.00",
+        "wageHistory": [
+          { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1123200.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      }
+    ],
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-25" }
+  },
+  "expected": {
+    "summary": { "computed": 4, "blocked": 0, "failed": 1 },
+    "rowStatuses": {
+      "CO-S01": "computed",
+      "CO-S02": "computed",
+      "CO-V01": "failed",
+      "CO-Q01": "computed",
+      "CO-W01": "computed"
+    }
+  }
+}

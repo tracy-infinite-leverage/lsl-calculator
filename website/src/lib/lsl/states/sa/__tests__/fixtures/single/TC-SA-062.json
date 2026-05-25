@@ -1,0 +1,28 @@
+{
+  "name": "TC-SA-062",
+  "title": "11 yrs as-at → 14.3 wks (above qualifying threshold)",
+  "source": "SA LSL Act 1987 s.5 — as-at",
+  "input": {
+    "employee": {
+      "id": "TC-SA-062",
+      "startDate": "2015-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2015-05-25", "periodEnd": "2026-05-25", "grossPay": "1029600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5", "rule": "accrual.snapshot.no-qualifying-reason-threshold" }
+    ]
+  }
+}

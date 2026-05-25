@@ -1,0 +1,32 @@
+{
+  "name": "TC-SA-042",
+  "title": "Higher-duties acting rate, FT 10 yrs taking LSL while acting in senior role",
+  "source": "SafeWork SA — SA-unique higher-duties rule; TBD-SA-07 RESOLUTION (extraInputs-localised)",
+  "input": {
+    "employee": {
+      "id": "TC-SA-042",
+      "startDate": "2016-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-25", "periodEnd": "2026-05-25", "grossPay": "780000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "sa_higher_duties_active": true,
+        "sa_higher_duties_weekly_rate": "1900.00"
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 13.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1900.00",
+    "warnings": ["sa_higher_duties_rate_applied"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.4", "rule": "ordinary-pay.higher-duties-acting-rate-sa-unique" }
+    ]
+  }
+}

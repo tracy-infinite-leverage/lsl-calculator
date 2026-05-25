@@ -1,0 +1,27 @@
+{
+  "name": "TC-SA-057",
+  "title": "Cash-out request at 5 yrs (sub-7-yr) — ADVISORY 'no entitlement'",
+  "source": "SA LSL Act 1987 s.5; TBD-SA-06",
+  "input": {
+    "employee": {
+      "id": "TC-SA-057",
+      "startDate": "2021-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-25", "periodEnd": "2026-05-25", "grossPay": "468000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["sa_cashout_no_entitlement_to_cash_out"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5", "rule": "cashout.post-10yr-written-agreement-required" }
+    ]
+  }
+}

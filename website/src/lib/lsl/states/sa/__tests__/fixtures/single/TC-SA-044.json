@@ -1,0 +1,32 @@
+{
+  "name": "TC-SA-044",
+  "title": "PT with unpaid leave in lookback — caller supplies post-substitution hours",
+  "source": "SafeWork SA — 156-wk window with WC/UPL substitution",
+  "input": {
+    "employee": {
+      "id": "TC-SA-044",
+      "startDate": "2016-05-25",
+      "employmentType": "part_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1261.54",
+      "wageHistory": [
+        { "periodStart": "2023-05-26", "periodEnd": "2026-05-25", "grossPay": "196800.00", "frequency": "other", "periodDays": 1095 }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2025-01-01", "endDate": "2025-03-26" }
+      ],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursLast156Weeks": 4920
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 13.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.4", "rule": "ordinary-pay.part-time-156wk-average" }
+    ]
+  }
+}

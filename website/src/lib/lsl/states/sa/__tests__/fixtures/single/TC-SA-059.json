@@ -1,0 +1,30 @@
+{
+  "name": "TC-SA-059",
+  "title": "LSL taken while on WC reduced rate — engine pays at literal s.4 rate + advisory",
+  "source": "SA LSL Act 1987 s.4; TBD-SA-08 RESOLUTION",
+  "input": {
+    "employee": {
+      "id": "TC-SA-059",
+      "startDate": "2016-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1300.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-25", "periodEnd": "2026-05-25", "grossPay": "780000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2026-04-01", "endDate": "2026-07-01", "note": "currently on WC" }
+      ]
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 13.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1300.00",
+    "warnings": ["sa_lsl_calculated_at_wc_reduced_rate_warning"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.4", "rule": "ordinary-pay.fixed-rate" }
+    ]
+  }
+}
