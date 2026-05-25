@@ -14,6 +14,8 @@
 
 **2026-05-25 update (SA)**: T6.0 SIGNED OFF (PM Tracy Angwin). All 12 TBDs resolved in `docs/qa/test-cases-sa.md` v1.0 — see file's Resolutions section. **No architectural re-scope** — TBD-SA-01 resolved as single regime (SA mirrors QLD's flat single-regime architecture). **No pre-flight cross-state PR required** — TBD-SA-07 (higher-duties acting rate) resolved as SA-localised via `extraInputs.sa_higher_duties_*`, NOT promoted to `Employee` fields. T6.1 unblocked immediately. Phase 6 effort estimate stays at M (3–5 d); total dev-days estimate unchanged at 32–48.
 
+**2026-05-26 update (ACT)**: `docs/qa/test-cases-act.md` v1.0-draft authored — 78 fixtures (75 single-mode + 3 bulk), 17 TBDs surfaced for operator resolution with PM recommendations inline. **No architectural re-scope anticipated** — TBD-ACT-01 recommended as single rule set with date-aware Workers Comp override at 9 June 2023 (parallel to WA's 2024-07-01 WCIM 2023 override pattern). **No pre-flight cross-state PR anticipated** — all ACT-specific signals are ACT-localised via `extraInputs.act_*` keys (parallel to SA Phase 6 precedent). One purely-additive optional `Result.payable_by: ISODate` field anticipated (TBD-ACT-08). T7.0 PM sign-off pending. Phase 7 effort estimate stays at L (5–7 d); total dev-days estimate unchanged at 32–48.
+
 Per AC4a, **Phases 3 through 9 (per-state encoding) execute strictly sequentially** in the order VIC → QLD → WA → SA → ACT → TAS → NT. Phases 1 and 2 run before Phase 3 and can overlap with each other (different code paths). Phase 10 runs after Phase 9 ships.
 
 ---
@@ -431,9 +433,18 @@ Wire SA orchestrator into `dispatch.calculate` switch. SA-only single-mode form 
 
 ## Phase 7 — ACT (RES-1 #5, overtime in ordinary pay — high mis-coding risk)
 
-### T7.0 · [BLOCKING] PM-signed test-cases-act.md (L) — AC4
+### T7.0 · [BLOCKING] PM-signed test-cases-act.md (L) — AC4 · 🟡 v1.0-DRAFT 2026-05-26, PENDING OPERATOR SIGN-OFF
 
-APA PDF pp.109–123 + ACT edge cases: 7-year qualifying period employee (just over), casual with overtime hours, part-time with overtime hours, termination paid within 90 days (vs immediate). PM explicitly reviews the overtime-inclusion semantics against the Act before signing.
+`docs/qa/test-cases-act.md` v1.0-draft authored 2026-05-26 on branch `pm/act-test-cases`. 78 test cases (75 single-mode + 3 bulk; case IDs TC-ACT-001 → TC-ACT-075 + TC-ACT-BULK-001 → TC-ACT-BULK-003). 17 TBDs surfaced for operator resolution (3 Sev-1 LOAD-BEARING, 1 additional Sev-1, 6 Sev-2, 7 Sev-3) with PM recommendations inline — see file's Resolutions / TBD section. If operator accepts all PM recommendations: no fixture-value changes; no DEV-CROSS-4 dev-finding; no pre-flight cross-state PR; T7.1 unblocked immediately on PM sign-off. T7.1 BLOCKED until PM sign-off.
+
+PM-explicit review checklist before signing:
+- TBD-ACT-01 (architecture): single rule set with WC date-aware override at 9 June 2023? (parallel to WA pattern)
+- TBD-ACT-02 (overtime asymmetry): hours INCLUDED in s.7(2) average, rate EXCLUDED per s.7(1)? (parallel to SA pattern)
+- TBD-ACT-03 (anchor split): s.7(2) for `taking_leave` (entitlement-date anchor), s.11D for `termination` (cessation-date anchor)?
+- TBD-ACT-04 (s.7(3) FT→PT): `extraInputs.act_ft_to_pt_transition_date` routing; 2-yr boundary inclusive at 2.0000 yrs?
+- TBD-ACT-08 (payable_by): new optional `Result.payable_by: ISODate` field, surface via UI?
+- TBD-ACT-14 (advance leave): `status: computed` + advisory (not hard-error)?
+- TBD-ACT-15 (paid parental excluded): ACT divergence from NSW/SA confirmed?
 
 ### T7.1 · ACT rule-set scaffold + extra-inputs schema (S) — F2, AC11
 
