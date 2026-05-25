@@ -66,6 +66,22 @@ export function SingleModeForm() {
     setState((s) => ({ ...s, [key]: value }));
   }
 
+  // Per-jurisdiction citation for the "ordinary pay" gross-figure hint.
+  // NSW: LSA s.3(2) definition. VIC: LSL Act 2018 s.15 (rate-based averaging
+  // formula reads from "ordinary pay"). Fallback: generic copy — keeps the
+  // form sane if a future state ships before its citation is wired in here.
+  const grossPayHint = (() => {
+    const baseSuffix = 'v1 does not decompose components — provide the gross.';
+    switch (state.governingJurisdiction) {
+      case 'NSW':
+        return `The 'ordinary pay' gross figure per NSW LSA s.3(2). ${baseSuffix}`;
+      case 'VIC':
+        return `The 'ordinary pay' gross figure per VIC LSL Act 2018 s.15. ${baseSuffix}`;
+      default:
+        return `Gross ordinary pay per the governing jurisdiction's LSL Act. ${baseSuffix}`;
+    }
+  })();
+
   function toggleState(s: State) {
     setState((cur) => {
       const has = cur.statesOfService.includes(s);
@@ -107,8 +123,19 @@ export function SingleModeForm() {
 
     const { employee, trigger } = formToEngine(working);
 
-    // Pre-check classifier; if ambiguous and not yet confirmed, open modal
-    if (!working.categoryOverrideConfirmed) {
+    // Pre-check classifier; if ambiguous and not yet confirmed, open modal.
+    //
+    // NSW-only gate: the Cat A/B/C disambiguation drives the NSW averaging
+    // formula (LSA s.4(5)(b/c/d)). VIC's 2018 Act has no Cat A/B/C structure —
+    // s.15/16 rate-based averaging branches internally on employment shape, not
+    // on a user-confirmed category. Showing a modal whose premise doesn't apply
+    // to VIC would be a worse UX than silently skipping it. Add the next state
+    // to this gate when (and only when) that state's engine consumes a
+    // user-confirmed categoryOverride.
+    if (
+      working.governingJurisdiction === 'NSW' &&
+      !working.categoryOverrideConfirmed
+    ) {
       const clf = classify(employee);
       if (clf.ambiguous) {
         setClassifierDefault(clf.category);
@@ -301,7 +328,7 @@ export function SingleModeForm() {
               label="Current weekly gross pay (AUD)"
               htmlFor="currentWeeklyGross"
               error={fieldErrors.currentWeeklyGross}
-              hint="The 'ordinary pay' gross figure per NSW LSA s.3(2). v1 does not decompose components — provide the gross."
+              hint={grossPayHint}
             >
               <Input
                 id="currentWeeklyGross"

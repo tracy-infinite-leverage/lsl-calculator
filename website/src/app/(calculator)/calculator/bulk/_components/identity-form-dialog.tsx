@@ -25,6 +25,7 @@ import type {
   SingleEmployeeIdentity,
 } from '@/lib/lsl/parsers/csv/normalize-apply';
 import type { EmploymentType, State } from '@/lib/lsl/engine/types';
+import { isStateEncoded } from '@/lib/lsl/dispatch';
 
 const STATE_CODES: State[] = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'];
 
@@ -155,12 +156,14 @@ export function IdentityFormDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {STATE_CODES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                    {s !== 'NSW' && ' (E2 — not yet computable)'}
-                  </SelectItem>
-                ))}
+                {STATE_CODES.map((s) => {
+                  const encoded = isStateEncoded(s);
+                  return (
+                    <SelectItem key={s} value={s} disabled={!encoded}>
+                      {encoded ? s : `${s} (coming soon)`}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </Field>
