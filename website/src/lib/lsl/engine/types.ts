@@ -118,6 +118,61 @@ export interface ContinuousServiceEvent {
   startDate: ISODate;
   endDate?: ISODate;
   note?: string;
+  /**
+   * DEV-CROSS-2 (2026-05-25) — WA-driven schema additions. State-agnostic and
+   * pure-additive: NSW/VIC/QLD ignore every one of these fields entirely and
+   * remain byte-identical for every existing fixture. Each field carries a
+   * comment naming the event type(s) it applies to and the state(s) that will
+   * consume it. Unconsumed event/state combinations leave the field undefined.
+   */
+
+  /**
+   * Slackness-of-trade signal — applies to `employer_initiated_termination_and_rehire`.
+   *
+   * WA LSL Act 1958 s.6 confers a 6-month re-employment tolerance for
+   * slackness-of-trade terminations vs the 2-month tolerance for non-slackness
+   * terminations. Default `false`/omitted → state engine treats the rehire gap
+   * under the standard (non-slackness) threshold.
+   *
+   * NSW/VIC/QLD: ignored — their re-hire thresholds do not branch on slackness.
+   */
+  slacknessOfTrade?: boolean;
+
+  /**
+   * Paid-concurrent-with-WC signal — applies to `workers_comp_absence`.
+   *
+   * WA DEMIRS exception: WC absences pre-2024-07-01 are excluded from service
+   * UNLESS the employee was on paid leave concurrent with WC. Default
+   * `false`/omitted → standard WC handling for the state.
+   *
+   * NSW/VIC/QLD: ignored — their WC handling does not branch on this field.
+   */
+  paidConcurrent?: boolean;
+
+  /**
+   * Return-to-work-program signal — applies to `workers_comp_absence`.
+   *
+   * Companion to `paidConcurrent`: WA WC absences pre-2024-07-01 also count as
+   * service if the employee was on a return-to-work program. Default
+   * `false`/omitted → standard WC handling for the state.
+   *
+   * NSW/VIC/QLD: ignored.
+   */
+  returnToWorkProgram?: boolean;
+
+  /**
+   * Reasonable-expectation-of-return signal — applies to `unpaid_parental_leave`.
+   *
+   * Post-2022 WA s.6 confers casual continuity during UPL where the employee
+   * has a reasonable expectation of returning to work. The user (or pre-fill
+   * from employment-pattern analysis) asserts the expectation. Only meaningful
+   * when `employmentType === 'casual'`. Default `false`/omitted → standard
+   * UPL handling for the state.
+   *
+   * NSW/VIC/QLD: ignored — they do not encode a casual-UPL reasonable-
+   * expectation rule.
+   */
+  reasonableExpectationOfReturn?: boolean;
 }
 
 export interface Employee {
@@ -144,6 +199,16 @@ export interface Employee {
    * See E2 impl-plan §P0.6 and DEV-E2-M6.
    */
   extraInputs?: Record<string, unknown>;
+  /**
+   * DEV-CROSS-2 (2026-05-25) — weekly cash value of meals and accommodation
+   * normally provided to the employee, in AUD per week. DEMIRS WA s.9 ordinary-
+   * pay inclusion rule: "may include the cash value of meals/accommodation
+   * normally provided". Engines that do not consume this field (NSW/VIC/QLD)
+   * treat it as absent. When undefined the engine treats it as 0; positive
+   * values are state-agnostic and available to any future state engine that
+   * encodes the same rule.
+   */
+  mealsAndAccommodationCashValueWeekly?: number;
 }
 
 export interface Citation {

@@ -18,6 +18,17 @@ export interface ServiceEventDraft {
   startDate: string;
   endDate: string;
   note: string;
+  /**
+   * DEV-CROSS-2 (2026-05-25) — per-event optional flags. Each flag applies to
+   * a specific event type; the conditional UI only surfaces each flag when
+   * relevant. Defaults to `false`. The form-to-engine layer omits the field
+   * from the emitted `ContinuousServiceEvent` when `false`, mirroring the
+   * "omit when not needed" pattern established by DEV-CROSS-1.
+   */
+  slacknessOfTrade?: boolean;
+  paidConcurrent?: boolean;
+  returnToWorkProgram?: boolean;
+  reasonableExpectationOfReturn?: boolean;
 }
 
 export interface WagePeriodDraft {
@@ -50,6 +61,14 @@ export interface FormState {
   // Pay
   currentWeeklyGross: string;
   priorLeaveTakenWeeks: string;
+  /**
+   * DEV-CROSS-2 (2026-05-25) — weekly cash value of meals/accommodation
+   * normally provided to the employee, in AUD. Always-visible form field
+   * (applies cross-state where the cash value is positive). Empty string =
+   * unset → engine treats as undefined → 0. NSW/VIC/QLD currently ignore this
+   * field; available to future state engines that encode the WA s.9 inclusion.
+   */
+  mealsAndAccommodationCashValueWeekly: string;
 
   // Wage history
   wageHistory: WagePeriodDraft[];
@@ -86,6 +105,7 @@ export function emptyFormState(): FormState {
     governingJurisdiction: 'NSW',
     currentWeeklyGross: '',
     priorLeaveTakenWeeks: '',
+    mealsAndAccommodationCashValueWeekly: '',
     wageHistory: [],
     serviceEvents: [],
     triggerKind: '',
@@ -159,5 +179,36 @@ export const TERMINATION_INITIATOR_OPTIONS: { value: TerminationInitiator; label
   { value: 'employee', label: 'Employee-initiated (the employee resigned)' },
   { value: 'employer', label: 'Employer-initiated (the employer dismissed)' },
 ];
+
+/**
+ * DEV-CROSS-2 (2026-05-25) — service-event types that surface a
+ * `slacknessOfTrade` checkbox in the continuous-service list. Currently:
+ * employer-initiated termination + rehire (WA s.6 — 6-month tolerance vs
+ * standard 2-month). NSW/VIC/QLD ignore the field; the checkbox is harmless
+ * for them but only meaningful when the user later switches to WA.
+ */
+export const EVENTS_WITH_SLACKNESS_FLAG: ReadonlySet<ServiceEventType> = new Set([
+  'employer_initiated_termination_and_rehire',
+]);
+
+/**
+ * DEV-CROSS-2 — service-event types that surface `paidConcurrent` and
+ * `returnToWorkProgram` checkboxes. Currently: workers_comp_absence (WA
+ * DEMIRS exception for pre-2024-07-01 absences).
+ */
+export const EVENTS_WITH_WC_FLAGS: ReadonlySet<ServiceEventType> = new Set([
+  'workers_comp_absence',
+]);
+
+/**
+ * DEV-CROSS-2 — service-event types that surface a
+ * `reasonableExpectationOfReturn` checkbox. Currently: unpaid_parental_leave,
+ * AND only when the employee's employment type is `casual` (WA s.6 post-2022
+ * casual-continuity rule). The continuous-service list receives the
+ * employment type so it can apply this secondary gate.
+ */
+export const EVENTS_WITH_REASONABLE_EXPECTATION_FLAG: ReadonlySet<ServiceEventType> = new Set([
+  'unpaid_parental_leave',
+]);
 
 export type ISODateInput = ISODate | '';

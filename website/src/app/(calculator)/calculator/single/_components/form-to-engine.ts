@@ -10,7 +10,14 @@ import type {
   State,
 } from '@/lib/lsl/engine/types';
 import { asISODate } from '@/lib/lsl/engine/types';
-import { REASONS_REQUIRING_INITIATOR, type FormState } from './types';
+import {
+  EVENTS_WITH_REASONABLE_EXPECTATION_FLAG,
+  EVENTS_WITH_SLACKNESS_FLAG,
+  EVENTS_WITH_WC_FLAGS,
+  REASONS_REQUIRING_INITIATOR,
+  emptyFormState,
+  type FormState,
+} from './types';
 
 export interface FormValidation {
   ok: boolean;
@@ -29,6 +36,14 @@ export function validateForm(state: FormState): FormValidation {
     fieldErrors.currentWeeklyGross = 'Current weekly gross pay is required.';
   } else if (!/^\d+(\.\d+)?$/.test(state.currentWeeklyGross)) {
     fieldErrors.currentWeeklyGross = 'Must be a positive number.';
+  }
+  // DEV-CROSS-2: meals/accommodation cash value — optional, but if supplied
+  // must be a non-negative number.
+  if (
+    state.mealsAndAccommodationCashValueWeekly &&
+    !/^\d+(\.\d+)?$/.test(state.mealsAndAccommodationCashValueWeekly)
+  ) {
+    fieldErrors.mealsAndAccommodationCashValueWeekly = 'Must be a positive number.';
   }
   if (state.statesOfService.length === 0) {
     fieldErrors.statesOfService = 'Select at least one state of service.';
@@ -118,12 +133,31 @@ export function formToEngine(state: FormState): { employee: Employee; trigger: T
   });
 
   const serviceEvents: ContinuousServiceEvent[] = state.serviceEvents.map((ev) => {
+    const type = ev.type as ServiceEventType;
     const e: ContinuousServiceEvent = {
-      type: ev.type as ServiceEventType,
+      type,
       startDate: asISODate(ev.startDate),
     };
     if (ev.endDate) e.endDate = asISODate(ev.endDate);
     if (ev.note) e.note = ev.note;
+    // DEV-CROSS-2: per-event optional flags. Each flag is omitted when (a) it
+    // does not apply to this event type OR (b) the user did not tick it. The
+    // engine treats omitted = false → preserves byte-identity for NSW/VIC/QLD.
+    if (EVENTS_WITH_SLACKNESS_FLAG.has(type) && ev.slacknessOfTrade) {
+      e.slacknessOfTrade = true;
+    }
+    if (EVENTS_WITH_WC_FLAGS.has(type)) {
+      if (ev.paidConcurrent) e.paidConcurrent = true;
+      if (ev.returnToWorkProgram) e.returnToWorkProgram = true;
+    }
+    if (
+      EVENTS_WITH_REASONABLE_EXPECTATION_FLAG.has(type) &&
+      state.employmentType === 'casual' &&
+      ev.reasonableExpectationOfReturn
+    ) {
+      // Reasonable-expectation flag only meaningful for casuals on UPL.
+      e.reasonableExpectationOfReturn = true;
+    }
     return e;
   });
 
@@ -149,6 +183,15 @@ export function formToEngine(state: FormState): { employee: Employee; trigger: T
   }
   if (state.priorLeaveTakenWeeks) {
     employee.priorLeaveTakenWeeks = state.priorLeaveTakenWeeks;
+  }
+  // DEV-CROSS-2: meals/accommodation cash value. Only attach when the user
+  // supplied a positive number — empty string OR 0 leaves the field absent so
+  // engines see undefined (treated as 0). NSW/VIC/QLD ignore it.
+  if (state.mealsAndAccommodationCashValueWeekly) {
+    const parsed = Number(state.mealsAndAccommodationCashValueWeekly);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      employee.mealsAndAccommodationCashValueWeekly = parsed;
+    }
   }
   if (state.categoryOverride && state.categoryOverrideConfirmed) {
     employee.categoryOverride = state.categoryOverride;
@@ -200,7 +243,12 @@ export function loadFromStorage(): FormState | null {
       window.localStorage.removeItem(LOCAL_STORAGE_KEY);
       return null;
     }
-    return parsed.state;
+    // Forward-migrate: merge the persisted state on top of the current empty
+    // defaults so any newly-added FormState fields (e.g. DEV-CROSS-2's
+    // `mealsAndAccommodationCashValueWeekly`) get their default value rather
+    // than `undefined`. Prevents React's controlled→uncontrolled warning when
+    // the persisted state pre-dates the new field.
+    return { ...emptyFormState(), ...parsed.state };
   } catch {
     return null;
   }
