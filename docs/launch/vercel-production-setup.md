@@ -62,15 +62,16 @@ testing never accidentally uses production budget.
 
 Project Settings → Domains → Add Domain
 
-Suggested production hostname options:
+**Production domain (live 2026-05-25)**: `www.lslcalculator.com.au`
 
-- `lsl.austpayroll.com.au` (subdomain on your existing brand) — recommended
-- `nsw-lsl-calculator.com.au` (standalone)
-- `lsl-calculator.com.au` (standalone, shorter)
+Originally planned as `lsl.austpayroll.com.au` (subdomain on existing brand);
+switched to a standalone `lslcalculator.com.au` domain on 2026-05-25 once the
+product was renamed from "NSW LSL Calculator" → "LSL Calculator". Standalone
+domain gives cleaner brand separation + SEO.
 
-Vercel will give you a DNS record (CNAME for subdomain; A record for apex).
-Add it at your domain registrar. Propagation ~5 min for subdomain;
-~30 min for apex.
+Vercel will give you a DNS record (CNAME for `www` subdomain; A record for
+the apex `lslcalculator.com.au`). Add at your domain registrar. Propagation
+~5 min for subdomain; ~30 min for apex.
 
 ---
 

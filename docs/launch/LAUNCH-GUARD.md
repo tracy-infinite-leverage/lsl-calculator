@@ -39,20 +39,20 @@ either doesn't affect the other.
 
 ---
 
-## Soft gate — DNS for `lsl.austpayroll.com.au`
+## Production domain — `www.lslcalculator.com.au`
 
-The domain is mapped to the Vercel project but DNS isn't pointing
-there yet. Without DNS:
+Domain is live as of 2026-05-25. The production site is reachable at:
 
-- The merge still works.
-- The Vercel-issued URL (`lsl-calculator.vercel.app`) is live and
-  serves the site.
-- `lsl.austpayroll.com.au` will not resolve until you add the A
-  record at Cloudflare: `A lsl 76.76.21.21` (TTL: 5 min recommended).
+- `https://www.lslcalculator.com.au` (canonical branded URL)
+- `https://lsl-calculator.vercel.app` (Vercel-issued URL — still works as a fallback)
 
-You can launch without this and add the DNS record any time. The
-cutover isn't "complete" until the intended production URL resolves,
-but it's not a hard gate.
+Previously the planned domain was `lsl.austpayroll.com.au` (subdomain on
+Tracy's existing brand). Switched to a standalone `lslcalculator.com.au`
+domain on 2026-05-25 — better SEO, cleaner brand separation now that
+the product is "LSL Calculator" not "NSW LSL Calculator".
+
+DNS + Vercel domain configuration owned by operator. No further action
+required from agents.
 
 ---
 
