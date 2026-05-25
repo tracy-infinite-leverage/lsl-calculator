@@ -356,6 +356,24 @@ export function SingleModeForm() {
                 onChange={(e) => update('priorLeaveTakenWeeks', e.target.value)}
               />
             </Field>
+            <Field
+              label="Meals / accommodation cash value (AUD per week, optional)"
+              htmlFor="mealsAndAccommodationCashValueWeekly"
+              error={fieldErrors.mealsAndAccommodationCashValueWeekly}
+              hint="Cash value of meals or accommodation normally provided. Currently consumed by future state engines (e.g. WA s.9 ordinary-pay inclusion); NSW/VIC/QLD ignore this."
+            >
+              <Input
+                id="mealsAndAccommodationCashValueWeekly"
+                type="number"
+                step="0.01"
+                inputMode="decimal"
+                placeholder="0"
+                value={state.mealsAndAccommodationCashValueWeekly}
+                onChange={(e) =>
+                  update('mealsAndAccommodationCashValueWeekly', e.target.value)
+                }
+              />
+            </Field>
           </div>
         </CardContent>
       </Card>
@@ -445,6 +463,7 @@ export function SingleModeForm() {
           <ContinuousServiceList
             events={state.serviceEvents}
             onChange={(events) => update('serviceEvents', events)}
+            employmentType={state.employmentType}
           />
         </CardContent>
       </Card>

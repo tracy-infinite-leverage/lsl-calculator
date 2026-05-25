@@ -218,3 +218,121 @@ test.describe('Single-mode — termination initiator (DEV-CROSS-1)', () => {
     await expect(page.locator('#terminationInitiator')).toHaveCount(0);
   });
 });
+
+/**
+ * DEV-CROSS-2 — conditional per-event flags surface only on the right event
+ * type (and, for `reasonableExpectationOfReturn`, only when employment type
+ * is casual). NSW/VIC/QLD ignore the flags, so the result must remain
+ * byte-identical to the no-flag baseline regardless of what the user ticks.
+ *
+ * Approach: seed an employee with an `employer_initiated_termination_and_rehire`
+ * service event, verify the slackness-of-trade checkbox is visible, tick it,
+ * calculate, then verify the result is identical to the un-ticked baseline.
+ */
+function seedSingleModeNswRehireState(
+  page: Page,
+  overrides: { eventId: string; slacknessOfTrade: boolean }
+) {
+  return page.addInitScript((opts) => {
+    const state = {
+      legalName: 'DEV-CROSS-2 rehire test',
+      externalEmployeeId: 'DEV-CROSS-2',
+      startDate: '2014-05-22',
+      employmentType: 'full_time',
+      categoryOverride: 'A',
+      categoryOverrideConfirmed: true,
+      statesOfService: ['NSW'],
+      governingJurisdiction: 'NSW',
+      currentWeeklyGross: '1500',
+      priorLeaveTakenWeeks: '',
+      mealsAndAccommodationCashValueWeekly: '',
+      wageHistory: [
+        {
+          id: 'a',
+          periodStart: '2025-05-22',
+          periodEnd: '2026-05-21',
+          grossPay: '78000',
+          frequency: 'weekly',
+          periodDays: '',
+          note: '',
+        },
+      ],
+      serviceEvents: [
+        {
+          id: opts.eventId,
+          type: 'employer_initiated_termination_and_rehire',
+          startDate: '2020-01-01',
+          endDate: '2020-01-30',
+          note: '',
+          slacknessOfTrade: opts.slacknessOfTrade,
+        },
+      ],
+      triggerKind: 'termination',
+      leaveStartDate: '',
+      terminationDate: '2026-05-21',
+      terminationReason: 'redundancy',
+      terminationInitiator: '',
+      asAtDate: '',
+    };
+    localStorage.setItem(
+      'lsl-calculator:single-mode:v1',
+      JSON.stringify({ savedAt: Date.now(), state })
+    );
+  }, overrides);
+}
+
+test.describe('Single-mode — DEV-CROSS-2 conditional event flags', () => {
+  test('slacknessOfTrade checkbox surfaces only on rehire events and round-trips', async ({
+    page,
+  }) => {
+    const EVENT_ID = 'ev-cross2-1';
+    await seedSingleModeNswRehireState(page, {
+      eventId: EVENT_ID,
+      slacknessOfTrade: false,
+    });
+    await page.goto('/calculator/single');
+
+    // Slackness checkbox MUST be visible — rehire event triggers the flag.
+    const slacknessCheckbox = page.locator(`#slacknessOfTrade-${EVENT_ID}`);
+    await expect(slacknessCheckbox).toBeVisible();
+
+    // The WC + reasonable-expectation checkboxes MUST NOT be visible — event
+    // type is rehire, employment is full-time.
+    await expect(page.locator(`#paidConcurrent-${EVENT_ID}`)).toHaveCount(0);
+    await expect(page.locator(`#returnToWorkProgram-${EVENT_ID}`)).toHaveCount(0);
+    await expect(
+      page.locator(`#reasonableExpectationOfReturn-${EVENT_ID}`)
+    ).toHaveCount(0);
+
+    // Capture the baseline result (slackness un-ticked).
+    await page.getByRole('button', { name: /Calculate LSL/i }).click();
+    // Result panel renders. Capture the totalEntitlement.dollars value via the
+    // visible result panel text.
+    const resultBefore = await page
+      .getByText(/\$[\d,]+\.\d{2}/)
+      .first()
+      .textContent();
+    expect(resultBefore).toBeTruthy();
+
+    // Tick slackness. NSW ignores the flag — result MUST stay byte-identical
+    // to the baseline (PM design: pure-additive schema change).
+    await slacknessCheckbox.click();
+    await expect(slacknessCheckbox).toBeChecked();
+
+    await page.getByRole('button', { name: /Calculate LSL/i }).click();
+    const resultAfter = await page
+      .getByText(/\$[\d,]+\.\d{2}/)
+      .first()
+      .textContent();
+    expect(resultAfter).toBe(resultBefore);
+  });
+
+  test('meals/accommodation field is always visible on the employee profile', async ({
+    page,
+  }) => {
+    await page.goto('/calculator/single');
+    await expect(
+      page.locator('#mealsAndAccommodationCashValueWeekly')
+    ).toBeVisible();
+  });
+});
