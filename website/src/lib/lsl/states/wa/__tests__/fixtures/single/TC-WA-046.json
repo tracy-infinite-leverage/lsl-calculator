@@ -1,0 +1,32 @@
+{
+  "name": "TC-WA-046",
+  "title": "WC absence entirely pre-2024-07-01, post-2022 accrual → does NOT count",
+  "source": "WA LSL Act 1958 s.6 (post-2022); WCIM Act 2023",
+  "input": {
+    "employee": {
+      "id": "TC-WA-046",
+      "startDate": "2015-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2015-05-25", "periodEnd": "2026-05-25", "grossPay": "971600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2023-09-01", "endDate": "2024-02-29", "note": "6 mo WC entirely pre-2024-07-01" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "warnings": ["wa_workers_comp_pre_2024_excluded"],
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.workers-comp-pre-2024-excluded" },
+      { "section": "WCIM Act 2023 (WA)",  "rule": "workers-comp-counts-from-2024-07-01" }
+    ]
+  }
+}

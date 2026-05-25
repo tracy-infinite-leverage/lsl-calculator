@@ -1,0 +1,28 @@
+{
+  "name": "TC-WA-060",
+  "title": "Allowances and meals/accommodation cash value — included where normally provided",
+  "source": "WA LSL Act 1958 s.9; DEMIRS meals/accommodation inclusion",
+  "input": {
+    "employee": {
+      "id": "TC-WA-060",
+      "startDate": "2014-06-01",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1800.00",
+      "mealsAndAccommodationCashValueWeekly": 120,
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1920.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.9", "rule": "ordinary-pay.meals-accommodation-cash-value-included" }
+    ]
+  }
+}

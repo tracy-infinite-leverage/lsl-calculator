@@ -1,0 +1,28 @@
+{
+  "name": "TC-WA-012",
+  "title": "Exactly 7 yrs FT voluntary resignation → pro-rata payable (WA boundary)",
+  "source": "WA LSL Act 1958 s.8(3); TBD-WA-04 inclusive at 7 yrs",
+  "input": {
+    "employee": {
+      "id": "TC-WA-012",
+      "startDate": "2019-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2019-05-25", "periodEnd": "2026-05-25", "grossPay": "546000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(3)", "rule": "accrual.7-to-10yr.any-reason-except-misconduct" }
+    ]
+  }
+}

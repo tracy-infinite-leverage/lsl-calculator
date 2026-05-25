@@ -1,0 +1,35 @@
+{
+  "name": "TC-WA-029",
+  "title": "Slackness-of-trade termination + 5-mo gap, prior service preserved (within 6-mo slackness)",
+  "source": "WA LSL Act 1958 s.6 (as amended); DEMIRS 6-mo slackness rule; DEV-CROSS-2 slacknessOfTrade field",
+  "input": {
+    "employee": {
+      "id": "TC-WA-029",
+      "startDate": "2017-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        {
+          "type": "employer_initiated_termination_and_rehire",
+          "startDate": "2025-09-01",
+          "endDate": "2026-02-01",
+          "slacknessOfTrade": true,
+          "note": "Stood down due to slackness of trade; rehired 5 mo later — within 6-mo window"
+        }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.rehire-within-6mo-slackness" }
+    ]
+  }
+}

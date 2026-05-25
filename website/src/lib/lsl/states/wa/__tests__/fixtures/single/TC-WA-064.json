@@ -1,0 +1,25 @@
+{
+  "name": "TC-WA-064",
+  "title": "9 yrs cash-out attempt (pre-first-milestone) → ADVISORY: not yet authorised",
+  "source": "WA LSL Act 1958 s.5; TBD-WA-15 RESOLVED — advisory (computed + warning)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-064",
+      "startDate": "2017-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "warnings": ["wa_cashout_pre_accrual_not_authorised"]
+  }
+}

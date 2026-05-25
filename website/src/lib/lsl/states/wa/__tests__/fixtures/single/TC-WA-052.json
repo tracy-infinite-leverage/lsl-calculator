@@ -1,0 +1,39 @@
+{
+  "name": "TC-WA-052",
+  "title": "Casual post-2022 UPL with reasonable expectation → counts (DEV-CROSS-2)",
+  "source": "DEMIRS post-2022 casual — reasonable expectation of return",
+  "input": {
+    "employee": {
+      "id": "TC-WA-052",
+      "startDate": "2020-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1000.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "52000.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [
+        {
+          "type": "unpaid_parental_leave",
+          "startDate": "2024-08-01",
+          "endDate": "2025-01-29",
+          "reasonableExpectationOfReturn": true,
+          "note": "Casual UPL — post-2022 counts due to expectation"
+        }
+      ],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursAccrualBlock1": 6500
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.post-2022.casual-upl-reasonable-expectation-counts" }
+    ]
+  }
+}

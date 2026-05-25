@@ -1,0 +1,32 @@
+{
+  "name": "TC-WA-056",
+  "title": "Varied-hours PT, accrual-period averaging within first 10-yr block",
+  "source": "WA LSL Act 1958 s.9 (varied-hours)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-056",
+      "startDate": "2016-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "part_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "910.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "47320.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "35.00",
+        "hoursAccrualBlock1": 13520
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "910.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.9", "rule": "ordinary-pay.varied-hours-accrual-period-average" }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "TC-WA-002",
+  "title": "9 yrs FT resignation, no misconduct → pro-rata payout (WA s.8(3) divergence from NSW/QLD)",
+  "source": "APA p.66; WA LSL Act 1958 s.8(3); DEMIRS LSL guidance",
+  "input": {
+    "employee": {
+      "id": "TC-WA-002",
+      "legalName": "ResignationWAFixture",
+      "startDate": "2017-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-25", "periodEnd": "2026-05-25", "grossPay": "795600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "valueOfDay": "340.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(3)", "rule": "accrual.7-to-10yr.any-reason-except-misconduct" },
+      { "section": "WA LSL Act 1958 s.9",    "rule": "ordinary-pay.fixed-rate" }
+    ]
+  }
+}

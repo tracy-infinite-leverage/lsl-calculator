@@ -1,0 +1,32 @@
+{
+  "name": "TC-WA-053",
+  "title": "Casual 7 yrs voluntary resignation → pro-rata payable",
+  "source": "WA LSL Act 1958 s.8(3) — 7-yr boundary, casual",
+  "input": {
+    "employee": {
+      "id": "TC-WA-053",
+      "startDate": "2019-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1000.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "52000.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursAccrualBlock1": 9100
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1000.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(3)", "rule": "accrual.7-to-10yr.any-reason-except-misconduct" }
+    ]
+  }
+}

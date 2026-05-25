@@ -1,0 +1,33 @@
+{
+  "name": "TC-WA-031",
+  "title": "Transfer of business post-2022 — service + accrued leave preserved",
+  "source": "WA LSL Act 1958 s.6 (as amended 2022); DEMIRS broader rules",
+  "input": {
+    "employee": {
+      "id": "TC-WA-031",
+      "startDate": "2014-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "78000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        {
+          "type": "transfer_of_business",
+          "startDate": "2023-07-01",
+          "note": "Business sold; Fair Work Act standards apply"
+        }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.post-2022.transfer-of-business-preserves" }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "TC-WA-007",
+  "title": "Casual 12 yrs continuous taking 8.6667 wks at $40/hr × avg 32 h/wk",
+  "source": "APA p.69; WA LSL Act 1958 s.6 (as amended 2022), s.8(1), s.9",
+  "input": {
+    "employee": {
+      "id": "TC-WA-007",
+      "legalName": "CasualWATaking",
+      "startDate": "2014-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1280.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "66560.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursLast52Weeks": 1664,
+        "hoursAccrualBlock1": 16640,
+        "hoursPartialBlock2": 3328
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1280.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(1)", "rule": "accrual.qualifying-period-10yr" },
+      { "section": "WA LSL Act 1958 s.9",    "rule": "ordinary-pay.casual-accrual-period-average-with-loading" }
+    ]
+  }
+}

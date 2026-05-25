@@ -40,6 +40,19 @@ const WARNING_LABELS: Record<string, { label: string; tone: 'info' | 'warning' }
   pre_1994_casual_cliff_qld: { label: 'Casual service before 30 March 1994 excluded (QLD s.103 cliff)', tone: 'info' },
   pre_1990_service_advisory_qld: { label: 'Pre-1990 service advisory (QLD s.96)', tone: 'info' },
   employment_type_transition_qld: { label: 'QLD employment-type transition (casual → permanent)', tone: 'info' },
+  // WA-specific (E2 Phase 5)
+  sub_7yr_no_entitlement_wa: { label: 'Sub-7-year tenure — no WA entitlement; review industrial instrument / EA', tone: 'info' },
+  sub_10yr_misconduct_excluded_wa: { label: 'WA sub-10-year misconduct dismissal — pro-rata excluded under s.8(3)', tone: 'warning' },
+  wa_10yr_plus_misconduct_partial_forfeiture: { label: 'WA 10+ year misconduct — partial forfeiture (last fully-accrued block only)', tone: 'warning' },
+  wa_cashout_post_accrual_advisory: { label: 'WA cash-out — post-accrual advisory (s.5 written agreement required)', tone: 'warning' },
+  wa_cashout_pre_accrual_not_authorised: { label: 'WA cash-out pre-first-milestone — not authorised under s.5', tone: 'warning' },
+  wa_cashout_no_entitlement_to_cash_out: { label: 'WA sub-7-yr cash-out — no entitlement has yet accrued', tone: 'info' },
+  wa_lsl_calculated_at_wc_reduced_rate_warning: { label: 'WA LSL calculated at WC-reduced rate (s.9 literal — no higher-of-rates equivalent)', tone: 'warning' },
+  wa_pre_2022_casual_no_specific_rules: { label: 'WA pre-2022 casual continuity — no specific rules; general s.6 applies', tone: 'info' },
+  wa_regime_split_applied: { label: 'WA regime split applied — service spans 20 June 2022', tone: 'info' },
+  wa_regime_split_data_insufficient: { label: 'WA regime-split fallback — insufficient data granularity', tone: 'warning' },
+  wa_workers_comp_pre_2024_excluded: { label: 'WA workers compensation pre-2024-07-01 excluded from service', tone: 'info' },
+  wa_workers_comp_paid_concurrent: { label: 'WA workers compensation paid-concurrent exception applied', tone: 'info' },
 };
 
 export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPanelProps) {

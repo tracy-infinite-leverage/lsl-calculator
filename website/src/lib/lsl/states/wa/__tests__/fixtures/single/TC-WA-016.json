@@ -1,0 +1,28 @@
+{
+  "name": "TC-WA-016",
+  "title": "7.5 yrs FT illness resignation → pro-rata payable",
+  "source": "WA LSL Act 1958 s.8(3)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-016",
+      "startDate": "2018-11-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2018-11-25", "periodEnd": "2026-05-25", "grossPay": "663000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "illness_incapacity", "terminationInitiator": "employee" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(3)", "rule": "accrual.7-to-10yr.any-reason-except-misconduct" }
+    ]
+  }
+}

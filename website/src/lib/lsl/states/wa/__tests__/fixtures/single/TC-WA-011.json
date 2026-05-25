@@ -1,0 +1,30 @@
+{
+  "name": "TC-WA-011",
+  "title": "6.98 yrs FT redundancy → $0 (sub-7yr threshold)",
+  "source": "WA LSL Act 1958 s.8(3); DEMIRS sub-7yr no entitlement",
+  "input": {
+    "employee": {
+      "id": "TC-WA-011",
+      "startDate": "2019-06-01",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2019-06-01", "periodEnd": "2026-05-25", "grossPay": "653400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["sub_7yr_no_entitlement_wa"],
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(3)", "rule": "accrual.sub-7yr-no-entitlement" }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "TC-WA-014",
+  "title": "9 yrs FT dismissal not for misconduct → pro-rata payable",
+  "source": "WA LSL Act 1958 s.8(3)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-014",
+      "startDate": "2017-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2017-05-25", "periodEnd": "2026-05-25", "grossPay": "842400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "employer_initiated_not_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(3)", "rule": "accrual.7-to-10yr.any-reason-except-misconduct" }
+    ]
+  }
+}

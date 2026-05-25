@@ -1,0 +1,29 @@
+{
+  "name": "TC-WA-034",
+  "title": "Paid parental leave post-2022 — counts as service",
+  "source": "WA LSL Act 1958 s.6 (as amended); DEMIRS post-2022 paid parental",
+  "input": {
+    "employee": {
+      "id": "TC-WA-034",
+      "startDate": "2018-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2023-08-01", "endDate": "2024-01-29", "note": "26 wks paid parental leave" }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.post-2022.paid-leave-counts" }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "TC-WA-019",
+  "title": "10 yrs FT redundancy, full payout 8.6667 wks",
+  "source": "WA LSL Act 1958 s.8(1)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-019",
+      "startDate": "2016-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-25", "periodEnd": "2026-05-25", "grossPay": "936000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(1)", "rule": "accrual.qualifying-period-10yr" }
+    ]
+  }
+}

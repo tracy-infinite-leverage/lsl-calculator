@@ -1,0 +1,31 @@
+{
+  "name": "TC-WA-049",
+  "title": "WC absence pre-2024 with concurrent paid leave → counts (DEV-CROSS-2 paidConcurrent)",
+  "source": "WA LSL Act 1958 s.6; DEMIRS paid-concurrent exception; DEV-CROSS-2",
+  "input": {
+    "employee": {
+      "id": "TC-WA-049",
+      "startDate": "2014-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1060400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2024-03-01", "endDate": "2024-06-30", "paidConcurrent": true, "note": "WC + paid annual leave concurrent" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "warnings": ["wa_workers_comp_paid_concurrent"],
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.post-2022.workers-comp-paid-concurrent-or-rtw-counts" }
+    ]
+  }
+}

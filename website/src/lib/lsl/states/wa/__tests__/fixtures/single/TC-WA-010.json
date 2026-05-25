@@ -1,0 +1,35 @@
+{
+  "name": "TC-WA-010",
+  "title": "Walid-equivalent — apprentice → tradesperson re-employed within 52 wks",
+  "source": "APA p.73; WA LSL Act 1958 s.6 (apprentice/traineeship gaps)",
+  "input": {
+    "employee": {
+      "id": "TC-WA-010",
+      "legalName": "WalidWA",
+      "startDate": "2018-07-01",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1900.00",
+      "wageHistory": [
+        { "periodStart": "2018-07-01", "periodEnd": "2026-05-25", "grossPay": "780000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        {
+          "type": "apprentice_to_tradesperson_transition",
+          "startDate": "2024-06-30",
+          "endDate": "2024-10-01",
+          "note": "Apprenticeship ends; re-employed as qualified tradesperson within 13 wks"
+        }
+      ]
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1900.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.6", "rule": "continuous-service.apprentice-to-trade-within-52wks" }
+    ]
+  }
+}

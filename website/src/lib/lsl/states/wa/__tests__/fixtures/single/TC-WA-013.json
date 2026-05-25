@@ -1,0 +1,30 @@
+{
+  "name": "TC-WA-013",
+  "title": "6 yrs 364 days FT redundancy → $0 (one day short of 7 yrs)",
+  "source": "WA LSL Act 1958 s.8(3) boundary",
+  "input": {
+    "employee": {
+      "id": "TC-WA-013",
+      "startDate": "2019-05-26",
+      "endDate": "2026-05-24",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2019-05-26", "periodEnd": "2026-05-24", "grossPay": "545610.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-24", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["sub_7yr_no_entitlement_wa"],
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.8(3)", "rule": "accrual.sub-7yr-no-entitlement" }
+    ]
+  }
+}

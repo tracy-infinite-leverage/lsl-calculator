@@ -1,0 +1,30 @@
+{
+  "name": "TC-WA-066",
+  "title": "WA Day PH falls during LSL → extends leave by 1 day",
+  "source": "WA LSL Act 1958 s.9; DEMIRS — PH-exclusive LSL",
+  "input": {
+    "employee": {
+      "id": "TC-WA-066",
+      "startDate": "2014-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "publicHolidaysInWindow": ["2026-06-01"]
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 1 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.9", "rule": "trigger.taking-leave.public-holiday-exclusive" }
+    ]
+  }
+}

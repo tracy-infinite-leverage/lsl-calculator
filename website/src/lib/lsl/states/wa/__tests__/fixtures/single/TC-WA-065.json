@@ -1,0 +1,26 @@
+{
+  "name": "TC-WA-065",
+  "title": "6 yrs cash-out attempt → $0 + double-advisory",
+  "source": "WA LSL Act 1958 s.5 + s.8(3) sub-7-yr",
+  "input": {
+    "employee": {
+      "id": "TC-WA-065",
+      "startDate": "2020-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-25" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["sub_7yr_no_entitlement_wa", "wa_cashout_no_entitlement_to_cash_out"]
+  }
+}

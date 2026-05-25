@@ -1,0 +1,32 @@
+{
+  "name": "TC-WA-051",
+  "title": "Casual 12 yrs taking 8.6667 wks, accrual-period averaging",
+  "source": "WA LSL Act 1958 s.9 — accrual-period averaging",
+  "input": {
+    "employee": {
+      "id": "TC-WA-051",
+      "startDate": "2014-05-25",
+      "employmentType": "casual",
+      "statesOfService": ["WA"],
+      "governingJurisdiction": "WA",
+      "currentWeeklyGross": "1280.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "66560.00", "frequency": "other", "periodDays": 365 }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursAccrualBlock1": 16640,
+        "hoursPartialBlock2": 3328
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1280.00",
+    "expected_citations": [
+      { "section": "WA LSL Act 1958 s.9", "rule": "ordinary-pay.casual-loaded-rate-accrual-period-avg" }
+    ]
+  }
+}
