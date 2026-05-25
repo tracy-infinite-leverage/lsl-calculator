@@ -5,9 +5,9 @@ import { Header } from '@/components/shell/header';
 import { Separator } from '@/components/ui/separator';
 
 export const metadata: Metadata = {
-  title: 'Privacy notice | NSW LSL Calculator',
+  title: 'Privacy notice | LSL Calculator',
   description:
-    'How the NSW Long Service Leave Calculator handles wage data, PDFs, and personal information. Plain-English summary plus the full data-handling policy.',
+    'How the LSL Calculator handles wage data, PDFs, and personal information. Plain-English summary plus the full data-handling policy.',
 };
 
 const UPDATED = '23 May 2026';
@@ -179,8 +179,9 @@ export default function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-xl font-semibold">Changes to this notice</h2>
             <p>
-              We may update this notice as the product evolves (e.g. when we add jurisdictions
-              beyond NSW). Material changes will be noted at the top of this page and in the{' '}
+              We may update this notice as the product evolves (e.g. when additional state rule
+              sets ship beyond NSW and VIC). Material changes will be noted at the top of this
+              page and in the{' '}
               <Link
                 href="https://github.com/tracy-infinite-leverage/lsl-calculator/commits/main/docs/engineering/data-handling-policy.md"
                 className="underline underline-offset-2"

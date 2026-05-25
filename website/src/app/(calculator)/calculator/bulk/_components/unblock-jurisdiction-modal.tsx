@@ -44,10 +44,9 @@ export interface UnblockJurisdictionModalProps {
  * jurisdiction; the caller then re-runs that single row via the bulk
  * runner with a per-employee override.
  *
- * Only NSW is rules-complete in v1 — selecting VIC/QLD/etc. just re-blocks
- * the row with a clearer warning ("nominated VIC, but VIC rules aren't
- * implemented in v1"). Wave 2 surfaces this honestly; E2 adds the other
- * states.
+ * NSW and VIC are rules-complete today — picking either computes immediately.
+ * Selecting QLD / WA / SA / TAS / ACT / NT re-blocks the row with a clearer
+ * warning until those states ship.
  */
 export function UnblockJurisdictionModal({
   open,
@@ -65,7 +64,7 @@ export function UnblockJurisdictionModal({
     setPicked(currentGoverning ?? '');
   }, [employeeId, currentGoverning]);
 
-  const isNSW = picked === 'NSW';
+  const isSupported = picked === 'NSW' || picked === 'VIC';
   const canSubmit = picked !== '' && candidateStates.includes(picked as State);
 
   return (
@@ -82,7 +81,7 @@ export function UnblockJurisdictionModal({
           </DialogTitle>
           <DialogDescription>
             {employeeName ? <strong>{employeeName}</strong> : <code>{employeeId}</code>} worked
-            in multiple states. NSW LSL rules require a single governing jurisdiction to compute
+            in multiple states. LSL rules require a single governing jurisdiction to compute
             the entitlement.
           </DialogDescription>
         </DialogHeader>
@@ -103,17 +102,18 @@ export function UnblockJurisdictionModal({
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              States this employee worked in. NSW is the only fully-implemented jurisdiction in
-              v1.
+              States this employee worked in. NSW and VIC are fully implemented; other states
+              are coming soon.
             </p>
           </div>
 
-          {picked && !isNSW && (
+          {picked && !isSupported && (
             <Alert variant="warning">
               <AlertTitle>{picked} rules aren&apos;t implemented yet</AlertTitle>
               <AlertDescription>
-                v1 only computes NSW. Re-running with {picked} nominated will keep the row
-                blocked with a clearer warning. Re-pick NSW (if applicable) to compute now.
+                Currently supported: NSW and VIC. Re-running with {picked} nominated will keep
+                the row blocked with a clearer warning. Pick NSW or VIC (if applicable) to
+                compute now.
               </AlertDescription>
             </Alert>
           )}

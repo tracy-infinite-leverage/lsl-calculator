@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { parseBulkCSV, type BulkParsedEmployee } from '@/lib/lsl/parsers/csv/bulk';
 import { bulkToEngineEmployees, bulkToEngine } from '@/lib/lsl/parsers/csv/bulk-to-engine';
 import { runBulk, type BulkProgress } from '@/lib/lsl/bulk-runner';
-import { calculateNSWSafe } from '@/lib/lsl/states/nsw';
+import { calculateSafe } from '@/lib/lsl/dispatch';
 import { asISODate, type PayFrequency, type State, type Trigger } from '@/lib/lsl/engine/types';
 import type { Result } from '@/lib/lsl/engine/types';
 import { applyNormalizationSpec, type SingleEmployeeIdentity } from '@/lib/lsl/parsers/csv/normalize-apply';
@@ -241,7 +241,7 @@ export function BulkModeForm() {
         existing?.trigger ??
         { kind: 'as_at', asAtDate: asISODate(new Date().toISOString().slice(0, 10)) };
 
-      const newResult = calculateNSWSafe(employee, trigger);
+      const newResult = calculateSafe(employee, trigger);
       track({ event: 'bulk_unblock_resolved', state: nominated });
       const nextResults = s.results.map((r) => (r.employeeId === employeeId ? newResult : r));
       const nextParsed = s.parsed.map((p) => (p.employeeId === employeeId ? patched : p));

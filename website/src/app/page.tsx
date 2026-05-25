@@ -13,16 +13,15 @@ export default function Home() {
         <section className="mx-auto max-w-6xl px-4 pt-16 pb-12 sm:pt-24">
           <div className="max-w-3xl">
             <p className="text-sm font-medium uppercase tracking-wider text-primary">
-              NSW Long Service Leave
+              Long Service Leave
             </p>
             <h1 className="mt-2 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-              The defensible LSL calculator.
+              Australian LSL calculator.
             </h1>
             <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-              Compute long-service-leave for any NSW employee with every numeric output traceable to
-              a section of the <span className="font-medium text-foreground">Long Service Leave Act 1955</span>.
-              Built on the legislated <em>greater of (current rate, 12-month average, 5-year average)</em>
-              {' '}test — not the system shortcut your payroll software runs.
+              Calculate long service leave for employees with every numeric output traceable to
+              a section of the relevant State Long Service Leave Act. Built on the legislated
+              requirements for each State, not the system shortcut your payroll software runs.
             </p>
           </div>
         </section>
@@ -32,10 +31,10 @@ export default function Home() {
             <Card className="group hover:border-primary transition-colors">
               <CardHeader>
                 <FileText className="h-7 w-7 text-primary mb-2" aria-hidden />
-                <CardTitle>Single mode</CardTitle>
+                <CardTitle>Single employee</CardTitle>
                 <CardDescription>
-                  One employee, one event — taking leave, termination, or an as-at snapshot.
-                  Enter wage history by CSV (PDF extraction coming in Phase 3).
+                  One employee, one event. Taking leave, termination, or a LSL liability
+                  snapshot. Enter wage history by CSV (PDF extraction coming soon).
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -53,13 +52,13 @@ export default function Home() {
                 <Users className="h-7 w-7 text-primary mb-2" aria-hidden />
                 <CardTitle>Bulk mode</CardTitle>
                 <CardDescription>
-                  Many employees in one upload — audit & liability reporting. CSV in, results out.
+                  Multiple employees in one upload. Audit & liability reporting. CSV in, results out.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button asChild variant="outline" className="w-full sm:w-auto">
                   <Link href="/calculator/bulk">
-                    Calculate for many
+                    Calculate for multiple employees
                     <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
@@ -68,9 +67,8 @@ export default function Home() {
           </div>
 
           <p className="mt-12 text-sm text-muted-foreground max-w-2xl">
-            v1 supports NSW only. Other states (VIC, QLD, WA, SA, TAS, ACT, NT) follow in E2.
-            All calculations cite the relevant LSA section — every output is defensible
-            against an auditor.
+            All calculations cite the relevant LSA section, every output is defensible against
+            a long service leave audit.
           </p>
         </section>
       </main>

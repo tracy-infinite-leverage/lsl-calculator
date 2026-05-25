@@ -41,7 +41,7 @@ export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPan
         <AlertTitle>Cross-jurisdiction: calculation blocked</AlertTitle>
         <AlertDescription>
           {result.warnings.find((w) => w.code === 'cross_jurisdiction_pending')?.message ??
-            'This employee has worked in multiple states. Nominate the governing jurisdiction to proceed; v1 supports NSW only.'}
+            'This employee has worked in multiple states. Nominate the governing jurisdiction to proceed. Currently supported: NSW and VIC.'}
         </AlertDescription>
       </Alert>
     );
