@@ -1,0 +1,31 @@
+{
+  "name": "TC-SA-033",
+  "title": "Re-employment within 2 months preserves continuity",
+  "source": "SA LSL Act 1987 s.6 — 2-month rehire tolerance",
+  "input": {
+    "employee": {
+      "id": "TC-SA-033",
+      "startDate": "2014-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1060000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "employer_initiated_termination_and_rehire", "startDate": "2020-05-25", "endDate": "2020-07-15" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.6", "rule": "continuous-service.rehire-within-2mo-preserves" }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "TC-SA-024",
+  "title": "11 yrs FT misconduct, full 14.3 wks (mirror of TC-SA-019 at 11 yrs)",
+  "source": "SA LSL Act 1987 s.5(1)",
+  "input": {
+    "employee": {
+      "id": "TC-SA-024",
+      "startDate": "2015-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2015-05-25", "periodEnd": "2026-05-25", "grossPay": "972400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "warnings": ["sa_10yr_plus_misconduct_full_payout"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5(1)", "rule": "accrual.10yr-full-entitlement-regardless-of-reason" }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "TC-SA-060",
+  "title": "Transfer of business preserves service; new employer assumes liability",
+  "source": "SA LSL Act 1987 s.6",
+  "input": {
+    "employee": {
+      "id": "TC-SA-060",
+      "startDate": "2014-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2014-05-25", "periodEnd": "2026-05-25", "grossPay": "1060800.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "transfer_of_business", "startDate": "2020-05-25", "endDate": "2020-05-25", "note": "old employer sold to new employer; same job continued" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "warnings": ["transfer_of_business_continuity_preserved_sa"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.6", "rule": "continuous-service.transfer-of-business-preserves-from-original-start" }
+    ]
+  }
+}

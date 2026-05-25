@@ -1,0 +1,31 @@
+{
+  "name": "TC-SA-005",
+  "title": "MisconductSub10SA — 7 yrs FT serious-misconduct dismissal → $0",
+  "source": "APA p.83; SA LSL Act 1987 s.5(3); SafeWork SA",
+  "input": {
+    "employee": {
+      "id": "TC-SA-005",
+      "legalName": "MisconductSub10SAFixture",
+      "startDate": "2019-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2019-05-25", "periodEnd": "2026-05-25", "grossPay": "618800.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["sub_10yr_misconduct_excluded_sa"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5(3)", "rule": "accrual.7-to-10yr.serious-misconduct-excluded" }
+    ]
+  }
+}

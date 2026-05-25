@@ -1,0 +1,29 @@
+{
+  "name": "TC-SA-046",
+  "title": "Target-achievement bonus on top of hourly rate, bonus EXCLUDED from average",
+  "source": "SafeWork SA — commission/target/per-piece guidance",
+  "input": {
+    "employee": {
+      "id": "TC-SA-046",
+      "startDate": "2017-05-25",
+      "endDate": "2026-05-25",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-25", "grossPay": "95000.00", "frequency": "weekly", "note": "incl. $7,000 target-bonus paid Dec 2025" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-25", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "warnings": ["sa_bonus_excluded_from_average", "bonus_in_notes_v1_out_of_scope"],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.4", "rule": "ordinary-pay.fixed-rate" }
+    ]
+  }
+}
