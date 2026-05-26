@@ -180,7 +180,7 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold">Changes to this notice</h2>
             <p>
               We may update this notice as the product evolves (e.g. when additional state rule
-              sets ship beyond NSW and VIC). Material changes will be noted at the top of this
+              sets ship). Material changes will be noted at the top of this
               page and in the{' '}
               <Link
                 href="https://github.com/tracy-infinite-leverage/lsl-calculator/commits/main/docs/engineering/data-handling-policy.md"
