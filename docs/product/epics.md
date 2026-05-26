@@ -4,7 +4,9 @@ These are thematic bundles of work. Each epic makes a bet on user behavior — a
 
 > **Sources**: APA *Long Service Leave Masterclass* (January 2026, 158pp, in `docs/features/LSL-training.pdf`) + each state's LSL legislation as primary source. Citations in the form `(NSW LSA s.4(2); PDF p.13)` refer to the relevant Act section and PDF page.
 >
-> **Sequence**: build order is E1 → (E3 NSW slice) → E2 → (E3 expansion) → E4. Epic numbers are identities, not strict build order; see the Sequence Argument at the end.
+> **Sequence (updated 2026-05-26)**: build order is **E1 ✅ → E2 🔄 (6/8 states live) → E5 (LSL Platform, new) → E4**. Epic numbers are identities, not strict build order; see the Sequence Argument at the end.
+>
+> **2026-05-26 changes**: **E3 (NSW Audit Upload and Variance Report) is retired** — fully absorbed into E5.6 on a persistent multi-tenant base. **E1 Phase 7 (opt-in single-user logins) is cancelled** — the public calc stays anonymous-only permanently; all authenticated experience lives in E5.
 
 ---
 
@@ -35,28 +37,15 @@ _Dev findings: `.specify/features/001-nsw-calculator/dev-findings.md`_
 
 ---
 
-## E3 · Audit Upload and Variance Report
+## E3 · Audit Upload and Variance Report — 🗑️ RETIRED 2026-05-26
 
-**The problem:** Once a payroll manager has confidence in the calculation for a single employee, the more valuable use-case is replaying the calculation across a year or more of historical LSL payments — to find out whether the company has been over- or under-paying. APA's training material frames LSL as a *chronic* payroll-data-quality problem (Health Check, PDF p.137), with system-driven errors that compound over many employees. The auditor persona (internal audit, external audit, APA-engaged consultants) buys differently from the payroll-manager persona, and the audit deliverable — a variance report by employee — is the primary artefact they need.
+**Status:** Retired. Fully absorbed into **E5.6 · LSL Reconciliation** on a persistent multi-tenant base.
 
-**The mechanism:** Ingest a CSV of historical LSL payments + a CSV of wage history (with the schema derived from NSW LSA s.8 record-keeping requirements). For each historical payment, run the rules engine forward from the relevant prescribed date and compare to the amount actually paid. Produce a variance report (PDF for human reading, CSV for downstream ingestion) listing every payment with: employee, period, calculated correct amount, actual amount paid, variance ± $, the rule(s) that fired, and the LSA section(s).
+**What changed:** E3's mechanism (CSV of historical LSL payments → replay through the engine → variance report) is strictly a subset of what E5.6 does on top of a persisted pay-history layer. The reconciliation feature in E5 has the same engine output, the same auditor-readable PDF, and adds: persisted history (so the same payment can be re-reconciled when new pay data lands), `cannot_verify` semantics for under-evidenced rows, and multi-tenant isolation. There is no value in maintaining E3 as a separate epic.
 
-**What it bundles:**
-- **CSV import schema**: aligned to NSW LSA s.8 records (employer + ABN, employee, start/end dates, classification, leave taken with dates and gross payments, entitlement records at 10y and every 5y, bonuses included, termination payments) (NSW LSA s.8; PDF p.26)
-- **Wage history schema**: per-pay-period gross + pay-component breakdown granular enough to reconstruct 12-month and 5-year averages with day-precision (denominators 365/366/1825/1826/1827, less "days not counted")
-- **Import validation**: typed parsing, schema validation, fuzzy column-name matching for common payroll-export formats, ambiguity report before any calc runs
-- **Replay engine**: for each historical LSL payment, recompute through the NSW rules engine at the prescribed date; surface any disagreement
-- **Variance report (PDF)**: human-readable, one row per historical payment with verdict (correct / under by $X / over by $Y / cannot verify), grouped by employee, with a top-level summary
-- **Variance report (CSV)**: same content, machine-readable for downstream audit workpapers
-- **Citation block per row**: the rule that fired and the LSA section that drove the result, so the auditor can defend each finding
-- **Auditor workspace**: separate landing page from the single-calc UI, designed for batch uploads and downloadable reports, not interactive calculation
-- **NSW-first scope**: E3 v1 audits NSW only; cross-state audit waits on E2
+**What was lost:** Nothing material. E3 had no written spec at `.specify/features/003-*/spec.md` and no code ever shipped under its banner. The auditor-persona buyer remains the highest-value commercial signal — now served by E5.6 instead.
 
-**What success looks like:** An APA member or APA-engaged auditor uploads a year of NSW LSL payments + the corresponding wage history, and within minutes receives a variance report with one row per payment, citation-backed, that they can hand to a CFO or external auditor without further rework. The known APA worked example (PDF p.141 — 12-year casual-to-FT employee) when fed through E3 returns variance = +$3,316.64 (underpaid) against the correct $9,880.04.
-
-**Why it goes second in build order (third in numbering):** The audit use-case sits on the same rules engine as E1. Once NSW calculation is correct, the marginal cost of audit replay on NSW is a CSV importer + a variance report generator. Shipping audit on NSW before expanding to all states proves the second buyer (the auditor) is reachable within Phase 1, and it does so at a fraction of the cost of expanding the calc UI to seven more states first.
-
-_Spec: `.specify/features/003-audit-upload-variance-report/spec.md` (not yet written)_
+_See `docs/product/epic-status.md` "Obsolete / won't fix" section for the retirement record._
 
 ---
 
@@ -93,6 +82,50 @@ _Dev findings: `.specify/features/002-all-state-coverage/dev-findings.md` (0 HIG
 
 ---
 
+## E5 · LSL Platform (Authenticated, Persistent, Multi-Tenant)
+
+**Supersedes:** E1 Phase 7 (cancelled 2026-05-26), E3 (retired 2026-05-26).
+
+**The problem:** The current calculator is a **stateless tool** — a payroll manager pastes data, gets a number, closes the tab. Every calculation starts from scratch. There is no place for an organisation to keep its employee masterfile, its pay history, its pay-code mappings, or the audit trail of who calculated what when. For a single ad-hoc termination payout that is fine. For the actual customer workflow — running quarterly liability reports across a thousand employees, reconciling a year of past LSL payments before a board audit, or simply not re-uploading the same 24 months of pay history every time a new pay run lands — the stateless model is an architectural ceiling on what the product can charge for. APA's training material frames LSL as a *chronic* payroll-data-quality problem (Health Check, PDF p.137); a chronic problem needs a persistent system of record, not a calculator.
+
+**The mechanism:** Stand up an authenticated multi-tenant SaaS layer on top of the existing per-state rules engines. Each client organisation gets a private workspace with: Supabase Auth (email + password, three roles), an employee masterfile, a pay-code mapping table (org-wide raw-code → bucket, with per-state bucket treatment resolved by the engine), persisted pay-period history (CSV-only ingestion in v1, idempotent), on-demand valuations that re-use the existing engines unchanged, liability reports computed against any as-at date, and the headline feature — reconciliation, which uploads historical LSL payments and produces a per-row variance verdict against what the engine says was correct. The platform lives at the same domain as the public calc, under `/app/*`, branded as APA. Every other layer of the product — engines, citation blocks, brand of correctness — is reused as-is.
+
+**What it bundles:**
+- **E5.1 · Auth + Tenancy + DB Scaffold** — Supabase provisioned. Organisation + User + RoleMembership tables with Postgres Row-Level Security on every tenant table. Supabase Auth (email/password only — no SSO, no OAuth, no magic links in v1). One org per signup; admin invites users; three roles (`admin`, `payroll_user`, `read_only`). 7-day grace window on org deletion before hard-delete. **Load-bearing — every other sub-epic blocks on this.**
+- **E5.2 · Employee Masterfile** — CSV + Excel + manual entry. Effective-dated state and employment-type changes are preserved so historical valuations see the right value at the right time. Soft delete preserves audit trail.
+- **E5.3 · Pay-Code Mapping** — The user maps each distinct raw pay code to one of a fixed list of LSL buckets (Ordinary Time, Overtime — Regular, Penalty Rates, Commission, Bonus — Contractual, Casual Loading, Leave — Workers Comp, etc.). **Mapping is org-wide** — the same code maps to the same bucket regardless of the employee's state. **Bucket → state treatment is engine-resolved per-state** at valuation time. Example: the "Penalty Rates" bucket counts as ordinary pay when the engine values a QLD or TAS employee and is excluded for everyone else. The user does not need to know this; the engine does. Mapping is audited, retrospective, and blocks valuations when codes are unmapped.
+- **E5.4 · Pay-Period Ingestion** — **CSV only in v1.** One row per (employee, pay_period_end, pay_code, gross_amount). Idempotent — re-importing the same pay run does not double-count. Dry-run preview shows row count, distinct-employee count, distinct-pay-code count, and the unmapped-codes subset before commit. Partial commits accepted with a downloadable error CSV. **PDF ingestion is deferred** beyond v1.
+- **E5.5 · Valuations + Liability Reports** — Pick an employee and a trigger; the platform dispatches to the right state's engine, returns the engine's full output with citation block, and persists every valuation with input snapshot + engine version + mapping version. Liability snapshot scopes by single employee, employee list, or whole org at any as-at date. **Liability is `accrued_weeks × weekly_value`** — the simple definition. No actuarial vesting probability in v1. PDF and CSV export, with cached results for re-runs.
+- **E5.6 · LSL Reconciliation** — CSV upload of historical LSL payments. For each row the platform re-runs the relevant state's engine against the persisted pay history at the prescribed historical date and produces a variance verdict: `correct` / `under` / `over` / `cannot_verify`, with the variance amount, the rules that fired, and the Act sections that drove the computed value. `cannot_verify` is explicit — under-evidenced rows never default to "correct". PDF (signature-ready) and CSV export. **This is the headline commercial feature** — the auditor-persona buyer identified in `product.md` §11 hypothesis 1 buys this, not the calc.
+- **APA brand identity** end-to-end on `/app/*` — logo, palette, typography, voice, email templates, PDF exports. The public calc at `/` keeps the existing "LSL Calculator" identity for unauthenticated trial. Two surfaces, one domain, distinct visual identities.
+- **Tenant isolation** via Postgres RLS as primary defence — no application-level `WHERE org_id = ?` filtering. Automated cross-tenant security test in CI is part of the launch gate.
+- **Engine reuse, unchanged** — the platform's pipeline is `pay history × mapping → engine input`; the engines themselves are reused as black-box dependencies. The 100% gold-standard test suite from E1/E2 continues to bind.
+
+**What success looks like:**
+1. A new client onboards in **under 90 minutes** from signup to first defensible valuation (signup → org creation → invite a colleague → upload masterfile → upload 24 months pay history → map raw pay codes → run first valuation).
+2. A liability report on **1,000 employees runs in under 60 seconds**, cached.
+3. A reconciliation report on **a year of LSL payments (30–80 rows for a mid-sized employer) returns variance verdicts in under 90 seconds**.
+4. **100% engine-correctness preserved** — the platform's `pay history × mapping → engine input` pipeline is covered by a regression suite of ≥50 fixtures derived from existing single-calc test cases. Any drift between platform valuation and stateless engine result is a Sev-1.
+5. **Zero cross-tenant leakage** — automated security tests assert no cross-tenant read or write is possible via the API, RLS, or any combination.
+6. **Reconciliation surfaces a real-money finding on at least one pilot client within 90 days of pilot** — the variance report identifies at least one under- or over-paid LSL event the client did not already know about. This is the falsification test for `product.md` hypothesis 1.
+
+**Why it goes after E2 (in parallel with E2's tail end):** E5 reuses the engines unchanged but needs at least 6 states live to be a credible product; 6 are now live and TAS + NT (E2 Phases 8–9) can ship in parallel with E5.1–E5.4. The platform changes the *input pipeline* to the engines, not the engines themselves, so the architectural risk is contained to the new data + auth + mapping layer. E5.1 (Supabase scaffold) is greenfield — Supabase is named in `CLAUDE.md` but no integration code has shipped, so the dev team starts from zero on that surface. E4 (payroll integrations) waits until E5 has a stable pay-period ingestion path; E4 then replaces manual CSV uploads with API integrations at a strictly better value proposition than the legacy E3-replacement E4 would have been.
+
+**What this epic deliberately does not do:**
+- PDF ingestion into the platform (deferred beyond v1 — the public calc still accepts PDF for one-off use)
+- LLM-assisted pay-code mapping (deferred to v1.1 once we see real client raw-code lists)
+- Future-date liability projection (deferred to v2)
+- Multi-org-per-user (deferred; v1 workaround is a separate login per client)
+- SSO, SAML, OAuth, Google/Microsoft sign-in (deferred)
+- API integrations with payroll vendors (that's E4)
+- Write-back into client payroll systems (explicitly out of scope per `product.md` §7)
+- Australian data residency (Supabase default region in v1; deferred compliance consideration)
+- Pricing decisions (open commercial decision; does not block engineering)
+
+_Spec: `.specify/features/005-lsl-platform/spec.md` **v1.0 APPROVED 2026-05-26**. All 15 open questions plus E1 Phase 7 disposition resolved — see spec §12 for the locked decision table._
+
+---
+
 ## E4 · Payroll System Integrations
 
 **The problem:** Manual CSV uploads (E3) and manual single-employee data entry (E1) are friction that scale linearly with calculation volume. They also create a data-quality risk: every hand-typed start date, hand-entered pay component, or hand-edited CSV is a place where the calculator's correctness can be undermined by bad inputs to a correct rules engine. The eventual mature product reads directly from the payroll system of record.
@@ -110,7 +143,7 @@ _Dev findings: `.specify/features/002-all-state-coverage/dev-findings.md` (0 HIG
 
 **What success looks like:** A payroll manager whose company runs on a supported platform completes an LSL calculation or audit run with zero manual data entry beyond selecting the employee(s) and the trigger. The rules engine receives the same inputs it would receive from a perfect CSV, traced by field provenance ("this current rate came from vendor X's `current_pay_rate` field at timestamp T").
 
-**Why it goes last:** API integrations are higher engineering cost, require vendor partnerships, and depend on E2 (cross-state) being mature so the connector design doesn't have to be reworked when the rules engine changes shape. Until E2 ships, CSV (E3) covers the ingest need at lower fidelity but full state coverage.
+**Why it goes last:** API integrations are higher engineering cost, require vendor partnerships, and depend on E2 (cross-state) being mature so the connector design doesn't have to be reworked when the rules engine changes shape. **New insertion point (2026-05-26)**: E4 now replaces manual **pay-period uploads** in E5.4 rather than legacy E3 CSV audit uploads — a strictly better value proposition. Until E5 ships, the platform's CSV ingestion covers the need at lower fidelity but full state coverage.
 
 _Spec: `.specify/features/004-payroll-integrations/spec.md` (not yet written)_
 
@@ -118,12 +151,13 @@ _Spec: `.specify/features/004-payroll-integrations/spec.md` (not yet written)_
 
 ## Sequence argument
 
-The four epics ship in this build order:
+**Updated 2026-05-26.** The original sequence had E1 → E3 v1 (NSW audit) → E2 → E3 v2 → E4. E3 is now retired in favour of E5, and the sequence has compressed:
 
-1. **E1 (NSW Calculator)** — Phase 1, first. Proves the rules engine + citation block + 100% accuracy gate on a single state. No other epic has a foundation until this works.
-2. **E3 v1 (NSW audit replay)** — Phase 1, immediately after E1 reaches Stage 4 (Tested). Reuses the E1 rules engine; adds CSV import + replay + variance report. Reaches the auditor persona within Phase 1 at low marginal cost. Provides real-world demand signal about which states are most-asked-for, which informs E2 prioritisation.
-3. **E2 (All-state coverage)** — Phase 2, expanded state-by-state in the order E3 audit demand reveals. VIC is the most likely second state by population + divergence-risk-as-encoding-value; ACT and WA are the highest mis-coding risk states and warrant disproportionate test-suite investment when encoded.
-4. **E3 v2 (cross-state audit)** — Phase 2, in parallel with E2. As each state is added in E2, audit coverage for that state lands automatically.
-5. **E4 (Payroll integrations)** — Phase 3. Removes the CSV friction once the rules engine and audit replay are mature across multiple states.
+1. **E1 (NSW Calculator)** — Phase 1, ✅ shipped 2026-05-24. Proved the rules engine + citation block + 100% accuracy gate on NSW. The architectural template for everything that follows.
+2. **E2 (All-state coverage)** — Phase 2, 🔄 in flight. **6 of 8 states live** as of 2026-05-25 (NSW + VIC + QLD + WA + SA + ACT). TAS + NT remain. Each new state is a content/data milestone, not a UI rewrite.
+3. **E5 (LSL Platform)** — Phase 3, 📋 approved 2026-05-26, awaiting impl plan. Six sub-epics sequenced (E5.1 Auth + DB → E5.2 Masterfile → E5.3 Mapping → E5.4 Ingestion → E5.5 Valuations + Liability → E5.6 Reconciliation). **Absorbs the retired E3** (reconciliation on a persistent multi-tenant base is strictly more valuable than one-shot CSV variance reports). **Replaces the cancelled E1 Phase 7** (no single-user "save my calc" on the public surface; org-level workspace is the only authenticated experience). Can run in parallel with E2's tail end (TAS + NT) once E5.1's Supabase scaffold lands.
+4. **E4 (Payroll integrations)** — Phase 4. Replaces manual pay-run uploads in E5.4 with read-only OAuth/API connectors to major Australian payroll vendors. Waits until E5 has a stable ingestion path so the connector design doesn't have to be reworked.
 
-Why not the obvious "E1 → E2 → E3 → E4" order? Because expanding state coverage before proving the second buyer (the auditor) leaves the more differentiated revenue stream (audit replay) un-validated for an extra phase. CSV-based audit is achievable today against NSW alone and is the strongest evidence that the product solves a problem worth paying for outside the payroll-manager persona.
+**Why this sequence?** E1 proved the wedge. E2 expands the wedge to every Australian employer. E5 is where the product becomes a SaaS — auth, persistence, multi-tenant, reconciliation as the headline commercial feature. E4 is the friction-removal pass that makes the SaaS sticky. The original E1 → E3 NSW slice → E2 logic was right for a 2025 product that wasn't going to charge SaaS pricing; once E5 enters the picture, the legacy E3 audit-CSV scope is a strict subset of E5.6, so retiring it is the correct move.
+
+**What changed from the original argument:** The original argument said "expanding state coverage before proving the second buyer (the auditor) leaves the more differentiated revenue stream un-validated for an extra phase". That logic stands — except the differentiated revenue stream is now **reconciliation on a persistent platform (E5.6)**, not one-shot NSW audit CSVs (legacy E3). E5.6 reaches the same auditor-persona buyer on a strictly better foundation.
