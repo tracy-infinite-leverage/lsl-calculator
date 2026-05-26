@@ -29,8 +29,16 @@ const asAtTrigger = (date = '2026-05-21'): Trigger => ({
 });
 
 describe('dispatch — ENCODED_STATES', () => {
-  it('contains NSW, VIC, QLD, WA, SA, and ACT after Phase 7', () => {
-    expect(ENCODED_STATES.slice().sort()).toEqual(['ACT', 'NSW', 'QLD', 'SA', 'VIC', 'WA']);
+  it('contains NSW, VIC, QLD, WA, SA, ACT, and TAS after Phase 8', () => {
+    expect(ENCODED_STATES.slice().sort()).toEqual([
+      'ACT',
+      'NSW',
+      'QLD',
+      'SA',
+      'TAS',
+      'VIC',
+      'WA',
+    ]);
   });
 
   it('isStateEncoded returns true for shipped states, false for unshipped', () => {
@@ -40,8 +48,8 @@ describe('dispatch — ENCODED_STATES', () => {
     expect(isStateEncoded('WA')).toBe(true);
     expect(isStateEncoded('SA')).toBe(true);
     expect(isStateEncoded('ACT')).toBe(true);
+    expect(isStateEncoded('TAS')).toBe(true);
     expect(isStateEncoded('NT')).toBe(false);
-    expect(isStateEncoded('TAS')).toBe(false);
   });
 });
 
@@ -65,13 +73,13 @@ describe('dispatch — calculate', () => {
 
   it('blocks unshipped governing state with cross_jurisdiction_pending', () => {
     const employee = baseEmployee({
-      statesOfService: ['TAS'],
-      governingJurisdiction: 'TAS',
+      statesOfService: ['NT'],
+      governingJurisdiction: 'NT',
     });
     const r = calculate(employee, asAtTrigger());
     expect(r.status).toBe('blocked_cross_jurisdiction');
     expect(r.warnings[0].code).toBe('cross_jurisdiction_pending');
-    expect(r.warnings[0].message).toContain('TAS');
+    expect(r.warnings[0].message).toContain('NT');
     expect(r.warnings[0].message).toContain('NSW'); // lists what's supported
   });
 
@@ -99,11 +107,11 @@ describe('dispatch — calculate', () => {
 
   it('blocks single non-encoded state (no governing nominated) too', () => {
     const employee = baseEmployee({
-      statesOfService: ['TAS'],
+      statesOfService: ['NT'],
     });
     const r = calculate(employee, asAtTrigger());
     expect(r.status).toBe('blocked_cross_jurisdiction');
-    expect(r.warnings[0].message).toContain('TAS');
+    expect(r.warnings[0].message).toContain('NT');
   });
 
   it('defaults to NSW when no governing and no states-of-service', () => {
@@ -132,8 +140,8 @@ describe('dispatch — calculateSafe', () => {
 
   it('blocks unshipped state without throwing', () => {
     const employee = baseEmployee({
-      statesOfService: ['TAS'],
-      governingJurisdiction: 'TAS',
+      statesOfService: ['NT'],
+      governingJurisdiction: 'NT',
     });
     expect(() => calculateSafe(employee, asAtTrigger())).not.toThrow();
     const r = calculateSafe(employee, asAtTrigger());

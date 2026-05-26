@@ -218,6 +218,17 @@ export interface Employee {
    * additive; engines that do not consume it treat as absent.
    */
   dob?: ISODate;
+  /**
+   * Employee sex — TAS-conditional read only. Consumed by the TAS orchestrator
+   * (Phase 8) to apply the TAS LSL Act 1976 s.8(3) literal sex-specific
+   * retirement-age reading (60 women / 65 men) when
+   * `extraInputs.tas_award_min_retirement_age_reached` is not `true`. Per
+   * TBD-TAS-02 RESOLVED Option (a) in docs/qa/test-cases-tas.md. Ignored by
+   * every other state orchestrator. Purely additive; engines that do not
+   * consume it treat as absent. NO DEV-CROSS-5 anticipated — sole consumer is
+   * TAS.
+   */
+  sex?: 'female' | 'male';
 }
 
 export interface Citation {
@@ -309,7 +320,14 @@ export interface Warning {
     | 'act_single_day_lsl_on_ph_exclusive'
     | 'act_slackness_of_trade_continuity_preserved'
     | 'transfer_of_business_continuity_preserved_act'
-    | 'sa_or_act_parental_leave_excluded';
+    | 'sa_or_act_parental_leave_excluded'
+    // TAS-specific (E2 Phase 8 — see docs/qa/test-cases-tas.md Resolutions section)
+    | 'tas_shift_penalty_assumed_included_in_weekly_gross'
+    | 'tas_retirement_qualifying_age_60f_65m_default'
+    | 'tas_commission_3mo_window_applied'
+    | 'tas_casual_32hr_4wk_test_not_verified'
+    | 'tas_advance_leave_not_permitted'
+    | 'tas_bonus_excluded_absolutely';
   message: string;
   rowRef?: string;
 }
