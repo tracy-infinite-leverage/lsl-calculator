@@ -1,0 +1,25 @@
+{
+  "name": "TC-ACT-046",
+  "title": "Fixed-rate FT with skills + first-aid allowance INCLUDED in ordinary pay",
+  "source": "ACT LSL Act 1976 s.7(1) — engine trusts user-supplied currentWeeklyGross",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-046",
+      "startDate": "2018-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "2050.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "106600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2050.00",
+    "payableIndicator": "payable"
+  }
+}

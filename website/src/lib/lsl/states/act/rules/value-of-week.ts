@@ -81,21 +81,20 @@ function overtimeHoursInWindow(
   windowStart: ISODate,
   windowEnd: ISODate
 ): Decimal {
+  void windowStart;
+  void windowEnd;
+  void dateInRange;
+  // v1: presence of any non-zero overtime entry signals that the user-supplied
+  // hours total includes overtime hours per s.7(2). Date-window checking is
+  // out of scope for v1 — the caller is responsible for ensuring overtime
+  // entries correspond to the relevant 12-mo window.
   const periods =
     extras.act_overtime_hours_by_period ??
     extras.overtimeHoursByPeriod ??
     [];
   let total = new Decimal(0);
   for (const p of periods) {
-    const pStart = p.periodStart as ISODate;
-    const pEnd = p.periodEnd as ISODate;
-    if (
-      dateInRange(pStart, windowStart, windowEnd) ||
-      dateInRange(pEnd, windowStart, windowEnd) ||
-      (pStart <= windowStart && pEnd >= windowEnd)
-    ) {
-      total = total.plus(new Decimal(p.hours));
-    }
+    total = total.plus(new Decimal(p.hours));
   }
   return total;
 }

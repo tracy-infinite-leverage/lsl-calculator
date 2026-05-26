@@ -1,0 +1,90 @@
+{
+  "name": "TC-ACT-BULK-003",
+  "title": "Mixed-state WC-overlap matrix (5 states)",
+  "source": "Cross-state WC regression — ACT 9-Jun-2023 cliff + WA + SA + QLD",
+  "input": {
+    "employees": [
+      {
+        "id": "WC-A01",
+        "startDate": "2017-05-26",
+        "employmentType": "full_time",
+        "statesOfService": ["ACT"],
+        "governingJurisdiction": "ACT",
+        "currentWeeklyGross": "1800.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [
+          { "type": "workers_comp_absence", "startDate": "2025-10-01", "endDate": "2025-12-31" }
+        ]
+      },
+      {
+        "id": "WC-A02",
+        "startDate": "2017-05-26",
+        "employmentType": "full_time",
+        "statesOfService": ["ACT"],
+        "governingJurisdiction": "ACT",
+        "currentWeeklyGross": "1800.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [
+          { "type": "workers_comp_absence", "startDate": "2023-05-01", "endDate": "2023-07-31" }
+        ]
+      },
+      {
+        "id": "WC-W01",
+        "startDate": "2014-05-26",
+        "employmentType": "full_time",
+        "statesOfService": ["WA"],
+        "governingJurisdiction": "WA",
+        "currentWeeklyGross": "1900.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "98800.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [
+          { "type": "workers_comp_absence", "startDate": "2024-08-01", "endDate": "2024-10-31" }
+        ]
+      },
+      {
+        "id": "WC-S01",
+        "startDate": "2016-05-26",
+        "employmentType": "full_time",
+        "statesOfService": ["SA"],
+        "governingJurisdiction": "SA",
+        "currentWeeklyGross": "1800.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [
+          { "type": "workers_comp_absence", "startDate": "2025-01-01", "endDate": "2025-03-31" }
+        ]
+      },
+      {
+        "id": "WC-Q01",
+        "startDate": "2015-05-26",
+        "employmentType": "full_time",
+        "statesOfService": ["QLD"],
+        "governingJurisdiction": "QLD",
+        "currentWeeklyGross": "1700.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "88400.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [
+          { "type": "workers_comp_absence", "startDate": "2025-08-01", "endDate": "2025-10-31" }
+        ]
+      }
+    ],
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "summary": { "computed": 5, "blocked": 0, "failed": 0 },
+    "rowStatuses": {
+      "WC-A01": "computed",
+      "WC-A02": "computed",
+      "WC-W01": "computed",
+      "WC-S01": "computed",
+      "WC-Q01": "computed"
+    }
+  }
+}

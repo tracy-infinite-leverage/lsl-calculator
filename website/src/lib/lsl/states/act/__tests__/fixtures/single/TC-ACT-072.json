@@ -1,0 +1,25 @@
+{
+  "name": "TC-ACT-072",
+  "title": "8 yrs as-at → payable",
+  "source": "ACT LSL Act 1976 s.4 — as-at snapshot above 7-yr threshold",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-072",
+      "startDate": "2018-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-26" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable"
+  }
+}

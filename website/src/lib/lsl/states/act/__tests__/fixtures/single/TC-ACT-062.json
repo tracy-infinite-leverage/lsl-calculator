@@ -1,0 +1,27 @@
+{
+  "name": "TC-ACT-062",
+  "title": "15 yrs FT resignation, full ~13.0 weeks (continuous accrual; no discrete step)",
+  "source": "ACT LSL Act 1976 s.4 — continuous accrual past 15 yrs (no step)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-062",
+      "startDate": "2011-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "2000.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "104000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2000.00",
+    "payable_by": "2026-08-24",
+    "payableIndicator": "payable"
+  }
+}

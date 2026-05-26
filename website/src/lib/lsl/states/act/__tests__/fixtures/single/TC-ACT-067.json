@@ -1,0 +1,25 @@
+{
+  "name": "TC-ACT-067",
+  "title": "Cash-out request at 7 yrs exact — ADVISORY just-eligible",
+  "source": "ACT LSL Act 1976 s.8(c) — just-eligible cash-out advisory",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-067",
+      "startDate": "2019-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-26" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["act_cashout_post_accrual_advisory"]
+  }
+}

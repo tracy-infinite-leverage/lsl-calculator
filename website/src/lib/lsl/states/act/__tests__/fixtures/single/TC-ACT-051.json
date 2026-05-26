@@ -1,0 +1,37 @@
+{
+  "name": "TC-ACT-051",
+  "title": "Casual 8 yrs, 12-mo hours average with overtime INCLUDED in hours, EXCLUDED from rate (F9/AC11 anchor)",
+  "source": "ACT LSL Act 1976 s.7(1) + s.7(2); APA Masterclass p.119 — F9/AC11 headliner",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-051",
+      "startDate": "2018-05-26",
+      "employmentType": "casual",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1275.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "66300.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "42.50",
+        "hoursLast12MonthsBeforeEntitlement": 1560,
+        "act_overtime_hours_by_period": [
+          { "periodStart": "2024-05-26", "periodEnd": "2025-05-26", "hours": 260 }
+        ]
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 6.0667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1275.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_overtime_included_in_hours_average"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.7(1)", "rule": "ordinary-pay.casual-base-rate-includes-loading-excludes-overtime-premium" },
+      { "section": "ACT LSL Act 1976 s.7(2)", "rule": "ordinary-pay.part-time-12mo-average-hours-include-overtime-rate-excludes" }
+    ]
+  }
+}

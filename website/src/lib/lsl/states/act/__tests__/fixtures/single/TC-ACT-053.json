@@ -1,0 +1,33 @@
+{
+  "name": "TC-ACT-053",
+  "title": "Casual 12 yrs, 12-mo hours window with mixed overtime + casual loading",
+  "source": "ACT LSL Act 1976 s.7(1) + s.7(2)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-053",
+      "startDate": "2014-05-26",
+      "employmentType": "casual",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1600.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "83200.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursLast12MonthsBeforeEntitlement": 2080,
+        "act_overtime_hours_by_period": [
+          { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "hours": 260 }
+        ]
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1600.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_overtime_included_in_hours_average"]
+  }
+}

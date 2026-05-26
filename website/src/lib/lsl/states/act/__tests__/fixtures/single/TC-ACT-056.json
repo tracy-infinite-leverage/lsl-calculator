@@ -1,0 +1,34 @@
+{
+  "name": "TC-ACT-056",
+  "title": "FT→PT transition 18 mo before 7-yr entitlement, s.7(3) applies (ACT-unique)",
+  "source": "ACT LSL Act 1976 s.7(3); APA Masterclass p.120 — ACT-unique mid-service transition",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-056",
+      "startDate": "2019-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1450.00",
+      "wageHistory": [
+        { "periodStart": "2021-05-26", "periodEnd": "2024-11-25", "grossPay": "312000.00", "frequency": "weekly", "note": "FT salary" },
+        { "periodStart": "2024-11-26", "periodEnd": "2026-05-26", "grossPay": "65000.00", "frequency": "weekly", "note": "PT salary" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "35.00",
+        "hoursLast12MonthsBeforeEntitlement": 1300,
+        "act_ft_to_pt_transition_date": "2024-11-26"
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 6.0667 }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "payable",
+    "warnings": ["act_s7_3_ft_to_pt_within_2yr_path"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.7(3)", "rule": "ordinary-pay.ft-to-pt-within-2yr-of-entitlement-5yr-salary-divided-by-5" }
+    ]
+  }
+}

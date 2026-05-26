@@ -1,0 +1,28 @@
+{
+  "name": "TC-ACT-068",
+  "title": "LSL taken while on WC reduced rate — engine pays at literal s.7 rate + advisory",
+  "source": "ACT LSL Act 1976 s.7 — no higher-of-rates equivalent",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-068",
+      "startDate": "2019-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1300.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "67600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2026-04-01", "endDate": "2026-06-01" }
+      ]
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1300.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_lsl_calculated_at_wc_reduced_rate_warning"]
+  }
+}

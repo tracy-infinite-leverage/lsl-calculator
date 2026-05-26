@@ -1,0 +1,24 @@
+{
+  "name": "TC-ACT-065",
+  "title": "Cash-out request at 6 yrs (5–7 yr pro-rata band) — ADVISORY not authorised",
+  "source": "ACT LSL Act 1976 s.11C — no cash-out in pro-rata band",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-065",
+      "startDate": "2020-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-26" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["act_cashout_pre_accrual_not_authorised"]
+  }
+}

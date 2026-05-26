@@ -1,0 +1,31 @@
+{
+  "name": "TC-ACT-059",
+  "title": "Hours UNCHANGED entitlement vs cessation — anchor divergence is moot",
+  "source": "ACT LSL Act 1976 s.7(2) + s.11D",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-059",
+      "startDate": "2018-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "875.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "45500.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "35.00",
+        "hoursLast12MonthsBeforeEntitlement": 1300,
+        "hoursLast12MonthsBeforeCessation": 1300
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "875.00",
+    "payableIndicator": "payable"
+  }
+}
