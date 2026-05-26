@@ -1,0 +1,26 @@
+{
+  "name": "TC-ACT-071",
+  "title": "4 yrs as-at → accrued, not currently payable",
+  "source": "ACT LSL Act 1976 s.4 — as-at snapshot per E1 spec D20",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-071",
+      "startDate": "2022-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-26" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["accrued_not_currently_payable"]
+  }
+}

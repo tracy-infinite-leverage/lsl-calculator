@@ -1,0 +1,32 @@
+{
+  "name": "TC-ACT-001",
+  "title": "7 yrs FT taking 6.0667 weeks LSL, full first entitlement",
+  "source": "APA p.110; ACT LSL Act 1976 s.4 — F2/AC1 canonical 7-yr entitlement",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-001",
+      "legalName": "SamACT",
+      "startDate": "2019-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2019-05-26", "periodEnd": "2026-05-26", "grossPay": "655200.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 6.0667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "valueOfDay": "360.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.4", "rule": "accrual.qualifying-period-7yr-6.0667wks" },
+      { "section": "ACT LSL Act 1976 s.7(1)", "rule": "ordinary-pay.fixed-rate" },
+      { "section": "ACT LSL Act 1976 s.6", "rule": "trigger.taking-leave" }
+    ]
+  }
+}

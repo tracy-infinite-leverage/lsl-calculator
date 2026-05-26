@@ -1,0 +1,37 @@
+{
+  "name": "TC-ACT-006",
+  "title": "7 yrs PT taking leave, 12-mo hours average with overtime INCLUDED in hours, EXCLUDED from rate",
+  "source": "APA p.115; ACT LSL Act 1976 s.7(2) — F9/AC11 headliner",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-006",
+      "startDate": "2019-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "875.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "45500.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "35.00",
+        "hoursLast12MonthsBeforeEntitlement": 1300,
+        "act_overtime_hours_by_period": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "hours": 100 }
+        ]
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 6.0667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "875.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_overtime_included_in_hours_average"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.4", "rule": "accrual.qualifying-period-7yr-6.0667wks" },
+      { "section": "ACT LSL Act 1976 s.7(2)", "rule": "ordinary-pay.part-time-12mo-average-hours-include-overtime-rate-excludes" }
+    ]
+  }
+}

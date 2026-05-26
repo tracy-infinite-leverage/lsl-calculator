@@ -1,0 +1,26 @@
+{
+  "name": "TC-ACT-070",
+  "title": "Taking-leave request at 5 yrs (pre-7-yr) — refused, returns $0 with advisory",
+  "source": "ACT LSL Act 1976 — no leave-in-advance provision; TBD-ACT-14 RESOLVED status:computed + advisory",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-070",
+      "startDate": "2021-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 4.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["act_advance_leave_not_permitted"]
+  }
+}
