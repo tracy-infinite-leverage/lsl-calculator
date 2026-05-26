@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { State } from '@/lib/lsl/engine/types';
+import { ENCODED_STATES } from '@/lib/lsl/dispatch';
 
 export interface UnblockJurisdictionModalProps {
   open: boolean;
@@ -44,9 +45,9 @@ export interface UnblockJurisdictionModalProps {
  * jurisdiction; the caller then re-runs that single row via the bulk
  * runner with a per-employee override.
  *
- * NSW and VIC are rules-complete today — picking either computes immediately.
- * Selecting QLD / WA / SA / TAS / ACT / NT re-blocks the row with a clearer
- * warning until those states ship.
+ * Shipped states (see `ENCODED_STATES` in `@/lib/lsl/dispatch`) compute
+ * immediately on nomination. Selecting any state not yet in the registry
+ * re-blocks the row with a clearer warning until that state ships.
  */
 export function UnblockJurisdictionModal({
   open,
@@ -64,7 +65,7 @@ export function UnblockJurisdictionModal({
     setPicked(currentGoverning ?? '');
   }, [employeeId, currentGoverning]);
 
-  const isSupported = picked === 'NSW' || picked === 'VIC';
+  const isSupported = picked !== '' && ENCODED_STATES.includes(picked as State);
   const canSubmit = picked !== '' && candidateStates.includes(picked as State);
 
   return (
@@ -102,8 +103,8 @@ export function UnblockJurisdictionModal({
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              States this employee worked in. NSW and VIC are fully implemented; other states
-              are coming soon.
+              States this employee worked in. Currently supported: {ENCODED_STATES.join(', ')}.
+              Other states are coming soon.
             </p>
           </div>
 
@@ -111,9 +112,9 @@ export function UnblockJurisdictionModal({
             <Alert variant="warning">
               <AlertTitle>{picked} rules aren&apos;t implemented yet</AlertTitle>
               <AlertDescription>
-                Currently supported: NSW and VIC. Re-running with {picked} nominated will keep
-                the row blocked with a clearer warning. Pick NSW or VIC (if applicable) to
-                compute now.
+                Currently supported: {ENCODED_STATES.join(', ')}. Re-running with {picked}{' '}
+                nominated will keep the row blocked with a clearer warning. Pick one of the
+                supported states (if applicable) to compute now.
               </AlertDescription>
             </Alert>
           )}
