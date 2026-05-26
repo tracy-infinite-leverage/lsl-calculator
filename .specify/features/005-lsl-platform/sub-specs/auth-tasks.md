@@ -12,40 +12,40 @@
 
 These three spikes resolve the only known technical unknowns. They must complete before the implementation phases they gate, but they themselves are quick (≤1h each).
 
-### Task 1.1: Validate `@supabase/ssr` on Next.js 16 + React 19
+### Task 1.1: Validate `@supabase/ssr` on Next.js 16 + React 19 ✅ DONE 2026-05-26
 
 **Description**: Confirm `@supabase/ssr` (not the deprecated `auth-helpers-nextjs`) is the current Supabase recommendation as of 2026-05-26 and works inside Next.js 16 middleware + React Server Components.
 
 **Acceptance Criteria**:
-- [ ] Read [supabase.com/docs/guides/auth/server-side/nextjs](https://supabase.com/docs/guides/auth/server-side/nextjs) and capture the package version recommended.
-- [ ] Confirm the docs show middleware-side `createServerClient` + `auth.getUser()` reading `email_confirmed_at`.
-- [ ] Spike a minimal `src/middleware.ts` in a throwaway branch if docs are ambiguous; verify session reads.
-- [ ] Outcome recorded in plan's Decisions Log as `DEV-AUTH-1` resolved (or note fallback to `@supabase/auth-helpers-nextjs`).
+- [x] Read [supabase.com/docs/guides/auth/server-side/nextjs](https://supabase.com/docs/guides/auth/server-side/nextjs) and capture the package version recommended. → **`@supabase/ssr` v0.10.3** (published ~mid-May 2026). `@supabase/auth-helpers-nextjs` deprecated; all fixes flow to `@supabase/ssr`. Package marked beta — accepted risk.
+- [x] Confirm the docs show middleware-side `createServerClient` + `auth.getUser()` reading `email_confirmed_at`. → **Docs now recommend `auth.getClaims()` for general page protection** (faster, local JWT decode). **However**, JWT does NOT carry `email_confirmed_at` (only `iss`, `exp`, `sub`, `role`, `email`, `phone`). The unverified gate per AC-AUTH-3a REQUIRES the authoritative `email_confirmed_at`, available only via `getUser()`. **Plan retains `getUser()` for Task 5.2.** Do not "optimise" to `getClaims()` — silently breaks the gate.
+- [x] Spike a minimal `src/middleware.ts` in a throwaway branch if docs are ambiguous; verify session reads. → **Spike not required.** Docs are unambiguous on package + function choice. Cookie-handler shape confirmed as `getAll`/`setAll`.
+- [x] Outcome recorded in plan's Decisions Log as `DEV-AUTH-1` resolved (or note fallback to `@supabase/auth-helpers-nextjs`). → **Three entries added to Decisions Log:** (a) ssr v0.10.3 confirmed; (b) `getUser()` retained over `getClaims()` with rationale; (c) Next.js 16 renamed `middleware.ts` → `proxy.ts` (entry-file rename — see Task 5.2 update).
 
 **Effort**: S
 **Dependencies**: None
 **Assignee**: Developer
 
-### Task 1.2: Validate Postgres trigger atomicity for org auto-creation [P]
+### Task 1.2: Validate Postgres trigger atomicity for org auto-creation [P] ✅ DONE 2026-05-26
 
 **Description**: Confirm a `SECURITY DEFINER` trigger on `auth.users` insert can write to `public.organisations` + `public.org_members` in the same transaction.
 
 **Acceptance Criteria**:
-- [ ] Read Supabase docs for the `handle_new_user` pattern.
-- [ ] Confirm the trigger sees the inserted `auth.users` row and that failure rolls back the auth insert.
-- [ ] Outcome recorded as `DEV-AUTH-2` resolved (or note fallback to a service-role server-route).
+- [x] Read Supabase docs for the `handle_new_user` pattern. → **Canonical pattern confirmed** at [supabase.com/docs/guides/auth/managing-user-data](https://supabase.com/docs/guides/auth/managing-user-data): `AFTER INSERT ON auth.users` + `SECURITY DEFINER` + `set search_path = ''` (or explicit schema).
+- [x] Confirm the trigger sees the inserted `auth.users` row and that failure rolls back the auth insert. → **Confirmed by Postgres semantics**: AFTER triggers run in the same transaction as the INSERT; an exception in the trigger function rolls back the entire transaction including `auth.users`. Supabase docs corroborate: "if the trigger fails, it could block signups". No orphaned-row risk — all three inserts (`auth.users`, `organisations`, `org_members`, `auth_audit_log`) commit or roll back together.
+- [x] Outcome recorded as `DEV-AUTH-2` resolved (or note fallback to a service-role server-route). → **DEV-AUTH-2 RESOLVED** in plan Decisions Log. No fallback needed. Task 4.4 proceeds with plan §2.2.4 SQL as written.
 
 **Effort**: S
 **Dependencies**: None
 **Assignee**: Developer
 
-### Task 1.3: Validate Supabase HIBP breach-list toggle [P]
+### Task 1.3: Validate Supabase HIBP breach-list toggle [P] ✅ DONE 2026-05-26
 
 **Description**: Confirm whether Supabase Auth's HIBP breach-list check is exposed as a dashboard toggle on the v1 project, or whether we need to call the HIBP k-anonymity API server-side.
 
 **Acceptance Criteria**:
-- [ ] Inspect the project's Auth → Settings → Password Strength after Task 3.1 completes (this task may run after 3.1).
-- [ ] Outcome recorded as `DEV-AUTH-3` resolved with the choice (toggle vs k-anon API fallback).
+- [x] Inspect the project's Auth → Settings → Password Strength after Task 3.1 completes (this task may run after 3.1). → **Toggle confirmed via docs research** at [supabase.com/docs/guides/auth/password-security](https://supabase.com/docs/guides/auth/password-security): dashboard path is **Authentication → Password Protection**. Available on **Pro Plan and above**; the provisioned `lsl-platform` project is Pro tier ($10/month) → eligible. Implementation is privacy-preserving (k-anonymity API used internally; HIBP only sees first 5 hex chars of hash). Final dashboard-click verification happens during Task 9.2 itself; no prerequisite spike needed.
+- [x] Outcome recorded as `DEV-AUTH-3` resolved with the choice (toggle vs k-anon API fallback). → **DEV-AUTH-3 RESOLVED** in plan Decisions Log. Toggle path, not k-anon API fallback. Task 9.2 simplifies: flip toggle + verify with a known-breached test password.
 
 **Effort**: S
 **Dependencies**: Task 3.1
@@ -245,15 +245,16 @@ These three spikes resolve the only known technical unknowns. They must complete
 **Dependencies**: Task 3.2
 **Assignee**: Developer
 
-### Task 5.2: Middleware — unverified-session gate
+### Task 5.2: Proxy — unverified-session gate (Next.js 16 `proxy.ts`)
 
-**Description**: Create `src/middleware.ts` enforcing plan §2.3 contract. Matches on `/app/*`. Three allow-listed routes for unverified users: `/app/verify-email`, `/app/account`, `/app/logout`. All other `/app/*` redirects unverified to `/app/verify-email`. Unauthenticated users redirect to `/app/login` (except public auth routes).
+**Description**: Create `src/proxy.ts` enforcing plan §2.3 contract. Exported function is `proxy` (Next.js 16 renamed `middleware` → `proxy`; runtime is Node.js). Matches on `/app/*`. Three allow-listed routes for unverified users: `/app/verify-email`, `/app/account`, `/app/logout`. All other `/app/*` redirects unverified to `/app/verify-email`. Unauthenticated users redirect to `/app/login` (except public auth routes).
 
 **Validates**: AC-AUTH-3a, AC-AUTH-4 (unverified redirect on login)
 
 **Acceptance Criteria**:
-- [ ] Middleware uses the literal config `export const config = { matcher: ['/app/:path*'] }` — public calc routes (`/`, `/api/*`, `/privacy`, `/blog/*`, etc.) are NOT matched. **Without this explicit matcher, Next.js applies middleware to every route and the public calc would break.**
-- [ ] Reads session via `supabase.auth.getUser()` server-side, **wrapped in try/catch**. On thrown error (Supabase Auth outage), redirect to `/app/login?error=service_unavailable` with a UI banner; never return a 500.
+- [ ] File is `src/proxy.ts` (NOT `src/middleware.ts` — the legacy name still works in Next.js 16 but is deprecated and Edge-only; new builds use `proxy.ts` on Node.js runtime). Exported function name is `proxy`.
+- [ ] Proxy uses the literal config `export const config = { matcher: ['/app/:path*'] }` — public calc routes (`/`, `/api/*`, `/privacy`, `/blog/*`, etc.) are NOT matched. **Without this explicit matcher, Next.js applies the proxy to every route and the public calc would break.**
+- [ ] Reads session via `supabase.auth.getUser()` server-side, **wrapped in try/catch**. On thrown error (Supabase Auth outage), redirect to `/app/login?error=service_unavailable` with a UI banner; never return a 500. **Do NOT substitute `getClaims()` — the JWT does not carry `email_confirmed_at`, and the unverified gate needs it.** (See plan Decisions Log entry from Task 1.1.)
 - [ ] If no session: redirects all non-public-auth routes to `/app/login`.
 - [ ] If session + `email_confirmed_at IS NULL`: redirects to `/app/verify-email` except the three allow-listed routes.
 - [ ] If session + verified: passes through.
@@ -688,13 +689,13 @@ These three spikes resolve the only known technical unknowns. They must complete
 **Dependencies**: Task 1.3, Task 3.1
 **Assignee**: Developer
 
-### Task 9.3: CSRF defence — Origin/Referer header check in middleware
+### Task 9.3: CSRF defence — Origin/Referer header check in proxy
 
-**Description**: Add Origin and Referer header validation in `src/middleware.ts` for all POST requests to `/app/*`. Reject if neither header is present or if neither matches the expected origin. Document decision in plan's Decisions Log.
+**Description**: Add Origin and Referer header validation in `src/proxy.ts` (the Next.js 16 entry file, see Task 5.2) for all POST requests to `/app/*`. Reject if neither header is present or if neither matches the expected origin. Document decision in plan's Decisions Log.
 
 **Acceptance Criteria**:
-- [ ] Middleware rejects POST `/app/*` requests missing both Origin and Referer headers with 403.
-- [ ] Middleware rejects POST `/app/*` requests where Origin/Referer doesn't match expected host with 403.
+- [ ] Proxy rejects POST `/app/*` requests missing both Origin and Referer headers with 403.
+- [ ] Proxy rejects POST `/app/*` requests where Origin/Referer doesn't match expected host with 403.
 - [ ] Same-origin POSTs pass through.
 - [ ] Decision logged in plan's Decisions Log.
 
