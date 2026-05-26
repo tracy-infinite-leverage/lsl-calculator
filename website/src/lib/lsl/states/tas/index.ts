@@ -27,30 +27,24 @@ import {
 export const TAS_JURISDICTION = 'TAS' as const;
 
 /**
- * TAS LSL orchestrator — T8.1 SCAFFOLD.
+ * TAS LSL orchestrator — T8.2.
  *
- * Single rule set per the signed test-cases-tas.md v1.0 (PM-SIGNED 2026-05-26)
- * — TAS has no dated regime cliff (parallel to QLD / SA / ACT pattern; NOT
- * VIC / WA pre-/post- pattern).
+ * Single rule set per the signed test-cases-tas.md v1.0 (PM-SIGNED 2026-05-26).
+ * TAS has no dated regime cliff (parallel to QLD / SA / ACT — NOT VIC / WA
+ * pre-/post- pattern).
  *
- * T8.1 scope (this task): scaffold + smoke-fixture (TC-TAS-001 10-yr FT
- * taking_leave full-entitlement). Subsequent T8.x tasks implement:
- *   - T8.2 — rules + orchestrator: per-day rate variation (TBD-TAS-01),
- *     casual s.5(3) 32hr/4wk test (TBD-TAS-04 hybrid), s.11(3) 3-mo commission
- *     window, s.8(3) qualifying-reason gate (incl. 60F/65M default sex-
- *     specific), s.10 cash-out gating, advance-leave refusal at sub-10-yr,
- *     slackness-of-trade 6mo + 14-day return-to-work window (TBD-TAS-12),
- *     apprentice 3-mo tolerance (TBD-TAS-11), parental-leave exclusion
- *     (TBD-TAS-13).
- *   - T8.3 — 78 fixtures (75 single-mode TC-TAS-001..075 + 3 bulk-mode
- *     TC-TAS-BULK-001..003).
+ * T8.2 implements: per-day rate variation (TBD-TAS-01), commission 3-mo window
+ * (TBD-TAS-03), casual s.5(3) 32hr/4wk hybrid (TBD-TAS-04), slackness 6mo +
+ * 14-day window (TBD-TAS-12), apprentice 3-mo transition (TBD-TAS-11),
+ * parental-leave exclusion (TBD-TAS-13), 60F/65M retirement age (TBD-TAS-02),
+ * voluntary res 7-10 yr binary cliff (TBD-TAS-07), advance-leave $0 + advisory
+ * (TBD-TAS-08), cash-out gating (s.10), pay-on-termination day-of-termination
+ * (s.12(4) / TBD-TAS-08), bonus exclusion advisory (TBD-TAS-15), WC reduced-
+ * rate advisory (parallel to QLD/WA/SA/ACT).
  *
  * Sources:
  *   - TAS LSL Act 1976 ss.2, 5 (incl. s.5(1)(c), s.5(3)), 8 (s.8(2), s.8(3)),
  *     10, 11 (incl. s.11(2)(h), s.11(3), s.11(6)), 12 (s.12(4), s.12(9))
- *   - LSL Regulations 2017 (Tas) s.7 (records retention — out of v1)
- *   - Construction Industry (Long Service) Act 1997 (Tas) — TasBuild, OUT OF
- *     v1 SCOPE
  *   - WorkSafe Tasmania — LSL guidance material
  *   - APA LSL Masterclass PDF pp.95-108
  *   - docs/qa/test-cases-tas.md v1.0 PM-signed 2026-05-26
@@ -151,10 +145,8 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
     );
   }
 
+  // ── TBD-TAS-15 Sev-3 RESOLVED: bonus exclusion absolute advisory.
   if (notesContainBonusTokens(employee)) {
-    // TAS s.11(2)(h): bonuses are EXCLUDED ABSOLUTELY — the most restrictive
-    // bonus treatment in Australia. Surface the TAS-specific advisory rather
-    // than the generic v1-out-of-scope warning.
     result.warnings.push({
       code: 'tas_bonus_excluded_absolutely',
       message:
@@ -181,14 +173,12 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
     psd,
     employee.serviceEvents,
     employee.employmentType,
-    tasExtras
+    tasExtras,
+    employee.wageHistory
   );
   result.warnings.push(...service.warnings);
 
-  // ── Advance-leave refusal (TBD-TAS — taking_leave sub-10-yr is NOT
-  // permitted under TAS Act — no advance-leave provision). Engine returns $0
-  // with `tas_advance_leave_not_permitted` advisory; status remains
-  // 'computed' and the accrual snapshot still runs.
+  // ── Advance-leave refusal at sub-10-yr (TBD-TAS-08 RESOLVED).
   if (
     trigger.kind === 'taking_leave' &&
     service.yearsOfContinuousService.lt(tasAccrualConstants.fullQualifyingYears)
@@ -229,12 +219,15 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
       },
       systemFormula: computeSystemFormula(employee.currentWeeklyGross, zero, zero),
     };
+    if (vow.valuePerDayBreakdown) {
+      result.outputs.valuePerDayBreakdown = vow.valuePerDayBreakdown;
+    }
     result.diagnostics = {
       yearsOfContinuousService: service.yearsOfContinuousService,
       daysOfContinuousService: service.daysOfContinuousService,
       daysNotCountedInService: service.daysNotCountedInService,
       daysNotCountedInLookback: { window12mo: 0, window5yr: 0 },
-      weeklyAvg12mo: new Decimal(0),
+      weeklyAvg12mo: vow.weeklyAvg12moHours ?? new Decimal(0),
       weeklyAvg5yr: new Decimal(0),
       payableIndicator: 'accrued_not_currently_payable',
       serviceStartUsed: service.effectiveServiceStart,
@@ -249,15 +242,36 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
     service.effectiveServiceStart
   );
 
-  // Surface day-to-day variation fallback advisory per TBD-TAS-01 RESOLVED.
-  // T8.2 will replace this with the real per-day variation pathway and only
-  // emit when fallback is genuinely engaged AFTER attempting the per-day
-  // calculation.
-  if (vow.perDayVariationFellBackToFlat) {
+  // ── TBD-TAS-01: emit applied-path or fallback advisories.
+  if (vow.path === 'fixed-rate-with-per-day-variation') {
+    result.warnings.push({
+      code: 'tas_day_to_day_rate_variation_applied',
+      message:
+        'FT/PT rate computed day-by-day per TAS LSL Act 1976 s.11 because shift penalties / all-purpose allowances vary across the LSL period. `valueOfWeek` is the SUM of per-day payable values. Without `extraInputs.tas_shift_penalty_by_day` the engine falls back to flat weekly rate — see TC-TAS-053.',
+    });
+  } else if (vow.perDayVariationFellBackToFlat) {
+    // Operator chose flat — surface BOTH the TBD-TAS-05 default-flat assumption
+    // notice (kept per operator Note B) AND the TBD-TAS-01 fallback advisory.
     result.warnings.push({
       code: 'tas_shift_penalty_assumed_included_in_weekly_gross',
       message:
         'No per-day shift penalty / all-purpose allowance data was supplied (extraInputs.tas_shift_penalty_by_day / tas_all_purpose_allowance_by_day). Engine assumed shift penalties and all-purpose allowances are already included in `currentWeeklyGross` per TAS LSL Act 1976 s.11. Day-to-day rate variation (TBD-TAS-01 — TAS UNIQUE) may produce a different total if penalties/allowances actually vary across the LSL period.',
+    });
+    if (vow.path === 'fixed-rate') {
+      result.warnings.push({
+        code: 'tas_day_to_day_rate_variation_advisory',
+        message:
+          'Operator did NOT supply day-by-day shift penalty / all-purpose allowance data. Engine fell back to flat weekly rate. If the LSL period spans days where shift penalties or all-purpose allowances apply, the day-by-day computation per s.11 may produce a different total. Supply `extraInputs.tas_shift_penalty_by_day` for day-precise computation.',
+      });
+    }
+  }
+
+  // ── TBD-TAS-03: commission 3-mo applied advisory.
+  if (vow.path === 'commission-3mo') {
+    result.warnings.push({
+      code: 'tas_commission_3mo_window_applied',
+      message:
+        'Commission income averaged over the 13 weeks (91 days) immediately preceding the trigger date per TAS LSL Act 1976 s.11(3) — TAS UNIQUE, shorter than every other state\'s commission window. Where the commission cycle is paid monthly the 13-week window may bisect a payment cycle; the engine attributes commission to the window based on payment date, not earning date. Operators with monthly-cycle commission employees should validate the input figures against the actual payment record.',
     });
   }
 
@@ -271,6 +285,7 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
     priorTaken
   );
 
+  // ── TBD-TAS-02: retirement default-age advisory.
   if (accrual.retirementDefaultAgeApplied) {
     result.warnings.push({
       code: 'tas_retirement_qualifying_age_60f_65m_default',
@@ -279,9 +294,37 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
     });
   }
 
-  // ── WC overlap at trigger date — emits the WC reduced-rate advisory in T8.2
-  // when present; the helper is wired now so the orchestrator surface is
-  // stable.
+  // ── Sub-7 / sub-10 / 10+ misconduct indicator warnings.
+  if (accrual.sub7YrNoEntitlement) {
+    result.warnings.push({
+      code: 'sub_7yr_no_entitlement_tas',
+      message:
+        'Below 7-year pro-rata threshold under TAS LSL Act 1976 s.8(3). No entitlement at this tenure.',
+    });
+  }
+  if (accrual.sub10YrNoQualifyingReason) {
+    result.warnings.push({
+      code: 'sub_10yr_no_qualifying_reason_tas',
+      message:
+        '7-to-10 yr tenure but termination reason does not qualify under TAS LSL Act 1976 s.8(3). $0 payable — binary 10-yr cliff applies for voluntary resignation per TBD-TAS-07 RESOLVED.',
+    });
+  }
+  if (accrual.sub10YrMisconductExcluded) {
+    result.warnings.push({
+      code: 'sub_10yr_misconduct_excluded_tas',
+      message:
+        'Serious & wilful misconduct dismissal sub-10-yr — pro-rata forfeited per TAS LSL Act 1976 s.8(3).',
+    });
+  }
+  if (accrual.tenYrPlusMisconductFullPayout) {
+    result.warnings.push({
+      code: 'tas_10yr_plus_misconduct_full_payout',
+      message:
+        'Dismissal for serious & wilful misconduct at 10+ yrs — full TAS LSL Act 1976 s.8(2) entitlement payable. TAS does NOT mirror WA partial-forfeiture (TBD-TAS-06 RESOLVED).',
+    });
+  }
+
+  // ── WC overlap at trigger date — TBD-TAS-05 parallel to QLD/WA/SA/ACT.
   const triggerDate: ISODate =
     trigger.kind === 'termination'
       ? trigger.terminationDate
@@ -290,11 +333,41 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
         : trigger.kind === 'taking_leave'
           ? trigger.leaveStartDate
           : trigger.cashOutDate;
-  void workersCompOverlapsTriggerTAS(employee.serviceEvents, triggerDate);
+  if (workersCompOverlapsTriggerTAS(employee.serviceEvents, triggerDate)) {
+    result.warnings.push({
+      code: 'tas_lsl_calculated_at_wc_reduced_rate_warning',
+      message:
+        'LSL has been calculated at the rate in force at the time leave is taken under TAS LSL Act 1976 s.11. The worker appears to be on workers compensation at a reduced rate. If feasible, defer taking LSL until the worker is back on their ordinary rate; TAS has no statutory higher-of-rates equivalent to VIC s.17.',
+    });
+  }
 
   // ── Pay-on-termination per s.12(4): payable_by = terminationDate itself.
   if (trigger.kind === 'termination') {
     result.payable_by = payableByDateTAS(trigger.terminationDate) as ISODate;
+    result.warnings.push({
+      code: 'tas_payable_on_day_of_termination_advisory',
+      message:
+        'TAS LSL Act 1976 s.12(4) deems the employee to have commenced LSL on the date of termination — the payout is due on the day of termination itself. Engine surfaces `payable_by = terminationDate` (parallel to ACT TBD-ACT-08 RESOLVED schema reuse, no new field needed for TAS). Most TAS employers pay within the final pay cycle; this field is informational.',
+    });
+  }
+
+  // ── Cash-out gating (s.10 — non-blocking advisories).
+  if (trigger.kind === 'cash_out') {
+    if (
+      service.yearsOfContinuousService.gte(tasAccrualConstants.fullQualifyingYears)
+    ) {
+      result.warnings.push({
+        code: 'tas_cashout_post_entitlement_advisory',
+        message:
+          'Cashing out long service leave in TAS is permitted by agreement once the 10-year entitlement is reached per TAS LSL Act 1976 s.10. Written agreement between employer and employee is recommended. Value of cash-out is calculated as if LSL were taken — same as value-of-week × weeks cashed. Non-blocking advisory — engine emits informational warning, not a hard error.',
+      });
+    } else {
+      result.warnings.push({
+        code: 'tas_cashout_pre_entitlement_not_authorised',
+        message:
+          'Cashing out at sub-10-year tenure is NOT authorised under TAS LSL Act 1976 s.10 — entitlement to cash out arises only once the 10-year LSL entitlement has crystallised. If the worker is leaving the employer, change the trigger to "termination" with a qualifying reason.',
+      });
+    }
   }
 
   const triggerCits = triggerCitationsTAS(trigger);
@@ -358,13 +431,16 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
     },
     systemFormula: sf,
   };
+  if (vow.valuePerDayBreakdown) {
+    result.outputs.valuePerDayBreakdown = vow.valuePerDayBreakdown;
+  }
 
   result.diagnostics = {
     yearsOfContinuousService: service.yearsOfContinuousService,
     daysOfContinuousService: service.daysOfContinuousService,
     daysNotCountedInService: service.daysNotCountedInService,
     daysNotCountedInLookback: { window12mo: 0, window5yr: 0 },
-    weeklyAvg12mo: new Decimal(0),
+    weeklyAvg12mo: vow.weeklyAvg12moHours ?? new Decimal(0),
     weeklyAvg5yr: new Decimal(0),
     payableIndicator: accrual.payableIndicator,
     serviceStartUsed: service.effectiveServiceStart,

@@ -16,24 +16,43 @@
  * See `docs/qa/test-cases-tas.md` v1.0 PM-signed 2026-05-26 for fixtures that
  * exercise each key.
  */
+/** Per-day shift-penalty entry per TBD-TAS-01 RESOLVED schema. */
+export interface TASShiftPenaltyByDay {
+  date: string;
+  penalty_multiplier: number;
+}
+
+/** Per-day all-purpose allowance entry per TBD-TAS-01 RESOLVED schema. */
+export interface TASAllPurposeAllowanceByDay {
+  date: string;
+  allowance_amount: number;
+}
+
 export interface TASExtraInputs {
   /**
-   * Per-day shift penalty multipliers applicable on the days LSL is taken.
-   * Keys are ISO dates (YYYY-MM-DD). Used by the TAS day-to-day rate
-   * variation rule (TBD-TAS-01 RESOLVED). Locked arithmetic per operator
-   * spec: per-day rate = `(base × penalty_multiplier) + allowance`. When
-   * empty / undefined, engine falls back to flat `currentWeeklyGross` for
-   * FT/PT and emits the `tas_shift_penalty_assumed_included_in_weekly_gross`
-   * advisory.
+   * Per-day shift-penalty multipliers applicable on the days LSL is taken.
+   * Used by the TAS day-to-day rate variation rule (TBD-TAS-01 RESOLVED
+   * 2026-05-26). Locked arithmetic: per-day rate = `(base × penalty_multiplier)
+   * + allowance`. When empty / undefined, engine falls back to flat
+   * `currentWeeklyGross` for FT/PT and emits both
+   * `tas_shift_penalty_assumed_included_in_weekly_gross` (TBD-TAS-05 default-
+   * flat assumption) and `tas_day_to_day_rate_variation_advisory` (TBD-TAS-01
+   * fallback notice).
+   *
+   * Shape per signed test-cases-tas.md schema additions (line 133): an array
+   * of `{date, penalty_multiplier}` records, NOT a keyed map.
    */
-  tas_shift_penalty_by_day?: Record<string, number>;
+  tas_shift_penalty_by_day?: TASShiftPenaltyByDay[];
 
   /**
    * Per-day all-purpose allowance amounts (AUD per day, e.g. tool allowance,
-   * qualification allowance) applicable on the LSL days. Keys are ISO dates.
-   * Added to base rate on those days per TBD-TAS-01 RESOLVED.
+   * qualification allowance) applicable on the LSL days. Added to base rate
+   * on those days per TBD-TAS-01 RESOLVED arithmetic.
+   *
+   * Shape per signed test-cases-tas.md schema additions (line 134): an array
+   * of `{date, allowance_amount}` records.
    */
-  tas_all_purpose_allowance_by_day?: Record<string, number>;
+  tas_all_purpose_allowance_by_day?: TASAllPurposeAllowanceByDay[];
 
   /**
    * Award-specified minimum retirement age reached. Bypasses the s.8(3)
