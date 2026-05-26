@@ -73,14 +73,14 @@ These three spikes resolve the only known technical unknowns. They must complete
 **Dependencies**: None
 **Assignee**: Developer (uses Supabase MCP)
 
-### Task 3.2: Install `@supabase/ssr` and `@supabase/supabase-js`
+### Task 3.2: Install `@supabase/ssr` and `@supabase/supabase-js` ✅ DONE 2026-05-26
 
 **Description**: Add the two Supabase packages to `website/package.json` and lock against the version validated in Task 1.1.
 
 **Acceptance Criteria**:
-- [ ] `@supabase/ssr` and `@supabase/supabase-js` appear in `dependencies`.
-- [ ] `npm install` succeeds against Next.js 16.2.6 / React 19.2.4.
-- [ ] `npm run build` succeeds on a clean checkout.
+- [x] `@supabase/ssr` and `@supabase/supabase-js` appear in `dependencies`. → **`@supabase/ssr@^0.10.3` and `@supabase/supabase-js@^2.106.2`** added to `website/package.json`. 17 packages added, 39 changed; `package-lock.json` updated.
+- [x] `npm install` succeeds against Next.js 16.2.6 / React 19.2.4. → **Passed**, 5 s, no errors. `npm audit` reports 2 moderate vulns (pre-existing in the website's dep tree, not introduced by the Supabase packages) — captured as a non-blocking follow-up.
+- [x] `npm run build` succeeds on a clean checkout. → **Passed**. Next.js 16.2.6 + Turbopack, compile 2.0 s, TypeScript clean, all 10 routes (`/`, `/calculator/bulk`, `/calculator/single`, `/privacy`, `/_not-found`, `/api/export-pdf`, `/api/extract-pdf`, `/api/normalize-csv`) generated. No new public routes — the `/app/*` surface lands in Phase 5.
 
 **Effort**: S
 **Dependencies**: Task 1.1, Task 3.1
