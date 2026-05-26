@@ -1,0 +1,31 @@
+{
+  "name": "TC-ACT-003",
+  "title": "6.33 yrs FT redundancy (employer-not-misconduct), pro-rata 5.4889 wks",
+  "source": "APA p.112; ACT LSL Act 1976 s.11C — redundancy qualifies as employer-not-misconduct",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-003",
+      "startDate": "2020-01-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "78000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payable_by": "2026-08-24",
+    "payableIndicator": "payable",
+    "warnings": ["act_termination_payable_within_90_days_advisory"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.11C", "rule": "accrual.5-to-7yr.redundancy-qualifies" }
+    ]
+  }
+}

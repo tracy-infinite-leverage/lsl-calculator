@@ -1,0 +1,29 @@
+{
+  "name": "TC-ACT-039",
+  "title": "WC absence starting ON 9 June 2023 — counts as post-cutoff (strict 'on or after')",
+  "source": "TBD-ACT-05 RESOLVED — cutoff inclusivity",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-039",
+      "startDate": "2016-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2023-06-09", "endDate": "2023-12-09" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_workers_comp_post_9jun2023_counts"]
+  }
+}

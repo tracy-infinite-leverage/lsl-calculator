@@ -1,0 +1,29 @@
+{
+  "name": "TC-ACT-015",
+  "title": "5.5 yrs FT retirement at 62 (no award signal), NO entitlement",
+  "source": "ACT LSL Act 1976 s.11C — sub-65 with no award flag does NOT qualify (TBD-ACT-07)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-015",
+      "startDate": "2020-11-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1700.00",
+      "dob": "1964-05-26",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "retirement" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["sub_7yr_no_qualifying_reason_act"]
+  }
+}

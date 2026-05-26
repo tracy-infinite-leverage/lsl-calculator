@@ -1,0 +1,29 @@
+{
+  "name": "TC-ACT-040",
+  "title": "Multiple WC absences pre + post cutoff",
+  "source": "ACT LSL Act 1976 s.2G + WC Act 1951 (ACT) s.46",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-040",
+      "startDate": "2016-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2021-06-01", "endDate": "2021-11-30" },
+        { "type": "workers_comp_absence", "startDate": "2024-06-01", "endDate": "2024-09-01" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable"
+  }
+}

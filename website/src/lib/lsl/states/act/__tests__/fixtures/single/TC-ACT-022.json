@@ -1,0 +1,31 @@
+{
+  "name": "TC-ACT-022",
+  "title": "7 yrs PT death, FULL 6.0667 weeks to personal representative",
+  "source": "ACT LSL Act 1976 s.4 + s.11D",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-022",
+      "startDate": "2019-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "720.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "37440.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "36.00",
+        "hoursLast12MonthsBeforeCessation": 1040
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "death" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "720.00",
+    "payable_by": "2026-08-24",
+    "payableIndicator": "payable"
+  }
+}

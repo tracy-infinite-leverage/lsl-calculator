@@ -1,0 +1,30 @@
+{
+  "name": "TC-ACT-012",
+  "title": "6 yrs FT domestic-pressing-necessity, pro-rata 5.2 wks",
+  "source": "ACT LSL Act 1976 s.11C — domestic_pressing_necessity qualifies",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-012",
+      "startDate": "2020-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "78000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "domestic_pressing_necessity", "terminationInitiator": "employee" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payable_by": "2026-08-24",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.11C", "rule": "accrual.5-to-7yr.domestic_pressing_necessity-qualifies" }
+    ]
+  }
+}

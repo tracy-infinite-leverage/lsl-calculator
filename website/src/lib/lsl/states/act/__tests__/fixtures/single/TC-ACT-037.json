@@ -1,0 +1,32 @@
+{
+  "name": "TC-ACT-037",
+  "title": "WC absence entirely POST-9-June-2023 — counts in full",
+  "source": "WC Act 1951 (ACT) s.46 amendment",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-037",
+      "startDate": "2016-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2024-06-01", "endDate": "2024-11-30" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_workers_comp_post_9jun2023_counts"],
+    "expected_citations": [
+      { "section": "WC Act 1951 (ACT) s.46", "rule": "workers-comp-counts-from-9jun2023" }
+    ]
+  }
+}

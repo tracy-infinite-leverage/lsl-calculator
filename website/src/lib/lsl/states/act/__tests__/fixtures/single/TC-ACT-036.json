@@ -1,0 +1,33 @@
+{
+  "name": "TC-ACT-036",
+  "title": "WC absence entirely PRE-9-June-2023 — 2-wk/yr cap applied",
+  "source": "ACT LSL Act 1976 s.2G + s.10A; WorkSafe ACT — F8-equivalent",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-036",
+      "startDate": "2016-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2021-06-01", "endDate": "2021-11-30" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payable_by": "2026-08-24",
+    "payableIndicator": "payable",
+    "warnings": ["act_workers_comp_pre_9jun2023_capped"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.2G", "rule": "continuous-service.workers-comp-pre-9jun2023-capped-at-2wks-per-yr" }
+    ]
+  }
+}

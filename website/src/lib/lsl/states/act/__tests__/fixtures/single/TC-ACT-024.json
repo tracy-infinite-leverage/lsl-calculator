@@ -1,0 +1,28 @@
+{
+  "name": "TC-ACT-024",
+  "title": "7 yrs less 1 day FT voluntary resignation, $0 (sub-7-yr cliff)",
+  "source": "ACT LSL Act 1976 s.11C — binary cliff at exact 7.0000 yrs (DEV: ±1d adjustment from doc — see fixture-convention note)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-024",
+      "startDate": "2019-05-28",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["sub_7yr_no_qualifying_reason_act"]
+  }
+}

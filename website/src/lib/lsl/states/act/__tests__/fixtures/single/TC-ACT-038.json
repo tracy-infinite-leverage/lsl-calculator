@@ -1,0 +1,33 @@
+{
+  "name": "TC-ACT-038",
+  "title": "WC absence STRADDLING 9 June 2023 — pre/post split",
+  "source": "ACT LSL Act 1976 s.2G + WC Act 1951 (ACT) s.46",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-038",
+      "startDate": "2016-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2023-03-01", "endDate": "2023-09-30" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_workers_comp_regime_split_applied"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.2G", "rule": "continuous-service.workers-comp-pre-9jun2023-capped-at-2wks-per-yr" },
+      { "section": "WC Act 1951 (ACT) s.46", "rule": "workers-comp-counts-from-9jun2023" }
+    ]
+  }
+}

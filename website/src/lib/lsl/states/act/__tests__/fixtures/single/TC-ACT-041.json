@@ -1,0 +1,29 @@
+{
+  "name": "TC-ACT-041",
+  "title": "WC absence with paidConcurrent flag — DEV-CROSS-2 fields ignored by ACT orchestrator",
+  "source": "TBD-ACT-06 RESOLVED — WA-specific flags don't apply to ACT pre-cutoff cap",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-041",
+      "startDate": "2018-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2022-01-01", "endDate": "2022-03-31", "paidConcurrent": true }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_workers_comp_pre_9jun2023_capped"]
+  }
+}

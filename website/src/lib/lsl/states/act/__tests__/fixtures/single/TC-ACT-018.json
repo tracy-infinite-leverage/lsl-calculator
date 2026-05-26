@@ -1,0 +1,28 @@
+{
+  "name": "TC-ACT-018",
+  "title": "6 yrs FT poor-performance dismissal, NO entitlement (capacity-based non-qualifying)",
+  "source": "ACT LSL Act 1976 s.11C — poor-performance non-qualifying (parallel to QLD s.95(3)(d))",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-018",
+      "startDate": "2020-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "poor_performance", "terminationInitiator": "employer" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["sub_7yr_no_qualifying_reason_act"]
+  }
+}
