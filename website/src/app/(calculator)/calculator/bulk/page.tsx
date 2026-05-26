@@ -1,10 +1,10 @@
 import { Metadata } from 'next';
+import { ENCODED_STATES } from '@/lib/lsl/dispatch';
 import { BulkModeForm } from './_components/bulk-mode-form';
 
 export const metadata: Metadata = {
   title: 'Bulk LSL calculator',
-  description:
-    'Upload a CSV (or PDF) and run Long Service Leave calculations across many employees at once. NSW and VIC supported.',
+  description: `Upload a CSV (or PDF) and run Long Service Leave calculations across many employees at once. ${ENCODED_STATES.join(', ')} supported.`,
 };
 
 export default function BulkCalculatorPage() {
@@ -21,8 +21,8 @@ export default function BulkCalculatorPage() {
         </h1>
         <p className="text-muted-foreground max-w-2xl">
           Upload a payroll CSV and the calculator will compute Long Service Leave entitlements for
-          every employee in one pass. Each row carries its own governing jurisdiction — NSW and
-          VIC supported today.
+          every employee in one pass. Each row carries its own governing jurisdiction —{' '}
+          {ENCODED_STATES.join(', ')} supported today.
         </p>
       </header>
 
