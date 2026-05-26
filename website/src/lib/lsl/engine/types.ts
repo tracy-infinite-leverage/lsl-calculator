@@ -52,7 +52,8 @@ export type TerminationReason =
   | 'domestic_pressing_necessity'
   | 'death'
   | 'unfair_dismissal'
-  | 'poor_performance';
+  | 'poor_performance'
+  | 'retirement';
 
 /**
  * Who initiated a termination — surfaced by states whose sub-paragraphs change
@@ -209,6 +210,14 @@ export interface Employee {
    * encodes the same rule.
    */
   mealsAndAccommodationCashValueWeekly?: number;
+  /**
+   * Employee date of birth (ISO YYYY-MM-DD). Optional. Consumed by states that
+   * encode retirement-age qualifying-reason gates — ACT Phase 7 is the first
+   * consumer (ACT LSL Act 1976 s.11C retirement at 65 — see TBD-ACT-07
+   * RESOLVED in docs/qa/test-cases-act.md). Other states ignore it. Purely
+   * additive; engines that do not consume it treat as absent.
+   */
+  dob?: ISODate;
 }
 
 export interface Citation {
@@ -271,7 +280,36 @@ export interface Warning {
     | 'sa_156wk_window_extended_for_upl'
     | 'sa_156wk_window_extended_for_wc'
     | 'ph_only_lsl_day_sa'
-    | 'transfer_of_business_continuity_preserved_sa';
+    | 'transfer_of_business_continuity_preserved_sa'
+    // ACT-specific (E2 Phase 7 — see docs/qa/test-cases-act.md Resolutions section)
+    | 'sub_5yr_no_entitlement_act'
+    | 'sub_7yr_no_qualifying_reason_act'
+    | 'sub_7yr_misconduct_excluded_act'
+    | 'act_7yr_plus_misconduct_full_payout'
+    | 'act_workers_comp_pre_9jun2023_capped'
+    | 'act_workers_comp_post_9jun2023_counts'
+    | 'act_workers_comp_regime_split_applied'
+    | 'act_overtime_included_in_hours_average'
+    | 'act_s7_3_ft_to_pt_within_2yr_path'
+    | 'act_taking_anchor_vs_termination_anchor_diverged'
+    | 'act_cashout_post_accrual_advisory'
+    | 'act_cashout_pre_accrual_not_authorised'
+    | 'act_cashout_no_entitlement_to_cash_out'
+    | 'act_lsl_calculated_at_wc_reduced_rate_warning'
+    | 'act_advance_leave_not_permitted'
+    | 'act_termination_payable_within_90_days_advisory'
+    | 'act_higher_duties_or_acting_rate_not_encoded_v1'
+    | 'act_skills_allowance_included'
+    | 'act_bonus_usually_paid_with_salary_included'
+    | 'act_board_and_lodging_cash_value_included'
+    | 'act_commission_12mo_lookback_applied'
+    | 'act_penalty_rates_excluded'
+    | 'act_sickness_excess_2wk_excluded'
+    | 'act_12mo_window_extended_for_upl'
+    | 'act_single_day_lsl_on_ph_exclusive'
+    | 'act_slackness_of_trade_continuity_preserved'
+    | 'transfer_of_business_continuity_preserved_act'
+    | 'sa_or_act_parental_leave_excluded';
   message: string;
   rowRef?: string;
 }
@@ -323,4 +361,15 @@ export interface Result {
     payableIndicator: 'payable' | 'accrued_not_currently_payable';
     serviceStartUsed: ISODate;
   };
+  /**
+   * Optional informational pay-by date. Populated by states that encode a
+   * statutory pay-on-termination window — ACT Phase 7 is the first consumer
+   * (ACT LSL Act 1976 s.11A(4)(b) — within 90 days of cessation; LONGEST in
+   * Australia). Other states leave this field undefined. Cross-state-available
+   * for any future state that encodes a similar window. Purely additive — no
+   * behaviour effect on dollar values.
+   *
+   * See TBD-ACT-08 RESOLVED in docs/qa/test-cases-act.md.
+   */
+  payable_by?: ISODate;
 }
