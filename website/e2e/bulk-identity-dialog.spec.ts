@@ -96,8 +96,12 @@ test.describe('Bulk-mode identity dialog state dropdown', () => {
     await expect(listbox.getByRole('option', { name: /^SA$/ })).toBeVisible();
     await expect(listbox.getByRole('option', { name: /^SA \(coming soon\)$/ })).toHaveCount(0);
 
+    // ACT has shipped in Phase 7 — must NOT carry "(coming soon)".
+    await expect(listbox.getByRole('option', { name: /^ACT$/ })).toBeVisible();
+    await expect(listbox.getByRole('option', { name: /^ACT \(coming soon\)$/ })).toHaveCount(0);
+
     // At least one unshipped state still carries "(coming soon)" — proves we
-    // didn't over-strip. ACT is the next-to-ship and a safe canary.
-    await expect(listbox.getByRole('option', { name: /^ACT \(coming soon\)$/ })).toBeVisible();
+    // didn't over-strip. TAS is the next-to-ship and a safe canary.
+    await expect(listbox.getByRole('option', { name: /^TAS \(coming soon\)$/ })).toBeVisible();
   });
 });

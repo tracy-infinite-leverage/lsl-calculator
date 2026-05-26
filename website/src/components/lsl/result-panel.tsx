@@ -71,6 +71,35 @@ const WARNING_LABELS: Record<string, { label: string; tone: 'info' | 'warning' }
   sa_156wk_window_extended_for_wc: { label: 'SA 156-week averaging window extended for workers-comp substitution', tone: 'info' },
   ph_only_lsl_day_sa: { label: 'SA single-day LSL on a public holiday — counts as 1 day under PH-inclusive rule', tone: 'info' },
   transfer_of_business_continuity_preserved_sa: { label: 'SA transfer of business — service preserved (s.6)', tone: 'info' },
+  // ACT-specific (E2 Phase 7)
+  sub_5yr_no_entitlement_act: { label: 'Sub-5-year tenure — no ACT entitlement (s.11C universal floor)', tone: 'info' },
+  sub_7yr_no_qualifying_reason_act: { label: 'ACT 5-7-year — termination reason does not qualify under s.11C', tone: 'info' },
+  sub_7yr_misconduct_excluded_act: { label: 'ACT sub-7-year misconduct dismissal — pro-rata forfeited under s.11C', tone: 'warning' },
+  act_7yr_plus_misconduct_full_payout: { label: 'ACT 7+ year misconduct — full payout (ACT does NOT mirror WA partial-forfeiture)', tone: 'info' },
+  act_workers_comp_pre_9jun2023_capped: { label: 'ACT workers compensation pre-9-June-2023 capped at 2 weeks/service year', tone: 'info' },
+  act_workers_comp_post_9jun2023_counts: { label: 'ACT workers compensation from 9 June 2023 counts in full (WC Act s.46)', tone: 'info' },
+  act_workers_comp_regime_split_applied: { label: 'ACT workers compensation absence straddles 9 June 2023 — regime split applied', tone: 'info' },
+  act_overtime_included_in_hours_average: { label: 'ACT overtime hours INCLUDED in hours average; rate EXCLUDES overtime premium (s.7(1)/s.7(2))', tone: 'info' },
+  act_s7_3_ft_to_pt_within_2yr_path: { label: 'ACT s.7(3) FT→PT/casual within 2yr of entitlement — 5-year salary path (ACT-UNIQUE)', tone: 'info' },
+  act_taking_anchor_vs_termination_anchor_diverged: { label: 'ACT s.7(2) vs s.11D anchor diverged — termination uses cessation-date 12mo window', tone: 'info' },
+  act_cashout_post_accrual_advisory: { label: 'ACT cash-out — non-statutory advisory (s.8(c) "in another way")', tone: 'warning' },
+  act_cashout_pre_accrual_not_authorised: { label: 'ACT cash-out at 5-7 years — not authorised under s.11C', tone: 'warning' },
+  act_cashout_no_entitlement_to_cash_out: { label: 'ACT sub-5-yr cash-out — no entitlement has accrued', tone: 'info' },
+  act_lsl_calculated_at_wc_reduced_rate_warning: { label: 'ACT LSL calculated at WC-reduced rate (s.7 literal — no higher-of-rates rule)', tone: 'warning' },
+  act_advance_leave_not_permitted: { label: 'ACT leave in advance not permitted — sub-7yr taking leave returns $0', tone: 'warning' },
+  act_termination_payable_within_90_days_advisory: { label: 'ACT pay-on-termination — within 90 days per s.11A(4)(b) (LONGEST in Australia)', tone: 'info' },
+  act_higher_duties_or_acting_rate_not_encoded_v1: { label: 'ACT higher-duties / acting rate not encoded in v1', tone: 'info' },
+  act_skills_allowance_included: { label: 'ACT skills/qualifications allowances included in ordinary pay (s.7(1))', tone: 'info' },
+  act_bonus_usually_paid_with_salary_included: { label: 'ACT bonus usually paid with salary INCLUDED in ordinary pay (s.7(1))', tone: 'info' },
+  act_board_and_lodging_cash_value_included: { label: 'ACT board/lodging cash value included (s.7(1))', tone: 'info' },
+  act_commission_12mo_lookback_applied: { label: 'ACT commission worker — 12-month income lookback applied (s.2F)', tone: 'info' },
+  act_penalty_rates_excluded: { label: 'ACT penalty rates excluded from ordinary pay (s.7(1))', tone: 'info' },
+  act_sickness_excess_2wk_excluded: { label: 'ACT sickness in excess of 2 weeks/service year excluded from service (s.2G)', tone: 'info' },
+  act_12mo_window_extended_for_upl: { label: 'ACT 12-month window adjusted for unpaid-leave substitution', tone: 'info' },
+  act_single_day_lsl_on_ph_exclusive: { label: 'ACT single-day LSL on PH — shifted to next non-PH working day (PH-exclusive)', tone: 'info' },
+  act_slackness_of_trade_continuity_preserved: { label: 'ACT slackness-of-trade re-employment continuity preserved (s.2G(2)(b))', tone: 'info' },
+  transfer_of_business_continuity_preserved_act: { label: 'ACT transfer of business — service preserved (s.10)', tone: 'info' },
+  sa_or_act_parental_leave_excluded: { label: 'Paid parental leave does NOT count as service (ACT/SA divergence)', tone: 'info' },
 };
 
 export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPanelProps) {
@@ -153,6 +182,17 @@ export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPan
               );
             })}
           </div>
+        )}
+
+        {/* payable_by (ACT s.11A(4)(b) — informational) */}
+        {result.payable_by && (
+          <Alert variant="info">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Payable by</AlertTitle>
+            <AlertDescription>
+              The statutory pay-by date is <span className="font-mono font-semibold">{result.payable_by}</span> — 90 days after cessation per ACT LSL Act 1976 s.11A(4)(b). Informational only.
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Three numeric outputs */}

@@ -161,6 +161,8 @@ export const TERMINATION_REASON_OPTIONS: { value: TerminationReason; label: stri
   // DEV-CROSS-1 (2026-05-25).
   { value: 'unfair_dismissal', label: 'Unfair dismissal' },
   { value: 'poor_performance', label: 'Dismissal for poor performance' },
+  // E2 Phase 7 (ACT) — retirement qualifies under s.11C for pro-rata 5-7yr.
+  { value: 'retirement', label: 'Retirement' },
 ];
 
 /**
