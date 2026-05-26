@@ -443,6 +443,183 @@ export function SingleModeForm() {
         </CardContent>
       </Card>
 
+      {/* TAS-conditional extra-inputs card (E3 Phase 8 / T8.5).
+          Renders only when TAS is in scope. Other state engines ignore every
+          field here entirely. */}
+      {(state.statesOfService.includes('TAS') ||
+        state.governingJurisdiction === 'TAS') && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Tasmania-specific inputs</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Tasmania-specific signals used by the TAS LSL Act 1976 engine. Each
+              field is optional — supply only those that apply.
+            </p>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="Current hourly base rate (AUD, casual / PT)"
+                htmlFor="tas_currentHourlyRate"
+                hint="Loaded base hourly rate including casual loading; excluding overtime premium. Used by the s.11(6) casual/PT averaging path."
+              >
+                <Input
+                  id="tas_currentHourlyRate"
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={state.tas_currentHourlyRate}
+                  onChange={(e) =>
+                    update('tas_currentHourlyRate', e.target.value)
+                  }
+                />
+              </Field>
+              <Field
+                label="Hours in last 12 mo before entitlement (taking-leave)"
+                htmlFor="tas_hoursLast12MonthsBeforeEntitlement"
+                hint="Total hours worked in the 12 months immediately before the 10-year entitlement date. s.11(6) averaging window (taking-leave path)."
+              >
+                <Input
+                  id="tas_hoursLast12MonthsBeforeEntitlement"
+                  type="number"
+                  step="1"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={state.tas_hoursLast12MonthsBeforeEntitlement}
+                  onChange={(e) =>
+                    update(
+                      'tas_hoursLast12MonthsBeforeEntitlement',
+                      e.target.value
+                    )
+                  }
+                />
+              </Field>
+              <Field
+                label="Hours in last 12 mo before cessation (termination)"
+                htmlFor="tas_hoursLast12MonthsBeforeCessation"
+                hint="Total hours worked in the 12 months immediately before cessation. s.11(6) averaging window (termination path)."
+              >
+                <Input
+                  id="tas_hoursLast12MonthsBeforeCessation"
+                  type="number"
+                  step="1"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={state.tas_hoursLast12MonthsBeforeCessation}
+                  onChange={(e) =>
+                    update(
+                      'tas_hoursLast12MonthsBeforeCessation',
+                      e.target.value
+                    )
+                  }
+                />
+              </Field>
+              <Field
+                label="Casual continuity break date (optional)"
+                htmlFor="tas_casual_continuity_break_date"
+                hint="Date on which casual s.5(3) continuity broke, if known. Confines forfeiture to service after this date."
+              >
+                <Input
+                  id="tas_casual_continuity_break_date"
+                  type="date"
+                  value={state.tas_casual_continuity_break_date}
+                  onChange={(e) =>
+                    update(
+                      'tas_casual_continuity_break_date',
+                      e.target.value
+                    )
+                  }
+                />
+              </Field>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="tas_casual_32hr_4wk_periods_compliant"
+                className="text-sm font-medium"
+              >
+                Casual 32hr-per-4-week continuity (s.5(3))
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Whether the casual employee meets the s.5(3) hybrid test.
+                Leave unset (default) and the engine attempts auto-derivation
+                from wage history.
+              </p>
+              <Select
+                value={state.tas_casual_32hr_4wk_periods_compliant}
+                onValueChange={(v: '' | 'true' | 'false') =>
+                  update('tas_casual_32hr_4wk_periods_compliant', v)
+                }
+              >
+                <SelectTrigger id="tas_casual_32hr_4wk_periods_compliant">
+                  <SelectValue placeholder="Auto-derive from wage history" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Auto-derive from wage history</SelectItem>
+                  <SelectItem value="true">Compliant (continuity satisfied)</SelectItem>
+                  <SelectItem value="false">NOT compliant (continuity broken)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={state.tas_award_min_retirement_age_reached}
+                  onCheckedChange={(v: boolean | 'indeterminate') =>
+                    update(
+                      'tas_award_min_retirement_age_reached',
+                      Boolean(v)
+                    )
+                  }
+                />
+                <span>
+                  Award-specified minimum retirement age reached
+                  <span className="block text-xs text-muted-foreground">
+                    Bypasses the s.8(3) default 60-women / 65-men reading.
+                  </span>
+                </span>
+              </label>
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={state.tas_employee_in_northern_tas}
+                  onCheckedChange={(v: boolean | 'indeterminate') =>
+                    update('tas_employee_in_northern_tas', Boolean(v))
+                  }
+                />
+                <span>
+                  Employee works in Northern Tasmania
+                  <span className="block text-xs text-muted-foreground">
+                    Adds Recreation Day (first Monday in November) to the TAS
+                    public-holiday list per Public Holidays Act 1993 (Tas).
+                  </span>
+                </span>
+              </label>
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={state.tas_slackness_return_within_14_days}
+                  onCheckedChange={(v: boolean | 'indeterminate') =>
+                    update(
+                      'tas_slackness_return_within_14_days',
+                      Boolean(v)
+                    )
+                  }
+                />
+                <span>
+                  Slackness-of-trade return offer accepted within 14 days
+                  <span className="block text-xs text-muted-foreground">
+                    Confers the s.5 6-month re-employment tolerance. Default
+                    is the standard 3-month tolerance.
+                  </span>
+                </span>
+              </label>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Wage history</CardTitle>

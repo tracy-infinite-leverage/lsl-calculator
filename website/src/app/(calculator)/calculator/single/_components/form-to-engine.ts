@@ -198,6 +198,49 @@ export function formToEngine(state: FormState): { employee: Employee; trigger: T
     employee.categoryOverrideConfirmed = true;
   }
 
+  // TAS extra-inputs (E3 Phase 8 / T8.5) — wire only when TAS is in scope so
+  // we don't pollute Employee.extraInputs for non-TAS calculations. NSW/VIC/
+  // QLD/WA/SA/ACT engines ignore unknown keys, but we keep the object absent
+  // for byte-identity with pre-Phase-8 fixtures.
+  const isTasInScope =
+    state.statesOfService.includes('TAS') ||
+    state.governingJurisdiction === 'TAS';
+  if (isTasInScope) {
+    const extras: Record<string, unknown> = {};
+    if (state.tas_currentHourlyRate) {
+      extras.currentHourlyRate = state.tas_currentHourlyRate;
+    }
+    if (state.tas_hoursLast12MonthsBeforeEntitlement) {
+      const n = Number(state.tas_hoursLast12MonthsBeforeEntitlement);
+      if (Number.isFinite(n)) extras.hoursLast12MonthsBeforeEntitlement = n;
+    }
+    if (state.tas_hoursLast12MonthsBeforeCessation) {
+      const n = Number(state.tas_hoursLast12MonthsBeforeCessation);
+      if (Number.isFinite(n)) extras.hoursLast12MonthsBeforeCessation = n;
+    }
+    if (state.tas_award_min_retirement_age_reached) {
+      extras.tas_award_min_retirement_age_reached = true;
+    }
+    if (state.tas_casual_32hr_4wk_periods_compliant === 'true') {
+      extras.tas_casual_32hr_4wk_periods_compliant = true;
+    } else if (state.tas_casual_32hr_4wk_periods_compliant === 'false') {
+      extras.tas_casual_32hr_4wk_periods_compliant = false;
+    }
+    if (state.tas_casual_continuity_break_date) {
+      extras.tas_casual_continuity_break_date =
+        state.tas_casual_continuity_break_date;
+    }
+    if (state.tas_employee_in_northern_tas) {
+      extras.tas_employee_in_northern_tas = true;
+    }
+    if (state.tas_slackness_return_within_14_days) {
+      extras.tas_slackness_return_within_14_days = true;
+    }
+    if (Object.keys(extras).length > 0) {
+      employee.extraInputs = extras;
+    }
+  }
+
   let trigger: Trigger;
   if (state.triggerKind === 'taking_leave') {
     trigger = { kind: 'taking_leave', leaveStartDate: asISODate(state.leaveStartDate) };
