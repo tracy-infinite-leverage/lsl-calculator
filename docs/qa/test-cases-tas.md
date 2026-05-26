@@ -2304,15 +2304,17 @@ The following 8 Sev-3 TBDs are **deferred** with documented limitations shipping
 | TBD | One-line summary | Limitation shipping in v1 |
 |---|---|---|
 | **TBD-TAS-09** | TAS public-holidays calendar source — incl. Easter Tuesday + Recreation Day (northern-only). | Hardcoded TAS PH list from Public Holidays Act 1993 (Tas). Recreation Day gated on optional `extraInputs.tas_employee_in_northern_tas: boolean` (default `false`). Operator must know worker's regional location; if flag omitted, Recreation Day is NOT applied. RES-3 quarterly re-validation. |
-| **TBD-TAS-10** | Single-day LSL request landing on a PH (PH-EXCLUSIVE state). | Engine shifts the leave day to the next non-PH working day (charges 1 day of LSL on the new date). Worker still paid PH rate on original date — outside engine scope. Reuses ACT TBD-ACT-10 implementation. |
+| **TBD-TAS-10** | Single-day LSL request landing on a PH + PH-extends-LSL period (PH-EXCLUSIVE state). | **AMENDED 2026-05-26 (T8.3 reconciliation)**: v1 engine emits the PH-exclusive citation (`trigger.taking-leave.ph-exclusive-extends-leave`) and the `tas_single_day_lsl_on_ph_exclusive` advisory but does NOT compute the extended `leave_end_calendar` or shift single-day-on-PH to next non-PH working day. Payable amount uses operator-supplied `leaveWeeks` × `value_of_week` unchanged. Operator handles the calendar mechanics (extending end-date, shifting single-day-on-PH) outside the engine. Parallel to ACT v1 (TC-ACT-042 ships citation-only, no `leave_end_calendar` assertion). RES-3 quarterly review or v2 scope. |
 | **TBD-TAS-11** | Apprentice 3-month lead-in (TAS UNIQUE — shortest in Australia). | 3-month tolerance hardcoded as TAS constant in orchestrator. Reuses cross-state `apprentice_to_tradesperson_transition` event type from DEV-CROSS-2 era. No new schema. |
 | **TBD-TAS-12** | Slackness-of-trade 14-day return-to-work clause (TAS-unique). | Operator-supplied `extraInputs.tas_slackness_return_within_14_days: boolean` (default `false`). When `true` → 6-month slackness tolerance applies. When `false` → falls back to 3-month standard non-slackness tolerance. Operator must know whether the worker accepted re-engagement within 14 days. |
 | **TBD-TAS-13** | Maternity / parental leave does NOT count as service (paid + unpaid — most restrictive in Australia). | Engine reads `note` field on `paid_leave` + `leave_without_pay` events; case-insensitive substring match for "parental" or "maternity"; excludes from service. Operator must annotate events accurately; mislabelled events count as service by default. |
 | **TBD-TAS-14** | TasBuild (Construction Industry (Long Service) Act 1997 (Tas)) — separate portable scheme. | **OUT OF v1 TAS engine scope.** Calculator assumes general LSL Act 1976 governs; emits NO TasBuild advisory. Same convention as VIC/QLD/WA/SA/ACT industry portable schemes. Re-evaluate in v2 if user surveys surface frequent confusion. |
 | **TBD-TAS-15** | Bonus exclusion absolute (s.11(2)(h)) — engine signal source for detecting bonus in user-supplied `currentWeeklyGross`. | Operator pre-strips bonuses. Engine reads `wageHistory.note` for "bonus" substring (case-insensitive) and emits `tas_bonus_excluded_absolutely` advisory if detected. Engine does NOT auto-deduct — advisory only. Operator must validate they've pre-stripped correctly. |
 | **TBD-TAS-16** | Records retention in perpetuity (s.7 LSL Regulations 2017) — most onerous in Australia. | **OUT OF v1 engine scope.** Operational compliance requirement, not a calculation question. Operator implements separately as a process / data-retention policy outside the calculator. |
+| **TBD-TAS-17** *(NEW — T8.3 reconciliation 2026-05-26)* | Casual continuity flag `false` semantics without break-date — strict-zero vs partial-forfeit. | When `extraInputs.tas_casual_32hr_4wk_periods_compliant: false` is supplied **without** `tas_casual_continuity_break_date`, engine strict-zeros all service back to start (conservative). Operator must supply `tas_casual_continuity_break_date` to confine the forfeiture to post-break-date service only. TBD-TAS-04 Option (c) hybrid did not disambiguate this case; the strict-zero reading is operator-empowering (operator who flags broken continuity but supplies no break-date is asking the engine to be conservative). RES-3 quarterly review. |
+| **TBD-TAS-18** *(NEW — T8.3 reconciliation 2026-05-26)* | 12-month casual averaging window — UPL substitution responsibility. | v1 engine does NOT auto-substitute UPL (unpaid-parental / leave-without-pay) weeks in the 12-month casual averaging window with prior worked weeks. Operator pre-substitutes when supplying `hoursLast12MonthsBeforeCessation` / `hoursLast12MonthsBeforeEntitlement` — same pattern as SA TBD-SA-05 RESOLVED (`sa/extra-inputs.ts` documents this). Engine emits `tas_12mo_window_upl_overlap_check_substitution` informational advisory when `leave_without_pay` events overlap the window so operator is told to verify their substitution. Form helper can compute the substituted figure outside the engine. RES-3 quarterly review. |
 
-**All 8 Sev-3 limitations are acceptable risk for v1 launch.** Each ships with the appropriate advisory or default behaviour and a path forward (operator flag, RES-3 quarterly review, or v2 scope). No additional dev-days carried — all folded into the resolutions above.
+**All 10 Sev-3 limitations are acceptable risk for v1 launch.** Each ships with the appropriate advisory or default behaviour and a path forward (operator flag, RES-3 quarterly review, or v2 scope). No additional dev-days carried beyond the engine fixes scoped in the T8.3 reconciliation appendix below.
 
 ---
 
@@ -2413,4 +2415,54 @@ and ACT Phase 7 precedent).
 
 ---
 
-*End of test-cases-tas.md v1.0 PM-SIGNED · Tracy Angwin (PM) · 2026-05-26.*
+## Reconciliation amendments — 2026-05-26 (T8.3)
+
+The developer's T8.3 fixture-corpus build (78 fixtures) surfaced 8 items where engine output diverged from doc-spec'd expected values. PM ruled on each (2026-05-26) as part of the T8.3 reconciliation pass. **Doc remains PM-SIGNED — no re-sign required.** Amendments are non-blocking and confined to the limitations table above and the rulings table below.
+
+| # | Fixture | Ruling | Action |
+|---|---|---|---|
+| 1 | TC-TAS-015 (`unfair_dismissal`) | **(A) Engine fix** | Add `unfair_dismissal` to TAS `QUALIFYING_REASONS` set and `QualifyingReason` union in `tas/rules/accrual-table.ts`. Doc line 738 already specifies this mapping; engine omitted it. Fixture stays at 7.8003 wks / $13,260.51. Cross-state parallel: ACT/SA/QLD/WA/NSW all wire `unfair_dismissal`. |
+| 2 | TC-TAS-018 (casual flag=false, no break-date) | **(B) Documented limitation** | TBD-TAS-17 (new) added to limitations table above. Engine strict-zeros service when flag=`false` and no `tas_casual_continuity_break_date` is supplied. Update fixture expected to `totalEntitlementDollars: "0.00"` + warning `tas_casual_32hr_4wk_continuity_not_satisfied`. Operator-empowering reading: operator who flags continuity broken without a break-date is asking for conservative treatment. |
+| 3 | TC-TAS-040 (7-wk LSL + 4 PHs) | **(B) Documented limitation** | TBD-TAS-10 amended (above) — v1 engine emits citation only, no `leave_end_calendar` computation. Downgrade fixture to citation-only assertion + `payable_for_taken_leave = leaveWeeks × value_of_week`. Drop `leave_end_calendar` / `phs_within_leave_count` expectations. Parallel to ACT TC-ACT-042. |
+| 4 | TC-TAS-041 (4-wk LSL + 3 Easter PHs) | **(B) Documented limitation** | Same as Item 3 — downgrade to citation-only + payable amount. |
+| 5 | TC-TAS-042 (single-day LSL on PH) | **(B) Documented limitation** | Same as Item 3 — engine emits `tas_single_day_lsl_on_ph_exclusive` advisory + citation; does NOT shift the day. Fixture expected to `payable_for_taken_leave = leaveWeeks × value_of_week` + the advisory + the citation. Drop `leave_days_consumed` / `leave_end_calendar`. |
+| 6 | TC-TAS-058 (UPL in 12-mo window) | **(B) Documented limitation + (A) Engine fix (sub-bug)** | TBD-TAS-18 (new) added to limitations table above — operator pre-substitutes per SA precedent; engine emits new advisory `tas_12mo_window_upl_overlap_check_substitution`. **Sub-bug**: fixture surfaces an unrelated engine error — `taking_leave` at 10 yrs + 6 days is incorrectly emitting `tas_advance_leave_not_permitted`. Fix the advance-leave gate so workers at >= 10 yrs continuous service are permitted to take leave. Update fixture expected to `payableIndicator: payable` + warning `tas_12mo_window_upl_overlap_check_substitution`. |
+| 7 | TC-TAS-060 (commission boundary) | **(C) Fixture update** | Engine is correct per locked TBD-TAS-03 (91-day window). Fixture wageHistory has a 1-day boundary bleed: change Q1-Q3 `periodEnd` from `2026-02-25` to `2026-02-24` so the 91-day window captures the Q4 row cleanly. Engine computes $5000.00 with the corrected boundary. No engine change. |
+| 8 | TC-TAS-073 (cross-jurisdiction routing) | **(C) Fixture update** | Scope mismatch. Engine-level TAS suite cannot exercise dispatch-to-NSW routing — that is a dispatch/orchestrator layer test. Rewrite fixture to mirror ACT TC-ACT-073: expected `status: "blocked_cross_jurisdiction"` + warning `cross_jurisdiction_pending`. Drop `state_used` and `total_entitlement_weeks`. The dispatch-layer routing test belongs in the orchestrator test suite (out of TAS engine scope). |
+
+### Aggregate developer action list
+
+**Engine fixes required (T8.3 scope)**:
+- Add `'unfair_dismissal'` to TAS `QualifyingReason` union and `QUALIFYING_REASONS` set in `tas/rules/accrual-table.ts` (Item 1).
+- Fix `taking_leave` advance-leave gate so >= 10 yrs continuous service is permitted (no `tas_advance_leave_not_permitted` advisory) (Item 6 sub-bug).
+- Add new advisory code `tas_12mo_window_upl_overlap_check_substitution` — emit when `leave_without_pay` events overlap the 12-month casual averaging window. Engine consumes operator-supplied hours as-is (no auto-substitution) (Item 6).
+
+**Fixture updates required**:
+- TC-TAS-015: keep doc-spec'd expected — remove `_reconciliation_note`; expected `totalEntitlementDollars: "13260.51"` + (no `sub_10yr_no_qualifying_reason_tas` warning).
+- TC-TAS-018: confirm engine strict-zero output — `totalEntitlementDollars: "0.00"` + warning `tas_casual_32hr_4wk_continuity_not_satisfied`. Update doc fixture narrative on line 778 to record strict-zero is intentional.
+- TC-TAS-040: downgrade to `payable_for_taken_leave: 12600.00` + `expected_citations` only. Drop `leave_end_calendar`, `phs_within_leave_count`.
+- TC-TAS-041: downgrade to `payable_for_taken_leave: 6000.00` + `expected_citations` only. Drop `leave_end_calendar`, `phs_within_leave_count`.
+- TC-TAS-042: downgrade to `payable_for_taken_leave: leaveWeeks × value_of_week` (`leaveWeeks: 0.2 × value_of_week: 1800` = $360.00) + warning `tas_single_day_lsl_on_ph_exclusive`. Drop `leave_days_consumed`, `leave_end_calendar`.
+- TC-TAS-058: expected `payableIndicator: payable` + new warning `tas_12mo_window_upl_overlap_check_substitution`.
+- TC-TAS-060: change wageHistory row 1 `periodEnd` from `2026-02-25` to `2026-02-24`. Expected `value_of_week: 5000.00` stays.
+- TC-TAS-073: expected `status: "blocked_cross_jurisdiction"` + warning `cross_jurisdiction_pending`. Drop `state_used` and `total_entitlement_weeks`.
+
+**Documented limitations recorded** (added to limitations table above):
+- **TBD-TAS-10 amended**: PH-extends-LSL is citation-only in v1; no `leave_end_calendar` computation.
+- **TBD-TAS-17 (new)**: Casual continuity flag `false` without break-date → strict-zero all service.
+- **TBD-TAS-18 (new)**: UPL-substitution in 12-month casual window is operator's responsibility; engine emits informational advisory only.
+
+**Additional dev-day estimate beyond the 3.5–4.5 d T8.3–T8.5 envelope**:
+- Item 1 (add `unfair_dismissal` to set): trivial (~10 min) — no extra day.
+- Item 6 engine fixes (advance-leave gate fix + new advisory): ~½ d.
+- Items 2, 3, 4, 5, 7, 8 (fixture updates only — no engine work): ~½ d total across all 6.
+
+**Total reconciliation overhead: ~1 dev-day** absorbed into T8.3 timeline. T8.3–T8.5 envelope expands from 3.5–4.5 d → 4.5–5.5 d. Acceptable variance for v1.
+
+### Sign-off status
+
+Doc remains **PM-SIGNED 2026-05-26**. Reconciliation amendments are non-blocking — limitations recorded, engine fixes scoped, fixture updates instructed. No re-sign required. Developer proceeds with T8.3 commit incorporating the above instructions.
+
+---
+
+*End of test-cases-tas.md v1.0 PM-SIGNED · Tracy Angwin (PM) · 2026-05-26 · Reconciliation appendix 2026-05-26 (T8.3).*

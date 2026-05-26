@@ -1,0 +1,26 @@
+{
+  "name": "TC-TAS-041",
+  "title": "4 wks LSL over Easter (Easter Tuesday TAS-unique) — engine emits PH-exclusive citation",
+  "source": "TAS LSL Act 1976 s.12(9)",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-041",
+      "startDate": "2016-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2027-03-29", "leaveWeeks": 4.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "TAS LSL Act 1976 s.12(9)", "rule": "trigger.taking-leave.ph-exclusive-extends-leave" }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "TC-TAS-070",
+  "title": "Taking-leave at 7 yrs (pre-10-yr) — refused, $0 + advisory",
+  "source": "TAS LSL Act 1976 s.8(2) + s.12; TBD-TAS-08 RESOLVED",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-070",
+      "startDate": "2019-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 4.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementDollars": "0.00",
+    "warnings": ["tas_advance_leave_not_permitted"]
+  }
+}

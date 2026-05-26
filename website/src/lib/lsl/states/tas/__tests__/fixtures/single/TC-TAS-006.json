@@ -1,0 +1,30 @@
+{
+  "name": "TC-TAS-006",
+  "title": "11 yrs PT taking leave, 12-mo hours average per s.11(6)",
+  "source": "APA p.101; TAS LSL Act 1976 s.11(6)",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-006",
+      "startDate": "2015-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "875.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "35.00",
+        "hoursLast12MonthsBeforeEntitlement": 1300
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 9.5337 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "875.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "TAS LSL Act 1976 s.11(6)", "rule": "ordinary-pay.part-time-12mo-average-hours" }
+    ]
+  }
+}

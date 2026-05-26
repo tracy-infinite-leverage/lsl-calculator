@@ -1,0 +1,25 @@
+{
+  "name": "TC-TAS-074",
+  "title": "TAS + VIC service, no governing nominated — BLOCKED",
+  "source": "Cross-jurisdiction",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-074",
+      "startDate": "2016-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS", "VIC"],
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-26",
+      "reason": "voluntary_resignation"
+    }
+  },
+  "expected": {
+    "status": "blocked_cross_jurisdiction"
+  }
+}

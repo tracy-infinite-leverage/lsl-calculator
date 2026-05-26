@@ -1,0 +1,23 @@
+{
+  "name": "TC-TAS-071",
+  "title": "6 yrs as-at — accrued, not currently payable",
+  "source": "E1 spec D20",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-071",
+      "startDate": "2020-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-26" }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["accrued_not_currently_payable"]
+  }
+}

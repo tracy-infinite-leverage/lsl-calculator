@@ -1,0 +1,30 @@
+{
+  "name": "TC-TAS-038",
+  "title": "WC absence without medical certificate — does NOT count",
+  "source": "TAS LSL Act 1976 s.5(1)(c)",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-038",
+      "startDate": "2014-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2021-06-01", "endDate": "2021-11-30", "note": "no medical certificate supplied" }
+      ]
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-26",
+      "reason": "voluntary_resignation"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable"
+  }
+}

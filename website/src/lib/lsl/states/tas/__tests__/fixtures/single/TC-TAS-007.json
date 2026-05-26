@@ -1,0 +1,32 @@
+{
+  "name": "TC-TAS-007",
+  "title": "12 yrs casual taking leave, 12-mo hours average + 25% casual loading",
+  "source": "APA p.102; TAS LSL Act 1976 s.11(6)",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-007",
+      "startDate": "2014-05-26",
+      "employmentType": "casual",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1280.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "hoursLast12MonthsBeforeEntitlement": 1664,
+        "tas_casual_32hr_4wk_periods_compliant": true
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 10.4004 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1280.00",
+    "payableIndicator": "payable",
+    "warnings": ["tas_casual_32hr_4wk_continuity_satisfied"],
+    "expected_citations": [
+      { "section": "TAS LSL Act 1976 s.11(6)", "rule": "ordinary-pay.casual-12mo-average-hours" }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "TC-TAS-048",
+  "title": "Hot/cold/dirt allowance excluded — operator pre-strips",
+  "source": "TAS LSL Act 1976 s.11",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-048",
+      "startDate": "2016-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "102000.00", "frequency": "weekly", "note": "incl. $2000 hot/dirt allowance" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable"
+  }
+}

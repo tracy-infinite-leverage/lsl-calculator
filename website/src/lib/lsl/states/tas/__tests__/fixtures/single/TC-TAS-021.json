@@ -1,0 +1,33 @@
+{
+  "name": "TC-TAS-021",
+  "title": "10 yrs PT death — FULL 8.6667 weeks to personal representative",
+  "source": "TAS LSL Act 1976 s.8(2) + s.8(3) death",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-021",
+      "startDate": "2016-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "720.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "36.00",
+        "hoursLast12MonthsBeforeCessation": 1040
+      }
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-26",
+      "reason": "death"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "720.00",
+    "payableIndicator": "payable",
+    "payable_by": "2026-05-26"
+  }
+}

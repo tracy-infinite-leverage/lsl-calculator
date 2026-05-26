@@ -1,0 +1,29 @@
+{
+  "name": "TC-TAS-020",
+  "title": "12 yrs FT misconduct dismissal — FULL ~10.4 weeks payable",
+  "source": "TAS LSL Act 1976 s.8(2)",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-020",
+      "startDate": "2014-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-26",
+      "reason": "serious_misconduct"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "warnings": ["tas_10yr_plus_misconduct_full_payout"]
+  }
+}

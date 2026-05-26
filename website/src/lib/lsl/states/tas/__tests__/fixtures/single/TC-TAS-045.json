@@ -1,0 +1,23 @@
+{
+  "name": "TC-TAS-045",
+  "title": "Fixed-rate FT with shift penalty pre-summed into weekly gross",
+  "source": "TAS LSL Act 1976 s.11",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-045",
+      "startDate": "2016-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "2150.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2150.00",
+    "payableIndicator": "payable"
+  }
+}

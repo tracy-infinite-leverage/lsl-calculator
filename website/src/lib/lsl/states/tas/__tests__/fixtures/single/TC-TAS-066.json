@@ -1,0 +1,22 @@
+{
+  "name": "TC-TAS-066",
+  "title": "Cash-out request at 5 yrs (deep sub-10) — advisory no entitlement",
+  "source": "TAS LSL Act 1976 s.10",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-066",
+      "startDate": "2021-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-26" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["tas_cashout_pre_entitlement_not_authorised"]
+  }
+}

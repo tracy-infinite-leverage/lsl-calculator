@@ -1,0 +1,26 @@
+{
+  "name": "TC-TAS-068",
+  "title": "LSL taken while on WC reduced rate — engine pays literal s.11 + advisory",
+  "source": "TAS LSL Act 1976 s.11",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-068",
+      "startDate": "2016-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1300.00",
+      "wageHistory": [],
+      "serviceEvents": [
+        { "type": "workers_comp_absence", "startDate": "2026-04-01", "endDate": "2026-06-01" }
+      ]
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1300.00",
+    "payableIndicator": "payable",
+    "warnings": ["tas_lsl_calculated_at_wc_reduced_rate_warning"]
+  }
+}

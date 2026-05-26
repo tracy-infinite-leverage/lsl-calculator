@@ -50,7 +50,8 @@ type QualifyingReason =
   | 'domestic_pressing_necessity'
   | 'death'
   | 'redundancy'
-  | 'employer_initiated_not_misconduct';
+  | 'employer_initiated_not_misconduct'
+  | 'unfair_dismissal';
 
 const QUALIFYING_REASONS: ReadonlySet<QualifyingReason> = new Set([
   'illness_incapacity',
@@ -58,6 +59,10 @@ const QUALIFYING_REASONS: ReadonlySet<QualifyingReason> = new Set([
   'death',
   'redundancy',
   'employer_initiated_not_misconduct',
+  // Unfair dismissal: employer-initiated, not-misconduct → qualifies for 7-10yr
+  // pro-rata per TAS LSL Act 1976 s.8(3). T8.3 reconciliation Item 1
+  // 2026-05-26. Cross-state precedent unanimous: ACT/SA/QLD/WA/NSW all wire it.
+  'unfair_dismissal',
 ]);
 
 function isQualifyingReason(reason: string): reason is QualifyingReason {

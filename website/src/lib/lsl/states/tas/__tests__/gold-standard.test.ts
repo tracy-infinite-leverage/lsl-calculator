@@ -39,7 +39,7 @@ function loadFixtures(): Fixture[] {
 
 const fixtures = loadFixtures();
 
-describe('TAS gold-standard suite — single mode (T8.1 smoke scaffold)', () => {
+describe('TAS gold-standard suite — single mode', () => {
   for (const fx of fixtures) {
     describe(`${fx.name} — ${fx.title}`, () => {
       const result =

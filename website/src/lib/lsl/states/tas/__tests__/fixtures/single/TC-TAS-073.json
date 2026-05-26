@@ -1,0 +1,27 @@
+{
+  "name": "TC-TAS-073",
+  "title": "TAS + NSW service, NSW nominated — TAS engine blocks cross-jurisdiction (dispatch-layer routing tested elsewhere)",
+  "source": "Cross-jurisdiction (engine-level test)",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-073",
+      "startDate": "2016-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS", "NSW"],
+      "governingJurisdiction": "NSW",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-26",
+      "reason": "voluntary_resignation"
+    }
+  },
+  "expected": {
+    "status": "blocked_cross_jurisdiction",
+    "warnings": ["cross_jurisdiction_pending"]
+  }
+}

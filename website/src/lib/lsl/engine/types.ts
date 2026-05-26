@@ -349,7 +349,8 @@ export interface Warning {
     | 'sub_10yr_no_qualifying_reason_tas'
     | 'sub_10yr_misconduct_excluded_tas'
     | 'tas_10yr_plus_misconduct_full_payout'
-    | 'tas_single_day_lsl_on_ph_exclusive';
+    | 'tas_single_day_lsl_on_ph_exclusive'
+    | 'tas_12mo_window_upl_overlap_check_substitution';
   message: string;
   rowRef?: string;
 }

@@ -1,0 +1,36 @@
+{
+  "name": "TC-TAS-004",
+  "title": "12 yrs FT taking leave — base + skills allowance + shift penalty pre-summed into weekly gross",
+  "source": "APA p.99; TAS LSL Act 1976 s.11",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-004",
+      "startDate": "2014-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "2000.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "104000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "tas_all_purpose_allowance_by_day": [],
+        "tas_shift_penalty_by_day": []
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 10.4004 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2000.00",
+    "payableIndicator": "payable",
+    "warnings": [
+      "tas_shift_penalty_assumed_included_in_weekly_gross",
+      "tas_day_to_day_rate_variation_advisory"
+    ],
+    "expected_citations": [
+      { "section": "TAS LSL Act 1976 s.11", "rule": "ordinary-pay.fixed-rate" }
+    ]
+  }
+}

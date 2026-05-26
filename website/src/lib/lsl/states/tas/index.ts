@@ -9,6 +9,7 @@ import type {
 } from '@/lib/lsl/engine/types';
 import { classify } from '@/lib/lsl/engine/classifier';
 import { prescribedDate } from '@/lib/lsl/engine/trigger';
+import { inclusiveDays, overlapDays } from '@/lib/lsl/engine/dates';
 import {
   CashOutNotSupportedError,
   JurisdictionBlockedError,
@@ -18,6 +19,7 @@ import type { StateRuleSet } from '@/lib/lsl/states/StateRuleSet';
 import { valueOfWeekTAS, valueOfDayTAS } from './rules/value-of-week';
 import { accrualTAS, tasAccrualConstants } from './rules/accrual-table';
 import { triggerCitationsTAS, payableByDateTAS } from './rules/trigger-handlers';
+import { isTASPublicHoliday } from './rules/public-holidays';
 import {
   computeTASContinuousService,
   workersCompOverlapsTriggerTAS,
@@ -179,9 +181,26 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
   result.warnings.push(...service.warnings);
 
   // ── Advance-leave refusal at sub-10-yr (TBD-TAS-08 RESOLVED).
+  //
+  // The 10-year entitlement under s.8(2) crystallises when the WALL-CLOCK
+  // continuous-service line reaches 10 years from `effectiveServiceStart` to
+  // the prescribed date. LWP / UPL / industrial-action service-events extend
+  // the accrual rate but do NOT push back the date the entitlement is reached.
+  // T8.3 reconciliation Item 6 sub-bug 2026-05-26 — fixture TC-TAS-058 (10 yrs
+  // + 6 days wall-clock with 82 days of LWP) was incorrectly tripping this
+  // gate because `yearsOfContinuousService` had subtracted the LWP days. Fix:
+  // measure elapsed wall-clock years from `effectiveServiceStart` to the
+  // prescribed date and compare to 10.
+  const elapsedDaysFromStart = inclusiveDays(
+    service.effectiveServiceStart,
+    psd
+  );
+  const elapsedYearsFromStart = new Decimal(elapsedDaysFromStart).dividedBy(
+    new Decimal('365.25')
+  );
   if (
     trigger.kind === 'taking_leave' &&
-    service.yearsOfContinuousService.lt(tasAccrualConstants.fullQualifyingYears)
+    elapsedYearsFromStart.lt(tasAccrualConstants.fullQualifyingYears)
   ) {
     result.warnings.push({
       code: 'tas_advance_leave_not_permitted',
@@ -273,6 +292,59 @@ export function calculateTAS(employee: Employee, trigger: Trigger): Result {
       message:
         'Commission income averaged over the 13 weeks (91 days) immediately preceding the trigger date per TAS LSL Act 1976 s.11(3) — TAS UNIQUE, shorter than every other state\'s commission window. Where the commission cycle is paid monthly the 13-week window may bisect a payment cycle; the engine attributes commission to the window based on payment date, not earning date. Operators with monthly-cycle commission employees should validate the input figures against the actual payment record.',
     });
+  }
+
+  // ── TBD-TAS-18 RESOLVED 2026-05-26 (T8.3 reconciliation Item 6):
+  // 12-month casual/PT hours averaging window — UPL / LWOP substitution is
+  // the operator's responsibility. Engine takes the operator-supplied
+  // `hoursLast12Months*` figure as-is (same pattern as SA TBD-SA-05 RESOLVED).
+  // When `leave_without_pay` or `unpaid_parental_leave` events overlap the
+  // 12-month window immediately preceding the prescribed date, surface this
+  // informational advisory so the operator is told to verify their
+  // substitution.
+  if (
+    employee.employmentType === 'casual' ||
+    employee.employmentType === 'part_time'
+  ) {
+    const windowStart = (() => {
+      const psdDate = new Date(`${psd}T00:00:00Z`);
+      psdDate.setUTCDate(psdDate.getUTCDate() - 364); // 365-day window inclusive
+      return psdDate.toISOString().slice(0, 10) as ISODate;
+    })();
+    const overlapsUPL = (employee.serviceEvents ?? []).some(
+      (ev) =>
+        (ev.type === 'leave_without_pay' ||
+          ev.type === 'unpaid_parental_leave') &&
+        overlapDays(ev.startDate, ev.endDate ?? psd, windowStart, psd) > 0
+    );
+    if (overlapsUPL) {
+      result.warnings.push({
+        code: 'tas_12mo_window_upl_overlap_check_substitution',
+        message:
+          'Unpaid parental leave / leave-without-pay events overlap the 12-month casual/PT hours averaging window under TAS LSL Act 1976 s.11(6). Engine uses the operator-supplied `hoursLast12Months*` figure unchanged. Per TBD-TAS-18 RESOLVED (parallel to SA TBD-SA-05): substitution of UPL weeks with prior worked weeks is the operator\'s responsibility — pre-substitute the figure before submitting. This advisory is informational; no engine recalculation has occurred.',
+      });
+    }
+  }
+
+  // ── TBD-TAS-10 RESOLVED (v1 citation-only, amended T8.3 reconciliation
+  // 2026-05-26): single-day LSL request landing on a TAS public holiday.
+  // Engine emits the `tas_single_day_lsl_on_ph_exclusive` advisory but does
+  // NOT compute the shifted date or recalculate the payable amount — operator
+  // handles calendar mechanics outside the engine. Parallel to ACT v1.
+  // Heuristic: leaveWeeks < 1 AND leaveStartDate is a TAS PH.
+  if (trigger.kind === 'taking_leave' && trigger.leaveWeeks !== undefined) {
+    const northern = (tasExtras as Record<string, unknown>)
+      .tas_employee_in_northern_tas === true;
+    if (
+      trigger.leaveWeeks < 1 &&
+      isTASPublicHoliday(trigger.leaveStartDate, northern)
+    ) {
+      result.warnings.push({
+        code: 'tas_single_day_lsl_on_ph_exclusive',
+        message:
+          'Single-day LSL request landing on a TAS public holiday under TAS LSL Act 1976 s.12(9) — public holidays are EXCLUSIVE in TAS (not counted as LSL). The LSL day should shift to the next non-PH working day; the worker is paid the PH rate per award for the original day. v1 engine emits this advisory and the s.12(9) citation only — calendar mechanics (shifting the day, extending leave_end_calendar) are operator-handled outside the engine.',
+      });
+    }
   }
 
   const priorTaken = employee.priorLeaveTakenWeeks
