@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { CitationBlock } from './citation-block';
 import type { Result } from '@/lib/lsl/engine/types';
+import { ENCODED_STATES } from '@/lib/lsl/dispatch';
 
 export interface ResultPanelProps {
   result: Result;
@@ -142,7 +143,7 @@ export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPan
         <AlertTitle>Cross-jurisdiction: calculation blocked</AlertTitle>
         <AlertDescription>
           {result.warnings.find((w) => w.code === 'cross_jurisdiction_pending')?.message ??
-            'This employee has worked in multiple states. Nominate the governing jurisdiction to proceed. Currently supported: NSW and VIC.'}
+            `This employee has worked in multiple states. Nominate the governing jurisdiction to proceed. Currently supported: ${ENCODED_STATES.join(', ')}.`}
         </AlertDescription>
       </Alert>
     );

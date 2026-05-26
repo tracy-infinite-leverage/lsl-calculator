@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'LSL Calculator',
   description:
-    'Defensible long-service-leave calculator for Australian payroll. NSW, VIC, QLD, WA, SA, ACT available — TAS, NT coming soon. Every output is citation-backed to the source statute.',
+    'Defensible long-service-leave calculator for Australian payroll. NSW, VIC, QLD, WA, SA, ACT, TAS available — NT coming soon. Every output is citation-backed to the source statute.',
   openGraph: {
     title: 'LSL Calculator',
     description:
-      'Defensible long-service-leave calculator for Australian payroll. NSW, VIC, QLD, WA, SA, ACT available — TAS, NT coming soon.',
+      'Defensible long-service-leave calculator for Australian payroll. NSW, VIC, QLD, WA, SA, ACT, TAS available — NT coming soon.',
     type: 'website',
   },
 };
