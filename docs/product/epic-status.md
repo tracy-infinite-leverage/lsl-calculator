@@ -1,4 +1,4 @@
-# LSL Calculator · Epic Status · Last updated: 2026-05-25 · E1 NSW SHIPPED (Phases 1+2+3 live on lsl-calculator.vercel.app) · E2 Phase 1+3+4+5 merged to main (PR #8 `56ae5fd`, PR #10 `93484f3`, PR #11 `0bddbbc`, PR #13 QLD engine, PR #14 DEV-CROSS-1 `bd2d284`, PR #18 DEV-CROSS-2 `0a2d652`, PR #19 WA engine `fe66b99` — VIC + QLD + WA engines LIVE) · E2 Phase 6 (SA) T6.0 ✅ SIGNED OFF 2026-05-25 on branch `pm/sa-test-cases` — all 12 TBDs resolved; T6.1 unblocked immediately; NO DEV-CROSS-3 (TBD-SA-07 SA-localised via `extraInputs`)
+# LSL Calculator · Epic Status · Last updated: 2026-05-26 · E1 NSW SHIPPED · E2 Phases 1+3+4+5+6+7 MERGED to main — NSW + VIC + QLD + WA + SA + ACT all LIVE (PR #26 ACT engine 2026-05-25, PR #27 layout copy 6 of 8) · TAS + NT (E2 Phases 8–9) remain · **E1 Phase 7 (opt-in logins) CANCELLED 2026-05-26 — superseded by E5** · **E3 (NSW audit-replay CSV) RETIRED 2026-05-26 — absorbed into E5.6** · **E5 · LSL Platform spec v1.0 APPROVED 2026-05-26, awaiting impl plan**
 
 ## Pipeline stages
 
@@ -16,10 +16,11 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 
 | Epic | Status | % done (est) | Pipeline | Open bugs | Closed bugs | Notes |
 |------|--------|--------------|----------|-----------|-------------|-------|
-| E1 · NSW Calculator | ✅ done | 100% | ●●●●● | 0 | 6 (Q-01..Q-04 fixed in PR #3; Q-05/Q-06 pre-existing single-mode items, separate cleanup ticket) | **SHIPPED 2026-05-24.** Phases 1+2+3 live on https://www.lslcalculator.com.au (also reachable at lsl-calculator.vercel.app). PR #3 squash-merged at `50061f5`. Architectural fix removed server-side pdfjs (issue #5) in favour of Anthropic document content block. 319 unit tests + 92 Playwright across 4 browsers. Phase 7 (opt-in logins) deferred post-launch. |
-| E2 · All-State Coverage | 🔄 in flight | 73% | ●●●●○ | 0 | 0 | Spec v0.3.1 + impl-plan v0.3.3 + tasks v0.3.3 committed (10 phases, 77 tasks; total 32–48 dev-days). **Phases 1+3+4+5 MERGED to `main`** (PR #8 `56ae5fd`, PR #10 `93854f3`, PR #11 `0bddbbc`, PR #13 QLD engine `11511fb`, PR #14 DEV-CROSS-1 `bd2d284`, PR #16 QLD v1.1 `fb52701`, PR #18 DEV-CROSS-2 `0a2d652`, PR #19 WA engine `fe66b99` — 73 WA fixtures incl. 5 DEV-CROSS-2-dependent reinstated). NSW + VIC + QLD + WA all LIVE. **Phase 6 (SA) T6.0 ✅ SIGNED OFF 2026-05-25** — `docs/qa/test-cases-sa.md` v1.0 PM-signed Tracy Angwin on branch `pm/sa-test-cases`, 67 fixtures (64 single + 3 bulk). **All 12 TBDs resolved**: TBD-SA-01 single regime (no dual-regime split — SA mirrors QLD's flat architecture); TBD-SA-04 SA-localised `extraInputs.sa_worker_notice_compliance`; TBD-SA-07 SA-localised `extraInputs.sa_higher_duties_*` (operator chose YAGNI — **NOT DEV-CROSS-3, no pre-flight cross-state PR**); other 9 per PM-recommended path. **T6.1 unblocked immediately** — engine work proceeds at M (3-5 dev-days). |
-| E3 · Audit Upload and Variance Report | ☐ planned | 0% | ○○○○○ | 0 | 0 | Moved ahead of API integrations on PM direction (2026-05-21). CSV-only ingest. |
-| E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. Depends on E2 having ≥2-3 states encoded. |
+| E1 · NSW Calculator | ✅ done | 100% | ●●●●● | 0 | 6 (Q-01..Q-04 fixed in PR #3; Q-05/Q-06 pre-existing single-mode items, separate cleanup ticket) | **SHIPPED 2026-05-24.** Phases 1+2+3 live on https://www.lslcalculator.com.au (also reachable at lsl-calculator.vercel.app). PR #3 squash-merged at `50061f5`. Architectural fix removed server-side pdfjs (issue #5) in favour of Anthropic document content block. 319 unit tests + 92 Playwright across 4 browsers. **Phase 7 (opt-in logins) CANCELLED 2026-05-26 — superseded by E5. Public calc stays anonymous-only permanently.** |
+| E2 · All-State Coverage | 🔄 in flight | 87% | ●●●●○ | 0 | 0 | Spec v0.3.1 + impl-plan v0.3.3 + tasks v0.3.3 committed (10 phases, 77 tasks; total 32–48 dev-days). **Phases 1+3+4+5+6+7 MERGED to `main`** — NSW + VIC + QLD + WA + SA + ACT all LIVE. Latest: PR #26 (ACT engine, 78 fixtures, dual-regime WC + s.7(3) + payable_by) 2026-05-25; PR #27 (layout copy 6 of 8 + ACT QA report) 2026-05-25. **TAS + NT (Phases 8–9) are the remaining states.** |
+| E3 · Audit Upload and Variance Report | 🗑️ retired | — | — | — | — | **RETIRED 2026-05-26 — absorbed into E5.6.** Reconciliation on a persistent multi-tenant base strictly dominates the one-shot CSV variance report. No value in maintaining E3 as a separate epic. |
+| E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. New insertion point: API integrations replace manual pay-run uploads (E5.4) once the platform ships. Depends on E2 + E5 maturity. |
+| **E5 · LSL Platform (Auth + DB + Mapping + Ingestion + Valuations + Reconciliation)** | 📋 approved — awaiting impl plan | 0% | ●○○○○ | 0 | 0 | **Spec v1.0 APPROVED 2026-05-26** at `.specify/features/005-lsl-platform/spec.md`. Umbrella epic with 6 sub-epics (E5.1 Auth + Tenancy + DB Scaffold → E5.2 Employee Masterfile → E5.3 Pay-Code Mapping → E5.4 Pay-Period Ingestion (CSV-only v1) → E5.5 Valuations + Liability Reports → E5.6 LSL Reconciliation). Supersedes E1 Phase 7 (cancelled) and E3 (retired). APA-branded under `/app/*`. Supabase Auth. One org per signup. 10k employees/org. **Next action: run `/dev-feature-plan` against the spec.** |
 
 ## Drilldown
 
@@ -31,7 +32,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 - **Branch**: `001-nsw-calculator` (historical, no longer active); `phase-3-pdf-followup` (merged via PR #3)
 - **Spec**: `.specify/features/001-nsw-calculator/spec.md` v0.5.0 (PM-signed-off 2026-05-21)
 - **Test cases**: `.specify/features/001-nsw-calculator/test-cases.md` v1.1 (PM-signed-off 2026-05-21, 60 cases, all 8 TBDs resolved)
-- **Plan + tasks**: `.specify/features/001-nsw-calculator/{impl-plan,tasks}.md` (82 tasks across 7 phases — Phase 7 added 2026-05-23 for opt-in logins, post-launch follow-on)
+- **Plan + tasks**: `.specify/features/001-nsw-calculator/{impl-plan,tasks}.md` (82 tasks across 7 phases — Phase 7 was added 2026-05-23 for opt-in logins as a post-launch follow-on, but **Phase 7 was CANCELLED 2026-05-26 — superseded by E5 LSL Platform**)
 - **Dev findings**: `.specify/features/001-nsw-calculator/dev-findings.md` (22 findings + 1 carried OQ — 0 HIGH, 11 MEDIUM, 11 LOW)
 - **Scope (v0.5.0)**:
   - Two modes: single employee (form) + bulk upload (CSV or PDF) of any payroll report
@@ -43,8 +44,8 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 - **PM sign-offs (2026-05-21)**: PM-A mobile = responsive best-effort; PM-B bulk trigger = `as_at` default; OQ-B LLM = Anthropic Claude API no-retention; all 8 Phase-0 TBDs resolved.
 - **Pre-flight blockers** (still open from product.md §14):
   - APA portal hosting + auth model (working default: standalone + deep-link)
-- **Post-launch follow-ups**: (1) Q-05 + Q-06 pre-existing single-mode browser-only items — separate cleanup ticket; (2) issue #4 (P3 UX) on empty service-event rows blocking Calculate; (3) Phase 7 opt-in logins when there's customer pull for them. ~~Cloudflare DNS for `lsl.austpayroll.com.au`~~ resolved 2026-05-25 — domain switched to `www.lslcalculator.com.au`, now live.
-- **Phase 7 scope (added 2026-05-23)**: opt-in user accounts with email + password (no magic links, no SSO, no OAuth). Adds `profiles` + `saved_calculations` Supabase tables with RLS, signup/login/reset flows, "my calculations" history view, and an account-deletion path. Triggers a privacy-notice revision (S1 changes from "no server-side employee data" to "permitted for authenticated users only").
+- **Post-launch follow-ups**: (1) Q-05 + Q-06 pre-existing single-mode browser-only items — separate cleanup ticket; (2) issue #4 (P3 UX) on empty service-event rows blocking Calculate. ~~Cloudflare DNS for `lsl.austpayroll.com.au`~~ resolved 2026-05-25 — domain switched to `www.lslcalculator.com.au`, now live. ~~Phase 7 opt-in logins~~ — **CANCELLED 2026-05-26, superseded by E5**.
+- ~~**Phase 7 scope (added 2026-05-23)**: opt-in user accounts with email + password (no magic links, no SSO, no OAuth). Adds `profiles` + `saved_calculations` Supabase tables with RLS, signup/login/reset flows, "my calculations" history view, and an account-deletion path. Triggers a privacy-notice revision (S1 changes from "no server-side employee data" to "permitted for authenticated users only").~~ **CANCELLED 2026-05-26.** The single-user "save my calc" feature is strictly less valuable than the platform's org-level workspace. The public `lslcalculator.com.au` calc stays anonymous-only permanently — no replacement on the public surface. All authenticated experience now lives inside E5 · LSL Platform.
 
 ### E2 · All-State Coverage
 - **Phase**: **Phase 3 (VIC) SHIPPED; Phase 4 (QLD) SHIPPED (incl. DEV-CROSS-1 + QLD v1.1); Phase 5 (WA) SHIPPED (incl. DEV-CROSS-2 + WA engine T5.1-T5.5); Phase 6 (SA) T6.0 ✅ SIGNED OFF 2026-05-25 — all 12 TBDs resolved; T6.1 UNBLOCKED immediately; NO DEV-CROSS-3 (TBD-SA-07 SA-localised via `extraInputs`)** — 2026-05-25
@@ -98,15 +99,45 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 - **Next action**: Developer agent picks up T6.1 (SA rule-set scaffold) — **unblocked immediately**. No pre-flight cross-state PR required. Engine work proceeds at M (3-5 dev-days) per impl-plan v0.3.3 §6.
 
 ### E3 · Audit Upload and Variance Report
-- **Phase**: Phase 1
-- **Pre-flight blockers**: audit data acquisition path (see Open Decisions in product.md)
-- **Next action**: hold until E1 NSW rules engine is stable, then specify CSV import + replay + variance report
+- **Status**: 🗑️ **RETIRED 2026-05-26**. Absorbed into E5.6 (LSL Reconciliation).
+- **Rationale**: Reconciliation on a persistent multi-tenant base (E5.6) strictly dominates the one-shot CSV variance report E3 had scoped. Same engine output, same auditor-readable PDF, but on top of a real data layer — so the same payment can be re-reconciled when new pay history lands, and `cannot_verify` rows can become `verified` over time as the client backfills history. There is no value in maintaining E3 as a separate epic.
+- **What happened to the spec**: E3 never had a written `.specify/features/003-*/spec.md`. No code shipped. Pure retirement.
 
 ### E4 · Payroll System Integrations
 - **Phase**: Phase 2
 - **Pre-flight blockers**: first payroll-vendor selection; OAuth/API access agreements with vendor
-- **Next action**: hold until E2 has at least 2-3 states encoded and E3 audit-replay is in production
+- **New insertion point**: API integrations now replace manual **pay-run** uploads (E5.4) rather than the legacy E3 CSV variance flow. Better value proposition.
+- **Next action**: hold until E2 finishes (TAS + NT) and E5 reaches at least E5.4 (ingestion) in production.
+
+### E5 · LSL Platform (Auth + DB + Mapping + Ingestion + Valuations + Reconciliation)
+- **Status**: 📋 **Approved — spec v1.0 locked 2026-05-26**. Awaiting impl plan.
+- **Pipeline**: ●○○○○ (Stage 1 · Specified)
+- **Spec**: `.specify/features/005-lsl-platform/spec.md` **v1.0 APPROVED 2026-05-26** by Tracy Angwin (owner). All 15 open questions plus E1 Phase 7 disposition resolved. See spec §12 for the locked decision table.
+- **Supersedes**: E1 Phase 7 (cancelled 2026-05-26); E3 (retired 2026-05-26).
+- **Structure**: Umbrella epic with 6 sub-epics, sequenced. Each sub-epic ships independently with its own acceptance criteria.
+  - **E5.1 · Auth + Tenancy + DB Scaffold** — Supabase project provisioned. Organisation + User + RoleMembership tables with RLS. Supabase Auth (email/password). One org per signup. Three roles (admin / payroll_user / read_only). 7-day org-deletion grace window. **Load-bearing** — every other sub-epic blocks on this.
+  - **E5.2 · Employee Masterfile** — CSV + Excel + manual entry. Effective-dated state/employment_type changes preserved for historical valuation accuracy.
+  - **E5.3 · Pay-Code Mapping** — Mapping (raw code → bucket) is org-wide; bucket → state treatment is engine-resolved per-state. Mapping audit trail. Blocks valuations when codes are unmapped.
+  - **E5.4 · Pay-Period Ingestion** — **CSV only in v1**. Idempotent on `(employee_id, pay_period_end, pay_code)`. Dry-run preview. Partial commits with downloadable error CSV. **No PDF in v1** — deferred.
+  - **E5.5 · Valuations + Liability Reports** — On-demand valuation per employee. Liability snapshot org-wide at any as-at date. Liability defined as `accrued_weeks × weekly_value` (simple, no actuarial). PDF + CSV export.
+  - **E5.6 · LSL Reconciliation** — CSV upload of historical LSL payments → variance per row vs engine recompute. `cannot_verify` for under-evidenced rows (does not default to "correct"). PDF + CSV export.
+- **Key v1 decisions** (full table in spec §12):
+  - Supabase Auth (email + password only); one org per signup
+  - CSV-only ingestion (PDF deferred)
+  - APA branding on the `/app/*` path; same domain as the public calc
+  - 10,000 employees per org scale target
+  - Simple liability definition (no actuarial vesting)
+  - 7-day org deletion grace
+  - Australian residency deferred (Supabase default region for v1)
+  - LLM-assisted mapping deferred to v1.1
+  - Future-date projection deferred to v2
+  - Pricing model still an open commercial decision — does not block engineering
+- **Critical finding from spec §2**: Supabase is **unwired** — `website/supabase/` doesn't exist, no `@supabase/*` deps in `package.json`. E5.1 is greenfield, load-bearing.
+- **`ANTHROPIC_API_KEY` impact**: the platform itself has **no v1 dependency** on this key (no PDF ingestion; LLM mapping deferred). The public calc continues to depend on it per LAUNCH-GUARD. The hard launch gate that LAUNCH-GUARD describes does NOT apply to E5 v1.
+- **Cross-dependency on E2**: 6 of 8 states live. Platform can be built and tested against 6 states. TAS + NT must finish under E2 Phases 8–9 before the platform can credibly claim "any state" coverage.
+- **Next action**: Tracy to run `/dev-feature-plan` against `.specify/features/005-lsl-platform/spec.md`. That produces `impl-plan.md` + `tasks.md` and resolves any dev-layer findings before development starts.
 
 ## Obsolete / won't fix
 
-_None yet._
+- **E1 Phase 7 — opt-in single-user logins** (cancelled 2026-05-26). The single-user "save my calc" feature is strictly less valuable than the platform's org-level workspace. The public `lslcalculator.com.au` calc stays anonymous-only permanently. All authenticated experience lives in E5.
+- **E3 — NSW audit-replay CSV** (retired 2026-05-26). Fully absorbed into E5.6 on a persistent multi-tenant base.
