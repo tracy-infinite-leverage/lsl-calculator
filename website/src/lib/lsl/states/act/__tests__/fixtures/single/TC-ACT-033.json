@@ -1,0 +1,30 @@
+{
+  "name": "TC-ACT-033",
+  "title": "Sickness 2 wks/year counted in full; excess does NOT count",
+  "source": "ACT LSL Act 1976 s.2G + WorkSafe ACT — TBD-ACT-17 per-service-year cap",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-033",
+      "startDate": "2018-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "paid_leave", "startDate": "2024-01-01", "endDate": "2024-03-31", "note": "sick leave 90 days = ~13 wks" }
+      ]
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payable_by": "2026-08-24",
+    "payableIndicator": "payable",
+    "warnings": ["act_sickness_excess_2wk_excluded"]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "TC-ACT-052",
+  "title": "PT 7 yrs, 12-mo hours average, NO overtime",
+  "source": "ACT LSL Act 1976 s.7(2)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-052",
+      "startDate": "2019-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "912.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "47424.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "38.00",
+        "hoursLast12MonthsBeforeEntitlement": 1248,
+        "act_overtime_hours_by_period": []
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 6.0667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "912.00",
+    "payableIndicator": "payable"
+  }
+}

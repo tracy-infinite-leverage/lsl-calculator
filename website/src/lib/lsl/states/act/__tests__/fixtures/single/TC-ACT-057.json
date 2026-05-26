@@ -1,0 +1,30 @@
+{
+  "name": "TC-ACT-057",
+  "title": "FT→casual transition exactly 2 yrs before entitlement, s.7(3) applies at boundary (inclusive)",
+  "source": "ACT LSL Act 1976 s.7(3); TBD-ACT-04 — exact 2-yr boundary INCLUSIVE",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-057",
+      "startDate": "2019-05-26",
+      "employmentType": "casual",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1346.15",
+      "wageHistory": [
+        { "periodStart": "2021-05-26", "periodEnd": "2024-05-26", "grossPay": "270000.00", "frequency": "weekly" },
+        { "periodStart": "2024-05-26", "periodEnd": "2026-05-26", "grossPay": "80000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "40.00",
+        "act_ft_to_pt_transition_date": "2024-05-26"
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "payable",
+    "warnings": ["act_s7_3_ft_to_pt_within_2yr_path"]
+  }
+}

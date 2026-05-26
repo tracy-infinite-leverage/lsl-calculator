@@ -1,0 +1,31 @@
+{
+  "name": "TC-ACT-013",
+  "title": "6.5 yrs FT retirement at 65, pro-rata 5.6333 wks — dob signal",
+  "source": "ACT LSL Act 1976 s.11C — retirement at 65 qualifies (TBD-ACT-07)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-013",
+      "startDate": "2019-11-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1700.00",
+      "dob": "1961-05-26",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "retirement" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payable_by": "2026-08-24",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.11C", "rule": "accrual.5-to-7yr.retirement-qualifies" }
+    ]
+  }
+}

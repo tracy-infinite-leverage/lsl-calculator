@@ -1,0 +1,30 @@
+{
+  "name": "TC-ACT-055",
+  "title": "PT 7 yrs, hours-averaging window EXCLUDES unpaid leave weeks (caller-substituted)",
+  "source": "ACT LSL Act 1976 s.7(2) — TBD-ACT-08 parallel SA pattern (substitution upstream)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-055",
+      "startDate": "2019-02-26",
+      "employmentType": "part_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "807.69",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "42000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2025-08-01", "endDate": "2025-10-22" }
+      ],
+      "extraInputs": {
+        "currentHourlyRate": "35.00",
+        "hoursLast12MonthsBeforeEntitlement": 1200
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "payable"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "TC-ACT-061",
+  "title": "Hours DECREASED entitlement → cessation — s.11D anchor applies on termination",
+  "source": "ACT LSL Act 1976 s.11D — mirror of TC-ACT-060",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-061",
+      "startDate": "2018-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "36400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "35.00",
+        "hoursLast12MonthsBeforeEntitlement": 1820,
+        "hoursLast12MonthsBeforeCessation": 1040
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "700.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_taking_anchor_vs_termination_anchor_diverged"]
+  }
+}

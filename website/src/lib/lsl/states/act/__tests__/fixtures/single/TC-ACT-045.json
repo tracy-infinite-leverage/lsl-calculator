@@ -1,0 +1,26 @@
+{
+  "name": "TC-ACT-045",
+  "title": "Fixed-rate FT, current weekly gross = value of week",
+  "source": "ACT LSL Act 1976 s.7(1)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-045",
+      "startDate": "2018-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "2000.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "104000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2000.00",
+    "valueOfDay": "400.00",
+    "payableIndicator": "payable"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "TC-ACT-066",
+  "title": "Cash-out request at 4 yrs (sub-5-yr) — ADVISORY no entitlement",
+  "source": "ACT LSL Act 1976 s.11C — no cash-out sub-5-yr",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-066",
+      "startDate": "2022-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-26" }
+  },
+  "expected": {
+    "status": "computed",
+    "warnings": ["act_cashout_no_entitlement_to_cash_out"]
+  }
+}

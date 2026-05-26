@@ -1,0 +1,31 @@
+{
+  "name": "TC-ACT-005",
+  "title": "10 yrs FT taking 8.6667 weeks LSL — full entitlement past 10",
+  "source": "APA p.114; ACT LSL Act 1976 s.4",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-005",
+      "startDate": "2016-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1900.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "98800.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1900.00",
+    "payableIndicator": "payable",
+    "payable_by": "2026-08-24",
+    "warnings": ["act_termination_payable_within_90_days_advisory"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.4", "rule": "accrual.continuous-0.8667-per-year" }
+    ]
+  }
+}

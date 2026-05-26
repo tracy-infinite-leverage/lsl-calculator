@@ -1,0 +1,26 @@
+{
+  "name": "TC-ACT-063",
+  "title": "20 yrs FT resignation, full ~17.33 weeks",
+  "source": "ACT LSL Act 1976 s.4",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-063",
+      "startDate": "2006-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "2000.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "104000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2000.00",
+    "payableIndicator": "payable"
+  }
+}

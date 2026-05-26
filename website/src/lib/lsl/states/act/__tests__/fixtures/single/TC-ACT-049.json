@@ -1,0 +1,32 @@
+{
+  "name": "TC-ACT-049",
+  "title": "Commission worker, 12-mo income lookback (s.2F)",
+  "source": "ACT LSL Act 1976 s.2F",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-049",
+      "startDate": "2018-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "3000.00",
+      "categoryOverride": "C",
+      "categoryOverrideConfirmed": true,
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "156000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "payable_by": "2026-08-24",
+    "payableIndicator": "payable",
+    "warnings": ["act_commission_12mo_lookback_applied"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.2F", "rule": "ordinary-pay.commission-12mo-income-divided-by-52" }
+    ]
+  }
+}

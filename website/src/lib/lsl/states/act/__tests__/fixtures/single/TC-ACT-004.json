@@ -1,0 +1,28 @@
+{
+  "name": "TC-ACT-004",
+  "title": "9 yrs FT taking leave, ordinary weekly pay incl. allowances + bonus",
+  "source": "APA p.113; ACT LSL Act 1976 s.7(1) — allowances + bonus inclusion",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-004",
+      "startDate": "2017-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "2000.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "104000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 7.8 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2000.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.7(1)", "rule": "ordinary-pay.fixed-rate" }
+    ]
+  }
+}

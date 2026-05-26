@@ -1,0 +1,90 @@
+{
+  "name": "TC-ACT-BULK-001",
+  "title": "5-employee ACT-only fixture, mixed tenures and triggers",
+  "source": "spec F17 + AC16; impl-plan §Phase 7",
+  "input": {
+    "employees": [
+      {
+        "id": "A01",
+        "startDate": "2014-05-26",
+        "employmentType": "full_time",
+        "statesOfService": ["ACT"],
+        "governingJurisdiction": "ACT",
+        "currentWeeklyGross": "1884.62",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "98000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "A02",
+        "startDate": "2019-05-26",
+        "endDate": "2026-05-26",
+        "employmentType": "full_time",
+        "statesOfService": ["ACT"],
+        "governingJurisdiction": "ACT",
+        "currentWeeklyGross": "1800.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "redundancy" }
+      },
+      {
+        "id": "A03",
+        "startDate": "2020-05-26",
+        "employmentType": "part_time",
+        "statesOfService": ["ACT"],
+        "governingJurisdiction": "ACT",
+        "currentWeeklyGross": "750.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "39000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": []
+      },
+      {
+        "id": "A04",
+        "startDate": "2015-05-26",
+        "endDate": "2026-05-26",
+        "employmentType": "casual",
+        "statesOfService": ["ACT"],
+        "governingJurisdiction": "ACT",
+        "currentWeeklyGross": "1057.69",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "55000.00", "frequency": "other", "periodDays": 365 }
+        ],
+        "serviceEvents": [],
+        "extraInputs": {
+          "currentHourlyRate": "26.44",
+          "hoursLast12MonthsBeforeCessation": 2080
+        },
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "voluntary_resignation" }
+      },
+      {
+        "id": "A05",
+        "startDate": "2021-05-26",
+        "endDate": "2026-05-26",
+        "employmentType": "full_time",
+        "statesOfService": ["ACT"],
+        "governingJurisdiction": "ACT",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [
+          { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "78000.00", "frequency": "weekly" }
+        ],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "serious_misconduct" }
+      }
+    ],
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-26" }
+  },
+  "expected": {
+    "summary": { "computed": 5, "blocked": 0, "failed": 0 },
+    "rowStatuses": {
+      "A01": "computed",
+      "A02": "computed",
+      "A03": "computed",
+      "A04": "computed",
+      "A05": "computed"
+    }
+  }
+}

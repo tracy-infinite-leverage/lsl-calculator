@@ -1,0 +1,31 @@
+{
+  "name": "TC-ACT-020",
+  "title": "7 yrs exactly FT misconduct dismissal, FULL 6.0667 wks payable (ACT-vs-WA divergence)",
+  "source": "ACT LSL Act 1976 s.4 — critical ACT/WA divergence: no partial-forfeiture at 7+ yr",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-020",
+      "startDate": "2019-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "payable_by": "2026-08-24",
+    "warnings": ["act_7yr_plus_misconduct_full_payout", "act_termination_payable_within_90_days_advisory"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.4", "rule": "accrual.7yr-full-entitlement-regardless-of-reason" }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "TC-ACT-058",
+  "title": "FT→PT transition 2 yrs + 1 day before entitlement, s.7(2) applies (NOT s.7(3))",
+  "source": "ACT LSL Act 1976 s.7(2) — boundary mirror of TC-ACT-057",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-058",
+      "startDate": "2019-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "875.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "45500.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "35.00",
+        "hoursLast12MonthsBeforeEntitlement": 1300,
+        "act_ft_to_pt_transition_date": "2024-05-25"
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "875.00",
+    "payableIndicator": "payable"
+  }
+}

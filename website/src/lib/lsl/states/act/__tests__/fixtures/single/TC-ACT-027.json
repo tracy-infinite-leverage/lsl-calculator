@@ -1,0 +1,27 @@
+{
+  "name": "TC-ACT-027",
+  "title": "8 yrs FT serious misconduct, FULL 6.9333 wks payable (NO partial-forfeiture at 7+)",
+  "source": "ACT LSL Act 1976 s.4 — divergence from WA",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-027",
+      "startDate": "2018-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_7yr_plus_misconduct_full_payout"]
+  }
+}

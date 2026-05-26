@@ -1,0 +1,28 @@
+{
+  "name": "TC-ACT-025",
+  "title": "5.5 yrs FT serious misconduct, $0",
+  "source": "ACT LSL Act 1976 s.11C — sub-7-yr misconduct forfeiture",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-025",
+      "startDate": "2020-11-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "88400.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["sub_7yr_misconduct_excluded_act"]
+  }
+}

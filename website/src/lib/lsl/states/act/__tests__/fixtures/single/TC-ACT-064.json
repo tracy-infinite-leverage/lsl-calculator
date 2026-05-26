@@ -1,0 +1,30 @@
+{
+  "name": "TC-ACT-064",
+  "title": "Cash-out request at 9 yrs (post-7-yr accrual), ADVISORY",
+  "source": "ACT LSL Act 1976 s.8(c) — WorkSafe ACT guidance (TBD-ACT-12)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-064",
+      "startDate": "2017-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-05-26" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "warnings": ["act_cashout_post_accrual_advisory"],
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.8(c)", "rule": "cashout.post-7yr-permitted-by-agreement" }
+    ]
+  }
+}

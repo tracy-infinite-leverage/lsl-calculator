@@ -188,6 +188,10 @@ function reasonToRuleKey(reason: TerminationReason): string {
     case 'voluntary_resignation':
     case 'serious_misconduct':
       return reason;
+    // DEV-CROSS (E2 Phase 7) — ACT-driven addition. NSW does not branch on
+    // retirement; falls through to a stable citation key for labelling.
+    case 'retirement':
+      return 'retirement';
   }
 }
 

@@ -1,0 +1,25 @@
+{
+  "name": "TC-ACT-050",
+  "title": "Penalty rates EXCLUDED from ordinary pay (engine trusts user-supplied base)",
+  "source": "ACT LSL Act 1976 s.7(1)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-050",
+      "startDate": "2018-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-27", "periodEnd": "2026-05-26", "grossPay": "104000.00", "frequency": "weekly", "note": "incl. weekend penalty (excluded by engine convention)" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable"
+  }
+}

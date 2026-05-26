@@ -1,0 +1,27 @@
+{
+  "name": "TC-ACT-028",
+  "title": "Unpaid leave 12 wks; doesn't count as service but does not break continuity",
+  "source": "ACT LSL Act 1976 s.2G — extends-the-line UPL (TBD-ACT-13)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-028",
+      "startDate": "2019-02-26",
+      "employmentType": "full_time",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "93600.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [
+        { "type": "leave_without_pay", "startDate": "2022-01-01", "endDate": "2022-03-26" }
+      ]
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 6.0667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable"
+  }
+}

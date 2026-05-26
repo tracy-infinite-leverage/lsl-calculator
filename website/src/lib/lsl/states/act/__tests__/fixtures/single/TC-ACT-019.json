@@ -1,0 +1,35 @@
+{
+  "name": "TC-ACT-019",
+  "title": "6 yrs casual death, pro-rata at s.11D cessation anchor",
+  "source": "ACT LSL Act 1976 s.11C (death qualifying) + s.11D (cessation anchor for casual)",
+  "input": {
+    "employee": {
+      "id": "TC-ACT-019",
+      "startDate": "2020-05-26",
+      "endDate": "2026-05-26",
+      "employmentType": "casual",
+      "statesOfService": ["ACT"],
+      "governingJurisdiction": "ACT",
+      "currentWeeklyGross": "1064.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "55328.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "38.00",
+        "hoursLast12MonthsBeforeCessation": 1456
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-26", "reason": "death" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1064.00",
+    "payable_by": "2026-08-24",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "ACT LSL Act 1976 s.11D", "rule": "ordinary-pay.casual-12mo-average-hours-include-overtime" },
+      { "section": "ACT LSL Act 1976 s.11C", "rule": "trigger.termination.death" }
+    ]
+  }
+}
