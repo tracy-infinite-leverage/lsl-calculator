@@ -55,19 +55,19 @@ These three spikes resolve the only known technical unknowns. They must complete
 
 ## Phase 3: Foundation
 
-### Task 3.1: Provision Supabase project via Supabase MCP
+### Task 3.1: Provision Supabase project via Supabase MCP ✅ DONE 2026-05-26
 
 **Description**: Create the Supabase project for the LSL platform; capture URL + anon key + service-role key. Document in `website/CLAUDE.md`.
 
-**Status:** ✅ **PROVISIONED 2026-05-26** — `lsl-platform` project created in `tracy-infinite-leverage's Org`, ref `woxtujkxatosbirikxtq`, region ap-southeast-2, Pro tier ($10/month). URL: `https://woxtujkxatosbirikxtq.supabase.co`. Provisioning in progress at task-write time (~5 min); developer agent must confirm `ACTIVE_HEALTHY` status before proceeding.
+**Status:** ✅ **DONE** — `lsl-platform` provisioned, `ACTIVE_HEALTHY` confirmed (Postgres 17.6.1.127, region ap-southeast-2, Pro tier, project ref `woxtujkxatosbirikxtq`). Env-var placeholders scaffolded in `website/.env.example` (real values to be populated in `.env.local` locally and in Vercel via Task 3.3). Supabase config + MCP guidance documented in `website/AGENTS.md` (which `website/CLAUDE.md` imports via `@AGENTS.md`).
 
 **Acceptance Criteria**:
 - [x] Supabase MCP authenticated via OAuth (completed 2026-05-26 by Tracy).
 - [x] Supabase project created in correct organisation/region (ap-southeast-2, Sydney — confirmed).
-- [ ] Project status reaches `ACTIVE_HEALTHY` (check via `mcp__2ac7599f...__get_project` or dashboard).
-- [ ] `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` recorded in `website/.env.example` (placeholders only — no real values).
-- [ ] Project URL and key locations documented in `website/CLAUDE.md`.
-- [ ] No real secrets committed to git.
+- [x] Project status reaches `ACTIVE_HEALTHY` (check via `mcp__2ac7599f...__get_project` or dashboard). → **Confirmed ACTIVE_HEALTHY** via `get_project` MCP call on 2026-05-26; Postgres 17.6.1.127 GA.
+- [x] `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` recorded in `website/.env.example` (placeholders only — no real values). → **File created at `website/.env.example` with placeholders; `.env*` already gitignored via `website/.gitignore:39-40`.**
+- [x] Project URL and key locations documented in `website/CLAUDE.md`. → **Documented in `website/AGENTS.md` (imported by `website/CLAUDE.md` via `@AGENTS.md`).** Includes project URL/ref/region/plan, env-var purpose, MCP usage, hard rules on service-role key handling.
+- [x] No real secrets committed to git. → **Verified.** `.env.example` contains placeholders only.
 
 **Effort**: S
 **Dependencies**: None
