@@ -1,0 +1,28 @@
+{
+  "name": "TC-TAS-053",
+  "title": "FT 10 yrs, no per-day data supplied — falls back to flat weekly rate",
+  "source": "TAS LSL Act 1976 s.11; TBD-TAS-01 fallback path",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-053",
+      "startDate": "2016-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "tas_shift_penalty_by_day": [],
+        "tas_all_purpose_allowance_by_day": []
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 1.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "warnings": ["tas_day_to_day_rate_variation_advisory"]
+  }
+}

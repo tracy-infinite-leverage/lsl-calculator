@@ -1,0 +1,26 @@
+{
+  "name": "TC-TAS-051",
+  "title": "Annual performance bonus excluded",
+  "source": "TAS LSL Act 1976 s.11(2)(h)",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-051",
+      "startDate": "2015-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2025-05-26", "periodEnd": "2026-05-26", "grossPay": "110000.00", "frequency": "weekly", "note": "incl. $16000 annual performance bonus paid Dec" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 9.5337 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "warnings": ["tas_bonus_excluded_absolutely"]
+  }
+}

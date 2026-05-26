@@ -1,0 +1,26 @@
+{
+  "name": "TC-TAS-040",
+  "title": "7 wks LSL across multiple TAS PHs — engine emits PH-exclusive citation (calendar mechanics operator-handled per TBD-TAS-10 v1)",
+  "source": "TAS LSL Act 1976 s.12(9)",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-040",
+      "startDate": "2016-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-12-21", "leaveWeeks": 7.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "TAS LSL Act 1976 s.12(9)", "rule": "trigger.taking-leave.ph-exclusive-extends-leave" }
+    ]
+  }
+}

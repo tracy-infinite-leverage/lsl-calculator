@@ -1,0 +1,27 @@
+{
+  "name": "TC-TAS-057",
+  "title": "PT 10 yrs, simple 12-mo averaging",
+  "source": "TAS LSL Act 1976 s.11(6)",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-057",
+      "startDate": "2016-05-26",
+      "employmentType": "part_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "912.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "currentHourlyRate": "38.00",
+        "hoursLast12MonthsBeforeEntitlement": 1248
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "912.00",
+    "payableIndicator": "payable"
+  }
+}

@@ -218,6 +218,17 @@ export interface Employee {
    * additive; engines that do not consume it treat as absent.
    */
   dob?: ISODate;
+  /**
+   * Employee sex — TAS-conditional read only. Consumed by the TAS orchestrator
+   * (Phase 8) to apply the TAS LSL Act 1976 s.8(3) literal sex-specific
+   * retirement-age reading (60 women / 65 men) when
+   * `extraInputs.tas_award_min_retirement_age_reached` is not `true`. Per
+   * TBD-TAS-02 RESOLVED Option (a) in docs/qa/test-cases-tas.md. Ignored by
+   * every other state orchestrator. Purely additive; engines that do not
+   * consume it treat as absent. NO DEV-CROSS-5 anticipated — sole consumer is
+   * TAS.
+   */
+  sex?: 'female' | 'male';
 }
 
 export interface Citation {
@@ -309,7 +320,37 @@ export interface Warning {
     | 'act_single_day_lsl_on_ph_exclusive'
     | 'act_slackness_of_trade_continuity_preserved'
     | 'transfer_of_business_continuity_preserved_act'
-    | 'sa_or_act_parental_leave_excluded';
+    | 'sa_or_act_parental_leave_excluded'
+    // TAS-specific (E2 Phase 8 — see docs/qa/test-cases-tas.md Resolutions section)
+    | 'tas_shift_penalty_assumed_included_in_weekly_gross'
+    | 'tas_retirement_qualifying_age_60f_65m_default'
+    | 'tas_retirement_qualifying_via_award_min_age'
+    | 'tas_commission_3mo_window_applied'
+    | 'tas_casual_32hr_4wk_test_not_verified'
+    | 'tas_casual_32hr_4wk_continuity_satisfied'
+    | 'tas_casual_32hr_4wk_continuity_not_satisfied'
+    | 'tas_casual_continuity_test_unverified'
+    | 'tas_advance_leave_not_permitted'
+    | 'tas_bonus_excluded_absolutely'
+    | 'tas_day_to_day_rate_variation_applied'
+    | 'tas_day_to_day_rate_variation_advisory'
+    | 'tas_slackness_of_trade_continuity_preserved'
+    | 'tas_slackness_14_day_return_window_missed'
+    | 'tas_maternity_leave_excluded'
+    | 'tas_apprentice_3mo_continuity_preserved'
+    | 'tas_lsl_calculated_at_wc_reduced_rate_warning'
+    | 'transfer_of_business_continuity_preserved_tas'
+    | 'tas_payable_on_day_of_termination_advisory'
+    | 'tas_cashout_post_entitlement_advisory'
+    | 'tas_cashout_pre_entitlement_not_authorised'
+    | 'tas_all_purpose_allowance_included'
+    | 'tas_shift_penalty_included'
+    | 'sub_7yr_no_entitlement_tas'
+    | 'sub_10yr_no_qualifying_reason_tas'
+    | 'sub_10yr_misconduct_excluded_tas'
+    | 'tas_10yr_plus_misconduct_full_payout'
+    | 'tas_single_day_lsl_on_ph_exclusive'
+    | 'tas_12mo_window_upl_overlap_check_substitution';
   message: string;
   rowRef?: string;
 }
@@ -329,6 +370,23 @@ export interface SystemFormulaOutput {
   varianceSign: 'over' | 'under' | 'equal';
 }
 
+/**
+ * TAS-specific per-day pay breakdown — populated by the TAS engine ONLY when
+ * `extraInputs.tas_shift_penalty_by_day` and/or
+ * `extraInputs.tas_all_purpose_allowance_by_day` are supplied. Per
+ * TBD-TAS-01 RESOLVED 2026-05-26 (docs/qa/test-cases-tas.md). Other state
+ * engines leave this field undefined. Purely additive — no behaviour effect
+ * outside TAS, no DEV-CROSS-N anticipated. Mirrors the `payable_by` TAS-
+ * conditional-emit precedent set by ACT Phase 7.
+ */
+export interface ValuePerDayEntry {
+  date: ISODate;
+  base: Decimal;
+  multiplier?: Decimal;
+  allowance?: Decimal;
+  payable: Decimal;
+}
+
 export interface ResultOutputs {
   valueOfWeek: NumericOutput;
   valueOfDay: NumericOutput;
@@ -337,6 +395,12 @@ export interface ResultOutputs {
     dollars: NumericOutput;
   };
   systemFormula?: SystemFormulaOutput;
+  /**
+   * TAS-specific (TBD-TAS-01 RESOLVED): per-day pay breakdown when the TAS
+   * engine applies day-by-day rate variation. Undefined for every other state
+   * and for TAS calculations on the flat-fallback path.
+   */
+  valuePerDayBreakdown?: ValuePerDayEntry[];
 }
 
 export type ResultStatus = 'computed' | 'blocked_cross_jurisdiction' | 'failed';

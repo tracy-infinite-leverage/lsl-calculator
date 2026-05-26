@@ -100,6 +100,36 @@ const WARNING_LABELS: Record<string, { label: string; tone: 'info' | 'warning' }
   act_slackness_of_trade_continuity_preserved: { label: 'ACT slackness-of-trade re-employment continuity preserved (s.2G(2)(b))', tone: 'info' },
   transfer_of_business_continuity_preserved_act: { label: 'ACT transfer of business — service preserved (s.10)', tone: 'info' },
   sa_or_act_parental_leave_excluded: { label: 'Paid parental leave does NOT count as service (ACT/SA divergence)', tone: 'info' },
+  // TAS-specific (E3 Phase 8)
+  tas_shift_penalty_assumed_included_in_weekly_gross: { label: 'TAS shift penalties / all-purpose allowances assumed pre-summed into weekly gross (s.11 default)', tone: 'info' },
+  tas_retirement_qualifying_age_60f_65m_default: { label: 'TAS retirement age default — 60 women / 65 men per s.8(3) literal reading', tone: 'info' },
+  tas_retirement_qualifying_via_award_min_age: { label: 'TAS retirement qualifying via award-minimum age (operator override)', tone: 'info' },
+  tas_commission_3mo_window_applied: { label: 'TAS commission worker — 13-week (91-day) lookback applied (s.11(3) TAS-unique)', tone: 'info' },
+  tas_casual_32hr_4wk_test_not_verified: { label: 'TAS casual 32hr-4wk continuity test not verified — permissive default applied', tone: 'warning' },
+  tas_casual_32hr_4wk_continuity_satisfied: { label: 'TAS casual 32hr-4wk continuity satisfied (s.5(3))', tone: 'info' },
+  tas_casual_32hr_4wk_continuity_not_satisfied: { label: 'TAS casual 32hr-4wk continuity NOT satisfied (s.5(3)) — service forfeited', tone: 'warning' },
+  tas_casual_continuity_test_unverified: { label: 'TAS casual continuity test unverified — auto-derivation insufficient', tone: 'warning' },
+  tas_advance_leave_not_permitted: { label: 'TAS leave in advance not permitted — sub-10yr taking leave returns $0', tone: 'warning' },
+  tas_bonus_excluded_absolutely: { label: 'TAS bonus excluded ABSOLUTELY from ordinary pay (s.11(2)(h) — most restrictive in Australia)', tone: 'warning' },
+  tas_day_to_day_rate_variation_applied: { label: 'TAS day-by-day rate variation applied per s.11 (TAS-unique)', tone: 'info' },
+  tas_day_to_day_rate_variation_advisory: { label: 'TAS day-by-day rate variation possible — supply per-day data for precision', tone: 'info' },
+  tas_slackness_of_trade_continuity_preserved: { label: 'TAS slackness-of-trade re-employment continuity preserved (6-mo + 14-day window)', tone: 'info' },
+  tas_slackness_14_day_return_window_missed: { label: 'TAS slackness-of-trade 14-day return window missed — standard 3-mo tolerance applied', tone: 'warning' },
+  tas_maternity_leave_excluded: { label: 'TAS maternity / parental leave excluded from service', tone: 'info' },
+  tas_apprentice_3mo_continuity_preserved: { label: 'TAS apprentice-to-tradesperson 3-month transition continuity preserved', tone: 'info' },
+  tas_lsl_calculated_at_wc_reduced_rate_warning: { label: 'TAS LSL calculated at WC-reduced rate (s.11 literal — no higher-of-rates equivalent)', tone: 'warning' },
+  transfer_of_business_continuity_preserved_tas: { label: 'TAS transfer of business — service preserved (s.5)', tone: 'info' },
+  tas_payable_on_day_of_termination_advisory: { label: 'TAS pay-on-termination — payable on day of termination itself per s.12(4)', tone: 'info' },
+  tas_cashout_post_entitlement_advisory: { label: 'TAS cash-out — permitted post-10-yr by agreement (s.10 advisory)', tone: 'info' },
+  tas_cashout_pre_entitlement_not_authorised: { label: 'TAS cash-out at sub-10-year — not authorised under s.10', tone: 'warning' },
+  tas_all_purpose_allowance_included: { label: 'TAS all-purpose allowance included in ordinary pay (s.11)', tone: 'info' },
+  tas_shift_penalty_included: { label: 'TAS shift penalty included in ordinary pay (s.11)', tone: 'info' },
+  sub_7yr_no_entitlement_tas: { label: 'Sub-7-year tenure — no TAS entitlement (s.8(3) universal floor)', tone: 'info' },
+  sub_10yr_no_qualifying_reason_tas: { label: 'TAS 7-10-year — termination reason does not qualify under s.8(3) (binary cliff for voluntary res.)', tone: 'info' },
+  sub_10yr_misconduct_excluded_tas: { label: 'TAS sub-10-year misconduct dismissal — pro-rata forfeited under s.8(3)', tone: 'warning' },
+  tas_10yr_plus_misconduct_full_payout: { label: 'TAS 10+ year misconduct — full payout (TAS does NOT mirror WA partial-forfeiture)', tone: 'info' },
+  tas_single_day_lsl_on_ph_exclusive: { label: 'TAS single-day LSL on PH — engine emits advisory (calendar shift operator-handled in v1)', tone: 'info' },
+  tas_12mo_window_upl_overlap_check_substitution: { label: 'TAS 12-month casual window — UPL overlaps; operator pre-substitutes per TBD-TAS-18', tone: 'info' },
 };
 
 export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPanelProps) {
@@ -184,13 +214,20 @@ export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPan
           </div>
         )}
 
-        {/* payable_by (ACT s.11A(4)(b) — informational) */}
+        {/* payable_by (ACT s.11A(4)(b) / TAS s.12(4) — informational).
+            TAS surfaces payable_by = terminationDate itself (pay-on-day-of-
+            termination); ACT surfaces 90-days-after-cessation. The advisory
+            warning code identifies which jurisdiction's rule applies. */}
         {result.payable_by && (
           <Alert variant="info">
             <Info className="h-4 w-4" />
             <AlertTitle>Payable by</AlertTitle>
             <AlertDescription>
-              The statutory pay-by date is <span className="font-mono font-semibold">{result.payable_by}</span> — 90 days after cessation per ACT LSL Act 1976 s.11A(4)(b). Informational only.
+              The statutory pay-by date is <span className="font-mono font-semibold">{result.payable_by}</span>
+              {result.warnings.some((w) => w.code === 'tas_payable_on_day_of_termination_advisory')
+                ? ' — payable on the day of termination itself per TAS LSL Act 1976 s.12(4).'
+                : ' — 90 days after cessation per ACT LSL Act 1976 s.11A(4)(b).'}
+              {' '}Informational only.
             </AlertDescription>
           </Alert>
         )}
@@ -278,6 +315,13 @@ export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPan
           </div>
         )}
 
+        {/* TAS per-day pay breakdown (TBD-TAS-01 RESOLVED) — populated only by
+            the TAS engine when day-by-day rate variation is applied. */}
+        {result.outputs.valuePerDayBreakdown &&
+          result.outputs.valuePerDayBreakdown.length > 0 && (
+            <ValuePerDayBreakdown breakdown={result.outputs.valuePerDayBreakdown} />
+          )}
+
         {/* Diagnostics — collapsed by default for power users */}
         {result.diagnostics && (
           <details className="text-xs">
@@ -304,6 +348,61 @@ export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPan
         )}
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * TAS-specific per-day pay breakdown panel (TBD-TAS-01 RESOLVED 2026-05-26).
+ *
+ * Renders a table of `{date, base, multiplier, allowance, payable}` rows when
+ * the TAS engine applies day-by-day rate variation. Other state engines never
+ * populate `valuePerDayBreakdown` so this component never renders for them.
+ */
+function ValuePerDayBreakdown({
+  breakdown,
+}: {
+  breakdown: NonNullable<import('@/lib/lsl/engine/types').ResultOutputs['valuePerDayBreakdown']>;
+}) {
+  return (
+    <details className="text-xs" open>
+      <summary className="cursor-pointer text-muted-foreground hover:text-foreground font-medium">
+        TAS per-day rate breakdown ({breakdown.length} days)
+      </summary>
+      <p className="mt-2 mb-1 text-muted-foreground">
+        TAS LSL Act 1976 s.11 — day-by-day rate variation. Per-day payable =
+        (base × penalty multiplier) + all-purpose allowance.
+      </p>
+      <div className="overflow-x-auto">
+        <table className="mt-1 w-full text-xs font-mono">
+          <thead>
+            <tr className="border-b text-left text-muted-foreground">
+              <th className="py-1 pr-3">Date</th>
+              <th className="py-1 pr-3 text-right">Base</th>
+              <th className="py-1 pr-3 text-right">× Penalty</th>
+              <th className="py-1 pr-3 text-right">+ Allowance</th>
+              <th className="py-1 pr-3 text-right">= Payable</th>
+            </tr>
+          </thead>
+          <tbody>
+            {breakdown.map((row, i) => (
+              <tr key={i} className="border-b border-muted">
+                <td className="py-1 pr-3">{row.date}</td>
+                <td className="py-1 pr-3 text-right">${row.base.toFixed(2)}</td>
+                <td className="py-1 pr-3 text-right">
+                  {row.multiplier ? `× ${row.multiplier.toFixed(2)}` : '—'}
+                </td>
+                <td className="py-1 pr-3 text-right">
+                  {row.allowance ? `+ $${row.allowance.toFixed(2)}` : '—'}
+                </td>
+                <td className="py-1 pr-3 text-right font-semibold">
+                  ${row.payable.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
   );
 }
 

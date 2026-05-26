@@ -88,6 +88,24 @@ export interface FormState {
    */
   terminationInitiator: TerminationInitiator | '';
   asAtDate: string;
+
+  /**
+   * TAS-specific extra-inputs (E3 Phase 8 / T8.5). Surfaced in the single-mode
+   * form ONLY when `statesOfService` includes / `governingJurisdiction` equals
+   * `'TAS'`. Empty strings / false defaults map to omitted engine fields. Other
+   * state engines ignore every key here entirely.
+   *
+   * See `website/src/lib/lsl/states/tas/extra-inputs.ts` for engine-side docs
+   * on each key.
+   */
+  tas_currentHourlyRate: string;
+  tas_hoursLast12MonthsBeforeEntitlement: string;
+  tas_hoursLast12MonthsBeforeCessation: string;
+  tas_award_min_retirement_age_reached: boolean;
+  tas_casual_32hr_4wk_periods_compliant: '' | 'true' | 'false';
+  tas_casual_continuity_break_date: string;
+  tas_employee_in_northern_tas: boolean;
+  tas_slackness_return_within_14_days: boolean;
 }
 
 export function emptyFormState(): FormState {
@@ -114,6 +132,15 @@ export function emptyFormState(): FormState {
     terminationReason: '',
     terminationInitiator: '',
     asAtDate: '',
+    // TAS extra-inputs — defaults map to omitted engine fields.
+    tas_currentHourlyRate: '',
+    tas_hoursLast12MonthsBeforeEntitlement: '',
+    tas_hoursLast12MonthsBeforeCessation: '',
+    tas_award_min_retirement_age_reached: false,
+    tas_casual_32hr_4wk_periods_compliant: '',
+    tas_casual_continuity_break_date: '',
+    tas_employee_in_northern_tas: false,
+    tas_slackness_return_within_14_days: false,
   };
 }
 

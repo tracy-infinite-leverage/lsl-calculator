@@ -1,0 +1,36 @@
+{
+  "name": "TC-TAS-052",
+  "title": "FT 10 yrs, LSL spans shift-penalty + non-shift days — per-day computation",
+  "source": "TAS LSL Act 1976 s.11; TBD-TAS-01 RESOLVED",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-052",
+      "startDate": "2016-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "tas_shift_penalty_by_day": [
+          { "date": "2026-06-01", "penalty_multiplier": 1.0 },
+          { "date": "2026-06-02", "penalty_multiplier": 1.0 },
+          { "date": "2026-06-03", "penalty_multiplier": 1.5 },
+          { "date": "2026-06-04", "penalty_multiplier": 1.5 },
+          { "date": "2026-06-05", "penalty_multiplier": 2.0 }
+        ]
+      }
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 1.0 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2520.00",
+    "payableIndicator": "payable",
+    "warnings": ["tas_day_to_day_rate_variation_applied"],
+    "expected_citations": [
+      { "section": "TAS LSL Act 1976 s.11", "rule": "ordinary-pay.day-to-day-rate-variation-per-shift-penalty-and-allowance" }
+    ]
+  }
+}

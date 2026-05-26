@@ -1,0 +1,24 @@
+{
+  "name": "TC-TAS-043",
+  "title": "Fixed-rate FT — currentWeeklyGross = value of week",
+  "source": "TAS LSL Act 1976 s.11",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-043",
+      "startDate": "2016-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "2000.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "2000.00",
+    "valueOfDay": "400.00",
+    "payableIndicator": "payable"
+  }
+}

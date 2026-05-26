@@ -1,0 +1,33 @@
+{
+  "name": "TC-TAS-001",
+  "title": "10 yrs FT taking 8.6667 weeks LSL, full first entitlement",
+  "source": "APA p.96; TAS LSL Act 1976 s.8(2) — canonical 10-yr entitlement",
+  "input": {
+    "employee": {
+      "id": "TC-TAS-001",
+      "legalName": "SamTAS",
+      "startDate": "2016-05-26",
+      "employmentType": "full_time",
+      "statesOfService": ["TAS"],
+      "governingJurisdiction": "TAS",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [
+        { "periodStart": "2016-05-26", "periodEnd": "2026-05-26", "grossPay": "936000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 8.6667 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "valueOfDay": "360.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "TAS LSL Act 1976 s.8(2)", "rule": "accrual.qualifying-period-10yr-8.6667wks" },
+      { "section": "TAS LSL Act 1976 s.11",   "rule": "ordinary-pay.fixed-rate" },
+      { "section": "TAS LSL Act 1976 s.12",   "rule": "trigger.taking-leave" }
+    ],
+    "warnings": ["tas_shift_penalty_assumed_included_in_weekly_gross"]
+  }
+}
