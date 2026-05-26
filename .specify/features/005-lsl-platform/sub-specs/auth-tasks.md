@@ -100,18 +100,24 @@ These three spikes resolve the only known technical unknowns. They must complete
 **Dependencies**: Task 3.1
 **Assignee**: DevOps
 
-### Task 3.4: Confirm APA brand tokens are available for `/app/*`
+### Task 3.4: Confirm APA brand tokens are available for `/app/*` ✅ DONE 2026-05-26
 
 **Description**: Verify `docs/brand/style-guide.md` has APA palette, typography, and component tokens (header, card, button, input, error). If missing, dispatch `designer-design-system` and block all UI tasks until tokens land. Auth logic tasks (4.x, 5.1, 5.2) may proceed in parallel.
 
+**Audit finding 2026-05-26:** `docs/brand/style-guide.md` does **not** exist as a file — but the substance is fully encoded in code. Brand tokens live in [`website/src/app/globals.css`](../../../../website/src/app/globals.css) (Tailwind v4 `@theme inline` — APA-blue primary `oklch(0.51 0.18 256)` ≈ `#2563eb`; full status palette; light + dark mode; `--radius` scale; Geist Sans/Mono via `next/font/google` in `layout.tsx`). All component primitives needed for the auth surface are present in [`website/src/components/ui/`](../../../../website/src/components/ui/): `Card`, `CardHeader`, `CardTitle`, `Button` (6 variants × 4 sizes), `Input`, `Label`, `Textarea`, `Alert` (destructive variant for errors), `Dialog` (for delete-account confirmation), `Checkbox`, `RadioGroup`, `Select`, `Separator`, `Tabs`, `Badge`. **UI tasks are UNBLOCKED.** Two follow-ups recorded as non-blocking: (a) no APA logo asset in `website/public/` — use a text wordmark in v1, real logo before AC-AUTH-15 sign-off at Task 8.1; (b) `<AuthLayout>` shell is not yet built and will be created in Task 5.3.
+
 **Acceptance Criteria**:
-- [ ] Style guide reviewed and APA tokens confirmed present, OR Designer agent invoked and an ETA recorded.
-- [ ] Decision logged in plan's Decisions Log.
-- [ ] If tokens missing: UI tasks 5.3, 5.4, 5.5, 5.6, 6.1, 6.2, 6.3, 7.1, 7.2 are marked blocked until tokens land.
+- [x] Style guide reviewed and APA tokens confirmed present, OR Designer agent invoked and an ETA recorded. → **Confirmed present**, but in code (globals.css + components/ui/) rather than a docs file. No designer dispatch needed.
+- [x] Decision logged in plan's Decisions Log. → **Logged** under "Task 3.4 brand-token audit" row.
+- [x] If tokens missing: UI tasks 5.3, 5.4, 5.5, 5.6, 6.1, 6.2, 6.3, 7.1, 7.2 are marked blocked until tokens land. → **Not applicable.** Tokens present, UI tasks remain unblocked.
 
 **Effort**: S–M
 **Dependencies**: None
 **Assignee**: Developer (coordinates with Designer agent)
+
+**Follow-ups (non-blocking, tracked here):**
+- APA logo asset for `/app/*` header — must land in `website/public/` (and Supabase email templates' assets in Task 6.4) before Task 8.1 Designer sign-off. Until then, all `/app/*` headers use a text wordmark (e.g. `APA · LSL Platform`).
+- Plan's references to `docs/brand/style-guide.md` (in §2.4 + §1.4 R-A1 + Task 3.4 description above) are stale. The substantive style-guide is the code; if a docs version is desired later, it should be generated FROM the code, not the other way around.
 
 ---
 
