@@ -21,6 +21,7 @@ import { WA_RULE_SET } from '@/lib/lsl/states/wa';
 import { SA_RULE_SET } from '@/lib/lsl/states/sa';
 import { ACT_RULE_SET } from '@/lib/lsl/states/act';
 import { TAS_RULE_SET } from '@/lib/lsl/states/tas';
+import { NT_RULE_SET } from '@/lib/lsl/states/nt';
 
 /**
  * Registry of state → rule set. Add one entry per state as it ships.
@@ -36,7 +37,7 @@ const STATE_REGISTRY: Partial<Record<State, StateRuleSet>> = {
   SA: SA_RULE_SET,
   ACT: ACT_RULE_SET,
   TAS: TAS_RULE_SET,
-  // ...
+  NT: NT_RULE_SET,
 };
 
 /**

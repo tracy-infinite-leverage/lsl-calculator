@@ -29,10 +29,11 @@ const asAtTrigger = (date = '2026-05-21'): Trigger => ({
 });
 
 describe('dispatch — ENCODED_STATES', () => {
-  it('contains NSW, VIC, QLD, WA, SA, ACT, and TAS after Phase 8', () => {
+  it('contains all 8 Australian states/territories after Phase 9 (NT)', () => {
     expect(ENCODED_STATES.slice().sort()).toEqual([
       'ACT',
       'NSW',
+      'NT',
       'QLD',
       'SA',
       'TAS',
@@ -41,7 +42,7 @@ describe('dispatch — ENCODED_STATES', () => {
     ]);
   });
 
-  it('isStateEncoded returns true for shipped states, false for unshipped', () => {
+  it('isStateEncoded returns true for all 8 shipped states', () => {
     expect(isStateEncoded('NSW')).toBe(true);
     expect(isStateEncoded('VIC')).toBe(true);
     expect(isStateEncoded('QLD')).toBe(true);
@@ -49,7 +50,7 @@ describe('dispatch — ENCODED_STATES', () => {
     expect(isStateEncoded('SA')).toBe(true);
     expect(isStateEncoded('ACT')).toBe(true);
     expect(isStateEncoded('TAS')).toBe(true);
-    expect(isStateEncoded('NT')).toBe(false);
+    expect(isStateEncoded('NT')).toBe(true);
   });
 });
 
@@ -71,16 +72,15 @@ describe('dispatch — calculate', () => {
     expect(r.status).toBe('computed');
   });
 
-  it('blocks unshipped governing state with cross_jurisdiction_pending', () => {
+  it('routes NT-only employee to NT orchestrator (Phase 9)', () => {
     const employee = baseEmployee({
       statesOfService: ['NT'],
       governingJurisdiction: 'NT',
+      // 12-year tenure for NT to satisfy 10-yr qualifying period
+      startDate: asISODate('2014-05-22'),
     });
     const r = calculate(employee, asAtTrigger());
-    expect(r.status).toBe('blocked_cross_jurisdiction');
-    expect(r.warnings[0].code).toBe('cross_jurisdiction_pending');
-    expect(r.warnings[0].message).toContain('NT');
-    expect(r.warnings[0].message).toContain('NSW'); // lists what's supported
+    expect(r.status).toBe('computed');
   });
 
   it('routes QLD-only employee to QLD orchestrator', () => {
@@ -105,13 +105,14 @@ describe('dispatch — calculate', () => {
     expect(r.status).toBe('computed');
   });
 
-  it('blocks single non-encoded state (no governing nominated) too', () => {
+  it('routes single NT employee (no governing nominated) to NT orchestrator', () => {
     const employee = baseEmployee({
       statesOfService: ['NT'],
+      // 12-year tenure for NT to satisfy 10-yr qualifying period
+      startDate: asISODate('2014-05-22'),
     });
     const r = calculate(employee, asAtTrigger());
-    expect(r.status).toBe('blocked_cross_jurisdiction');
-    expect(r.warnings[0].message).toContain('NT');
+    expect(r.status).toBe('computed');
   });
 
   it('defaults to NSW when no governing and no states-of-service', () => {
@@ -138,14 +139,27 @@ describe('dispatch — calculateSafe', () => {
     expect(r.error?.code).toBe('cash_out_not_supported');
   });
 
-  it('blocks unshipped state without throwing', () => {
+  it('routes NT employee safely without throwing (Phase 9)', () => {
     const employee = baseEmployee({
       statesOfService: ['NT'],
       governingJurisdiction: 'NT',
+      startDate: asISODate('2014-05-22'),
     });
     expect(() => calculateSafe(employee, asAtTrigger())).not.toThrow();
     const r = calculateSafe(employee, asAtTrigger());
-    expect(r.status).toBe('blocked_cross_jurisdiction');
+    expect(r.status).toBe('computed');
+  });
+
+  it('NT cash_out returns failed Result with nt_cashout_forbidden_s10_4 (TBD-NT-08)', () => {
+    const employee = baseEmployee({
+      statesOfService: ['NT'],
+      governingJurisdiction: 'NT',
+      startDate: asISODate('2014-05-22'),
+    });
+    const trigger: Trigger = { kind: 'cash_out', cashOutDate: asISODate('2026-05-21') };
+    const r = calculateSafe(employee, trigger);
+    expect(r.status).toBe('failed');
+    expect(r.error?.code).toBe('nt_cashout_forbidden_s10_4');
   });
 
   it('VIC cash_out returns failed Result with vic_cashout_prohibited (TC-VIC-050 path)', () => {

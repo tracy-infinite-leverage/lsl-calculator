@@ -1,0 +1,47 @@
+{
+  "name": "TC-NT-001",
+  "title": "10 yrs FT taking 13 weeks LSL — full first NT entitlement (s.8)",
+  "source": "NT LSL Act 1981 s.8 — 13 wks at 10 yrs canonical entitlement. APA LSL Masterclass — NT. T9.1 smoke fixture per docs/qa/test-cases-nt.md v1.0 PM-signed 2026-05-27.",
+  "input": {
+    "employee": {
+      "id": "TC-NT-001",
+      "legalName": "AlexNT",
+      "startDate": "2016-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1900.00",
+      "wageHistory": [
+        {
+          "periodStart": "2016-05-27",
+          "periodEnd": "2026-05-27",
+          "grossPay": "988000.00",
+          "frequency": "weekly"
+        }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "taking_leave",
+      "leaveStartDate": "2026-06-01",
+      "leaveWeeks": 13
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1900.00",
+    "valueOfDay": "380.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.8", "rule": "accrual.qualifying-period-10yr-13wks" },
+      { "section": "NT LSL Act 1981 s.11", "rule": "ordinary-pay.fixed-rate" },
+      { "section": "NT LSL Act 1981 s.8", "rule": "trigger.taking-leave" },
+      { "section": "NT LSL Act 1981 s.9", "rule": "trigger.taking-leave.ph-inclusive-no-extension" }
+    ],
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_ph_inclusive_in_lsl"
+    ]
+  }
+}
