@@ -264,13 +264,18 @@ These three spikes resolve the only known technical unknowns. They must complete
 **Validates**: AC-AUTH-3a, AC-AUTH-4 (unverified redirect on login)
 
 **Acceptance Criteria**:
-- [ ] File is `src/proxy.ts` (NOT `src/middleware.ts` — the legacy name still works in Next.js 16 but is deprecated and Edge-only; new builds use `proxy.ts` on Node.js runtime). Exported function name is `proxy`.
-- [ ] Proxy uses the literal config `export const config = { matcher: ['/app/:path*'] }` — public calc routes (`/`, `/api/*`, `/privacy`, `/blog/*`, etc.) are NOT matched. **Without this explicit matcher, Next.js applies the proxy to every route and the public calc would break.**
-- [ ] Reads session via `supabase.auth.getUser()` server-side, **wrapped in try/catch**. On thrown error (Supabase Auth outage), redirect to `/app/login?error=service_unavailable` with a UI banner; never return a 500. **Do NOT substitute `getClaims()` — the JWT does not carry `email_confirmed_at`, and the unverified gate needs it.** (See plan Decisions Log entry from Task 1.1.)
-- [ ] If no session: redirects all non-public-auth routes to `/app/login`.
-- [ ] If session + `email_confirmed_at IS NULL`: redirects to `/app/verify-email` except the three allow-listed routes.
-- [ ] If session + verified: passes through.
-- [ ] Allow-list is the literal three routes from spec §7.5 — no wildcards or computed paths.
+- [x] File is `src/proxy.ts` (NOT `src/middleware.ts` — the legacy name still works in Next.js 16 but is deprecated and Edge-only; new builds use `proxy.ts` on Node.js runtime). Exported function name is `proxy`. → **Created at `website/src/proxy.ts`** exporting `async function proxy(request: NextRequest)`. `npm run build` confirms Next.js recognised it: the build summary now shows `ƒ Proxy (Middleware)` in the route table alongside the static + dynamic routes.
+- [x] Proxy uses the literal config `export const config = { matcher: ['/app/:path*'] }` — public calc routes (`/`, `/api/*`, `/privacy`, `/blog/*`, etc.) are NOT matched. **Without this explicit matcher, Next.js applies the proxy to every route and the public calc would break.** → **Matcher is literal** `['/app/:path*']`. Test "Matcher config" asserts the exact shape so any future drift fails CI.
+- [x] Reads session via `supabase.auth.getUser()` server-side, **wrapped in try/catch**. On thrown error (Supabase Auth outage), redirect to `/app/login?error=service_unavailable` with a UI banner; never return a 500. **Do NOT substitute `getClaims()` — the JWT does not carry `email_confirmed_at`, and the unverified gate needs it.** (See plan Decisions Log entry from Task 1.1.) → **Implemented.** The auth call is wrapped per dev-grill B3; tests "redirects to /app/login?error=service_unavailable on any path" + "never returns a 500 even when Supabase throws on /app/login itself" cover the outage branch.
+- [x] If no session: redirects all non-public-auth routes to `/app/login`. → **Implemented + 8 tests** covering all 5 public-auth pass-throughs (signup / login / forgot-password / reset-password / verify-email) and 3 redirect targets (`/app/foo`, `/app/`, `/app/account` — the last is critical since `/app/account` is on the *unverified* allow-list but NOT the public-auth list, so an unauthenticated visit must still redirect to login).
+- [x] If session + `email_confirmed_at IS NULL`: redirects to `/app/verify-email` except the three allow-listed routes. → **Implemented + 6 tests** covering the 3 allow-listed pass-throughs (verify-email / account / logout) and 3 redirect targets — including the edge case where a logged-in-but-unverified user hits `/app/signup` (the unverified branch wins; they get sent to verify-email, NOT through to signup).
+- [x] If session + verified: passes through. → **Implemented + 5 tests** covering `/app/`, `/app/foo`, `/app/account`, `/app/login`, `/app/anything`.
+- [x] Allow-list is the literal three routes from spec §7.5 — no wildcards or computed paths. → **Implemented as a frozen `Set<string>`** in `proxy.ts`: `'/app/verify-email'`, `'/app/account'`, `'/app/logout'`. Pattern matching is exact-string only (`Set.has(pathname)`).
+
+**Additional protections layered in:**
+- Cookie preservation on redirects — `redirectPreservingCookies()` copies any cookies the Supabase SSR client wrote during `getUser()` (e.g. refreshed access/refresh tokens) onto the redirect response, plus mirrors `Cache-Control` / `Pragma` / `Expires` headers. Without this, a token refresh that coincides with a proxy redirect would be silently lost and the user would bounce in a refresh loop. Two dedicated tests verify the preservation works for both auth-state redirects and the Supabase-outage redirect.
+
+**Test summary:** `website/src/proxy.test.ts` — **24 tests, all passing**, mocking the SSR helper at the module boundary. Full project test suite still green (1963 tests across 40 files). `npm run build` clean against Next.js 16.2.6 + Turbopack.
 
 **Effort**: M
 **Dependencies**: Task 5.1
