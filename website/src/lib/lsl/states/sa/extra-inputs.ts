@@ -88,4 +88,23 @@ export interface SAExtraInputs {
    * standard heuristic.
    */
   sa_seasonal_shutdown_justified?: boolean;
+
+  /**
+   * Number of weeks of LSL being cashed out under the s.5(1a) written
+   * agreement. Drives SA s.8(3a)(b) variation-top-up detection: the engine
+   * scans the wage history from `cashOutDate` through
+   * `cashOutDate + sa_cashed_out_weeks × 7 days` and emits the warning
+   * `sa_cashout_variation_topup_required` if the worker's ordinary weekly
+   * rate rises within that coverage window.
+   *
+   * Only consulted when `trigger.kind === 'cash_out'` AND the worker is
+   * post-10-yr (i.e. the cash-out is statutorily authorised). When omitted,
+   * the engine falls back to the full `accrual.payableWeeks` as the
+   * coverage period.
+   *
+   * NSW/VIC/QLD/WA/ACT/TAS/NT: ignored — SA is the only state with a
+   * statutory variation-top-up obligation on cash-out (LSL Act 1987
+   * s.8(3a)(b) is SA-unique).
+   */
+  sa_cashed_out_weeks?: number;
 }
