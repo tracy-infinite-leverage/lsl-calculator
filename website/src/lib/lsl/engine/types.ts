@@ -282,6 +282,7 @@ export interface Warning {
     | 'sa_cashout_post_accrual_advisory'
     | 'sa_cashout_pre_accrual_not_authorised'
     | 'sa_cashout_no_entitlement_to_cash_out'
+    | 'sa_cashout_variation_topup_required'
     | 'sa_lsl_calculated_at_wc_reduced_rate_warning'
     | 'sa_higher_duties_rate_applied'
     | 'sa_commission_52wk_lookback_applied'
