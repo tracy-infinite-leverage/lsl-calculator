@@ -1,0 +1,64 @@
+{
+  "name": "TC-NT-070",
+  "title": "5 yrs FT direct + 5 yrs related-corp = 10 yrs aggregated qualifies for full payout",
+  "source": "NT LSL Act 1981 s.12(6)/(7); TBD-NT-15 — related-corp service aggregation",
+  "input": {
+    "employee": {
+      "id": "TC-NT-070",
+      "startDate": "2021-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "nt_related_corporation_service_years": 5
+      }
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "payable",
+    "valueOfWeek": "1500.00",
+    "valueOfDay": "300.00",
+    "totalEntitlementWeeks": "13.0027",
+    "totalEntitlementDollars": "19504.00",
+    "expected_citations": [
+      {
+        "section": "NT LSL Act 1981 s.11",
+        "rule": "ordinary-pay.fixed-rate"
+      },
+      {
+        "section": "NT LSL Act 1981 s.12(6)",
+        "rule": "continuous-service.related-corporation-aggregation"
+      },
+      {
+        "section": "NT LSL Act 1981 s.8",
+        "rule": "accrual.qualifying-period-10yr-13wks"
+      },
+      {
+        "section": "NT LSL Act 1981 s.8",
+        "rule": "accrual.continuous-1.3-per-year"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10",
+        "rule": "termination.pay-as-soon-as-practicable"
+      }
+    ],
+    "warnings": [
+      "nt_related_corporation_service_aggregated",
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

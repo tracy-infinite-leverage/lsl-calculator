@@ -1,0 +1,46 @@
+{
+  "name": "TC-NT-052",
+  "title": "12 yrs FT 'back-pay' detected in wage note + flag true — included",
+  "source": "NT LSL Act 1981 s.7(2)(b); TBD-NT-07 — back-pay variant of bonus detection token",
+  "input": {
+    "employee": {
+      "id": "TC-NT-052",
+      "startDate": "2014-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [
+        {
+          "periodStart": "2025-05-28",
+          "periodEnd": "2026-05-27",
+          "grossPay": "88400",
+          "frequency": "weekly",
+          "note": "back-pay correction June 2025"
+        }
+      ],
+      "serviceEvents": [],
+      "extraInputs": {
+        "nt_bonus_usually_paid_with_pay": true
+      }
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_included",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

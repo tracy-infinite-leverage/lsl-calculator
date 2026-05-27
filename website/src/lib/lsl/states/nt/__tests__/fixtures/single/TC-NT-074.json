@@ -1,0 +1,37 @@
+{
+  "name": "TC-NT-074",
+  "title": "NT + NSW service, governing NT — engine computes with cross-jurisdiction advisory",
+  "source": "Cross-jurisdiction; governingJurisdiction = NT routes to NT engine",
+  "input": {
+    "employee": {
+      "id": "TC-NT-074",
+      "startDate": "2016-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT",
+        "NSW"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "warnings": [
+      "cross_jurisdiction_pending",
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

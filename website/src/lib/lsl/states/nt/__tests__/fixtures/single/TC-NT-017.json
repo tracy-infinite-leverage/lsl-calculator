@@ -1,0 +1,44 @@
+{
+  "name": "TC-NT-017",
+  "title": "8 yrs FT redundancy — qualifies under s.10(2) closed list",
+  "source": "NT LSL Act 1981 s.10(2); redundancy is employer-initiated-not-misconduct equivalent",
+  "input": {
+    "employee": {
+      "id": "TC-NT-017",
+      "startDate": "2018-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      {
+        "section": "NT LSL Act 1981 s.11",
+        "rule": "ordinary-pay.fixed-rate"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10(2)",
+        "rule": "accrual.7-to-10yr.redundancy-qualifies"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10",
+        "rule": "termination.pay-as-soon-as-practicable"
+      }
+    ]
+  }
+}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { ENCODED_STATES } from '@/lib/lsl/dispatch';
 import './globals.css';
 
 const geistSans = Geist({
@@ -14,14 +15,17 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+// Build the state list once at module load — sourced from `dispatch.ts` so the
+// list cannot drift from the engine registry. As of E2 Phase 9 all 8
+// states/territories are encoded, so there is no "coming soon" suffix.
+const STATE_LIST = ENCODED_STATES.join(', ');
+
 export const metadata: Metadata = {
   title: 'LSL Calculator',
-  description:
-    'Defensible long-service-leave calculator for Australian payroll. NSW, VIC, QLD, WA, SA, ACT, TAS available — NT coming soon. Every output is citation-backed to the source statute.',
+  description: `Defensible long-service-leave calculator for Australian payroll. ${STATE_LIST} — full Australian LSL coverage. Every output is citation-backed to the source statute.`,
   openGraph: {
     title: 'LSL Calculator',
-    description:
-      'Defensible long-service-leave calculator for Australian payroll. NSW, VIC, QLD, WA, SA, ACT, TAS available — NT coming soon.',
+    description: `Defensible long-service-leave calculator for Australian payroll. ${STATE_LIST} — full Australian LSL coverage.`,
     type: 'website',
   },
 };
