@@ -54,6 +54,33 @@ export function isStateEncoded(state: State): boolean {
 }
 
 /**
+ * The set of states whose UI is fully shipped (input wizard, warning-label maps,
+ * result-panel affordances, etc.).
+ *
+ * Decoupled from `ENCODED_STATES` to support multi-task state shipping: a state's
+ * engine can land in an earlier task while the surrounding UI lands in a later
+ * task (e.g. NT engine in T9.1, NT UI in T9.5). The state-picker dropdowns read
+ * from here so an engine-only state stays disabled and labelled "coming soon".
+ *
+ * Invariant: every entry must also be in `ENCODED_STATES`. When the trailing UI
+ * task ships, collapse this back to `ENCODED_STATES` and remove the indirection.
+ */
+export const UI_SHIPPED_STATES: ReadonlyArray<State> = [
+  'NSW',
+  'VIC',
+  'QLD',
+  'WA',
+  'SA',
+  'ACT',
+  'TAS',
+];
+
+/** Check whether a state's UI is fully shipped today. */
+export function isStateUIShipped(state: State): boolean {
+  return UI_SHIPPED_STATES.includes(state);
+}
+
+/**
  * Resolve the governing jurisdiction for an employee.
  *
  *   1. explicit `governingJurisdiction` (single-state nomination from the form)
