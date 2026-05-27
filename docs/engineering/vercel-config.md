@@ -43,6 +43,23 @@ Vercel charges the same for Sydney as US regions on Pro plans. Hobby/Free plans 
 - **GitHub integration / preview deploys.** Vercel's GitHub app handles that automatically once the project is connected.
 - **Build command override.** The default `npm run build` is correct.
 
+## Environment variables (Vercel dashboard)
+
+Recorded here per the global-engineering rule "Never modify environment variables in the Vercel dashboard without recording the change in the repo's env documentation."
+
+| Variable | Scope | Source | Notes |
+|---|---|---|---|
+| `ANTHROPIC_API_KEY` | Production, Preview | manual (no-retention tier key) | Powers `/api/extract-pdf` + `/api/normalize-csv`. Pre-launch guard at `docs/launch/LAUNCH-GUARD.md`. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production, Preview, Development | account-scoped Supabase MCP (`get_project_url` on project `woxtujkxatosbirikxtq`) | Public — RLS is the security boundary. Wired 2026-05-27 (Task 3.3). |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production, Preview, Development | account-scoped Supabase MCP (`get_publishable_keys`, legacy anon JWT) | Public — RLS is the security boundary. Wired 2026-05-27 (Task 3.3). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Production, Preview, Development | operator-controlled (`website/.env.local`, gitignored) | **Secret — server-side only.** Bypasses RLS. Used by `purge-expired-orgs` Edge Function and the `handle_new_user` `SECURITY DEFINER` trigger. Wired 2026-05-27 (Task 3.3). |
+
+Notes on the Supabase wiring (Task 3.3):
+
+- All three Supabase variables carry the same value across all three Vercel environments — no per-env Supabase project split in v1. Adding Development closes the local-`vercel dev` parity gap with no additional risk (Development scope is only consumed by explicit `vercel env pull` / `vercel dev`, never by deployed traffic).
+- Preview entries were written via the Vercel REST API (`POST /v10/projects/{id}/env` with `target: ["preview"]` and no `gitBranch`) because the v54.4.1 CLI's documented `--value --yes` non-interactive path for "all preview branches" still returned `action_required: git_branch_required`. The API path matches the CLI's own documented "all preview branches" semantics; future env wiring can either pin to a branch or use the REST path again until the CLI regression is fixed.
+- The service-role key value was never echoed in tool output, log files, or commits — handled via stdin / `--value` shell-variable indirection with sanitised log readback.
+
 ## Validation
 
 Vercel validates `vercel.json` on every deploy. The `$schema` directive in the file enables IDE autocompletion + warnings. A malformed config blocks the deploy with a clear error message; no separate test step is needed.
@@ -52,5 +69,6 @@ Vercel validates `vercel.json` on every deploy. The `$schema` directive in the f
 - [ ] Vercel production project on Pro plan (or Enterprise)
 - [ ] Production region confirmed as `syd1`
 - [ ] `ANTHROPIC_API_KEY` set in Production environment (no-retention tier key)
+- [x] `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` set in Production + Preview + Development (Task 3.3, wired 2026-05-27)
 - [x] Domain mapped to `www.lslcalculator.com.au` (live 2026-05-25)
 - [ ] Branch protection on `main` requires `test` + `playwright` CI checks (see `ci.md`)

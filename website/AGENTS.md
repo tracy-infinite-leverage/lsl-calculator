@@ -25,7 +25,7 @@ The LSL Platform (auth + tenancy + future data tables) runs on Supabase.
 
 ## Env vars
 
-Three vars are needed by the auth slice (E5.1). Placeholders live in `website/.env.example`; real values go in `.env.local` (gitignored) and in Vercel Production + Preview.
+Three vars are needed by the auth slice (E5.1). Placeholders live in `website/.env.example`; real values go in `.env.local` (gitignored) and in Vercel Production + Preview + Development — **wired on 2026-05-27 (Task 3.3)**. See `docs/engineering/vercel-config.md` for the full env-vars table.
 
 - `NEXT_PUBLIC_SUPABASE_URL` — public, the project API URL above.
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — public, RLS is the security boundary.
