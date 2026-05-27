@@ -227,27 +227,31 @@ The mapping UI presents the user with a fixed list of LSL buckets, grounded in t
 
 **Reading the table:** a code maps to a bucket once, at the org level. The "per-state treatment varies?" column documents what the engine layer does with that bucket under each state's law — the user does not need to know this when mapping. The engine resolves it at valuation time.
 
-| Bucket | What the user maps to it | Per-state treatment varies? |
-|---|---|---|
-| Ordinary time earnings | Base salary, regular wage for normal hours | No — ordinary pay everywhere |
-| Overtime — regular | Predictable, rostered overtime | **Yes** — counts as ordinary in WA + ACT for variable-hours employees, excluded elsewhere |
-| Overtime — ad-hoc | Unplanned overtime | No — excluded everywhere except WA s.7 if "regular" |
-| Penalty rates — shift / weekend / public-holiday loadings | Shift penalty, Saturday penalty, etc. | **Yes** — INCLUDED in QLD and TAS, excluded in NSW/VIC/WA/SA/ACT/NT |
-| Commission | Sales commission, results-based bonus | **Yes** — different averaging windows per state (NSW greater-of, QLD ÷ 52.179, TAS 3 months, WA 365 days) |
-| Bonus — discretionary | One-off discretionary bonus | **Yes** — included in NSW only below the $183,100 high-income threshold and only against a 4-criteria test; included in ACT/VIC if contractual; absolutely excluded in TAS (s.11(2)(h)) |
-| Bonus — contractual | Bonus payable under contract | **Yes** — generally included where contractual |
-| All-purpose allowance | Allowances absorbed into a single ordinary rate | **Yes** — included in TAS; treatment varies elsewhere |
-| Single-purpose allowance | Tool, vehicle, uniform, meal, travel allowance | Generally excluded across most states |
-| Casual loading | The 25% loading paid to casuals in lieu of leave entitlements | INCLUDED in all 8 jurisdictions where casuals get LSL |
-| Leave — annual | Annual leave taken | Treated as service, not pay |
-| Leave — personal/carer's | Sick / carer's leave taken | Treated as service, not pay |
-| Leave — long service | LSL already taken | Treated specially — extends accrual window in 6 jurisdictions, inclusive in SA + NT |
-| Leave — workers comp | Workers compensation absence | **Yes** — counts as service in some states but with date cutoffs (WA only from 1 Jul 2024; ACT only from 9 Jun 2023; NT does NOT count) |
-| Leave — unpaid parental | Unpaid parental leave | Generally does NOT count as service |
-| Leave — unpaid other | Other unpaid leave | Generally does NOT count |
-| Termination payment — LSL | LSL paid on termination | Subject of reconciliation (§5.7) |
-| Termination payment — other | Redundancy, notice, accrued AL paid out | Excluded from LSL ordinary pay |
-| Excluded — other | Anything the user wants to explicitly exclude | Excluded |
+**Per-trigger treatment also varies for some buckets.** The same bucket in the same state can produce a different contribution to the weekly value depending on whether the trigger is `taking_leave`, `termination_payout`, `as_at`, or `cash_out` — typically through a shift in averaging window (which 12-month or 5-year period is sampled), a different anchor date (entitlement date vs cessation date), or a wholesale method override (e.g. the VIC death-trigger 52-week rule per s.10(3)(b)). The user does not need to know which buckets behave this way — the engine resolves it at valuation time. The "per-trigger treatment varies?" column documents which buckets are affected so a future developer or auditor reading the spec is not misled into thinking treatment is a 1-D function of state alone.
+
+| Bucket | What the user maps to it | Per-state treatment varies? | Per-trigger treatment varies? |
+|---|---|---|---|
+| Ordinary time earnings | Base salary, regular wage for normal hours | No — ordinary pay everywhere | No |
+| Overtime — regular | Predictable, rostered overtime | **Yes** — counts as ordinary in WA + ACT for variable-hours employees, excluded elsewhere | **Yes** — ACT anchors the overtime-hours window at entitlement-date for `taking_leave` vs cessation-date for `termination_payout` (s.11A) |
+| Overtime — ad-hoc | Unplanned overtime | No — excluded everywhere except WA s.7 if "regular" | No |
+| Penalty rates — shift / weekend / public-holiday loadings | Shift penalty, Saturday penalty, etc. | **Yes** — INCLUDED in QLD and TAS, excluded in NSW/VIC/WA/SA/ACT/NT | No — included/excluded by state, not by trigger |
+| Commission | Sales commission, results-based bonus | **Yes** — different averaging windows per state (NSW greater-of, QLD ÷ 52.179, TAS 3 months, WA 365 days) | **Yes** — TAS anchors the 13-week (91-day) commission window at the trigger date itself; the window shifts between `taking_leave`, `as_at`, `cash_out`, and `termination_payout` (s.11(3)) |
+| Bonus — discretionary | One-off discretionary bonus | **Yes** — included in NSW only below the $183,100 high-income threshold and only against a 4-criteria test; included in ACT/VIC if contractual; absolutely excluded in TAS (s.11(2)(h)) | No — included/excluded by state, not by trigger |
+| Bonus — contractual | Bonus payable under contract | **Yes** — generally included where contractual | No |
+| All-purpose allowance | Allowances absorbed into a single ordinary rate | **Yes** — included in TAS; treatment varies elsewhere | No |
+| Single-purpose allowance | Tool, vehicle, uniform, meal, travel allowance | Generally excluded across most states | No |
+| Casual loading | The 25% loading paid to casuals in lieu of leave entitlements | INCLUDED in all 8 jurisdictions where casuals get LSL | **Yes (indirect)** — TAS s.11(6) + ACT s.11A hours-averaging selects `hoursLast12MonthsBeforeEntitlement` for `taking_leave` / `as_at` / `cash_out` vs `hoursLast12MonthsBeforeCessation` for `termination_payout` |
+| Leave — annual | Annual leave taken | Treated as service, not pay | No |
+| Leave — personal/carer's | Sick / carer's leave taken | Treated as service, not pay | No |
+| Leave — long service | LSL already taken | Treated specially — extends accrual window in 6 jurisdictions, inclusive in SA + NT | No |
+| Leave — workers comp | Workers compensation absence | **Yes** — counts as service in some states but with date cutoffs (WA only from 1 Jul 2024; ACT only from 9 Jun 2023; NT does NOT count) | No |
+| Leave — unpaid parental | Unpaid parental leave | Generally does NOT count as service | No |
+| Leave — unpaid other | Other unpaid leave | Generally does NOT count | No |
+| Termination payment — LSL | LSL paid on termination | Subject of reconciliation (§5.7) | N/A — output, not input |
+| Termination payment — other | Redundancy, notice, accrued AL paid out | Excluded from LSL ordinary pay | No |
+| Excluded — other | Anything the user wants to explicitly exclude | Excluded | No |
+
+**Method-level overrides (sit outside the bucket table).** In addition to the bucket-level per-trigger variances above, some triggers override the whole averaging method, not just one bucket's treatment. The known v1 case is the VIC death / illness-incapacity termination trigger (s.10(3)(b)) which switches the entire value-of-week calculation to a 52-week average immediately before death rather than the standard greater-of-12-months-or-5-years. This is method-level — every bucket inside the resulting window is sampled differently — so it is captured here rather than as a per-bucket row mark. AC5.5.1a (below) binds this regression to the existing engine fixtures.
 
 ---
 
@@ -310,6 +314,7 @@ These are the gates a sub-epic must pass to be marked Stage 4 · Tested.
 ### E5.5 · Valuations + Liability Reports
 
 - **AC5.5.1** A valuation request returns a result identical to the existing single-calc page when fed the same inputs through the persisted pipeline, validated against the existing engine test suites for all 6 live states. This is the load-bearing correctness test — any drift between the platform valuation and the stateless engine result is a Sev-1.
+- **AC5.5.1a** For every bucket flagged "per-trigger treatment varies" in §6, the platform valuation matches the existing engine's behaviour for **each applicable trigger** (`taking_leave`, `termination_payout`, `as_at`, `cash_out`). Verified by paired fixtures: identical employee + pay history + mapping, varying only the trigger; the platform output must equal the stateless engine output for each trigger value. The VIC death / illness-incapacity method override (s.10(3)(b)) is covered by the same paired-fixture rule. A failure on any one trigger in any one state is a Sev-1.
 - **AC5.5.2** Valuations are stored with full input snapshot, engine version, mapping version, and masterfile version.
 - **AC5.5.3** Re-running a stored valuation against current versions shows the diff if any value differs.
 - **AC5.5.4** Liability report at as-at date X for the whole org returns a row per employee with correct accrued_weeks, weekly_value, accrued_value_total, with citation block.
