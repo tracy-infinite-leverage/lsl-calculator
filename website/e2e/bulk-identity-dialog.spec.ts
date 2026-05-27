@@ -18,8 +18,9 @@ import { test, expect } from '@playwright/test';
  *   1. VIC option exists with the plain label "VIC" — no "(E2 …)" suffix,
  *      no "(coming soon)" suffix.
  *   2. NSW is similarly clean.
- *   3. At least one unshipped state still carries "(coming soon)" — proves
- *      we didn't accidentally strip the suffix from every option.
+ *   3. As of E2 Phase 9, all 8 states/territories have shipped — every option
+ *      now renders the plain state code with no "(coming soon)" suffix.
+ *      Historical: prior to NT shipping, NT was used as the canary.
  *
  * Lives alongside vic-mode.spec.ts (calculator engine routing) and
  * single-mode.spec.ts (NSW happy-path).
@@ -100,8 +101,18 @@ test.describe('Bulk-mode identity dialog state dropdown', () => {
     await expect(listbox.getByRole('option', { name: /^ACT$/ })).toBeVisible();
     await expect(listbox.getByRole('option', { name: /^ACT \(coming soon\)$/ })).toHaveCount(0);
 
-    // At least one unshipped state still carries "(coming soon)" — proves we
-    // didn't over-strip. NT is the next-to-ship and a safe canary.
-    await expect(listbox.getByRole('option', { name: /^NT \(coming soon\)$/ })).toBeVisible();
+    // TAS has shipped in Phase 8 — must NOT carry "(coming soon)".
+    await expect(listbox.getByRole('option', { name: /^TAS$/ })).toBeVisible();
+    await expect(listbox.getByRole('option', { name: /^TAS \(coming soon\)$/ })).toHaveCount(0);
+
+    // NT has shipped in Phase 9 — must NOT carry "(coming soon)".
+    // NT was the last "(coming soon)" canary; with NT shipped, all 8 options
+    // render as plain state codes.
+    await expect(listbox.getByRole('option', { name: /^NT$/ })).toBeVisible();
+    await expect(listbox.getByRole('option', { name: /^NT \(coming soon\)$/ })).toHaveCount(0);
+
+    // Reinforce step 3 of the assertion contract: no "(coming soon)" option
+    // remains anywhere in the listbox now that NT has shipped.
+    await expect(listbox.getByText(/\(coming soon\)/)).toHaveCount(0);
   });
 });

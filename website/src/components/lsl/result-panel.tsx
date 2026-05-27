@@ -131,6 +131,43 @@ const WARNING_LABELS: Record<string, { label: string; tone: 'info' | 'warning' }
   tas_10yr_plus_misconduct_full_payout: { label: 'TAS 10+ year misconduct — full payout (TAS does NOT mirror WA partial-forfeiture)', tone: 'info' },
   tas_single_day_lsl_on_ph_exclusive: { label: 'TAS single-day LSL on PH — engine emits advisory (calendar shift operator-handled in v1)', tone: 'info' },
   tas_12mo_window_upl_overlap_check_substitution: { label: 'TAS 12-month casual window — UPL overlaps; operator pre-substitutes per TBD-TAS-18', tone: 'info' },
+  // NT-specific (E2 Phase 9) — 32 advisories per `docs/qa/test-cases-nt.md` schema additions.
+  sub_7yr_no_entitlement_nt: { label: 'Sub-7-year tenure — no NT entitlement (s.10 universal floor)', tone: 'info' },
+  sub_10yr_no_qualifying_reason_nt: { label: 'NT 7-10-year — termination reason does not qualify under s.10(2)', tone: 'info' },
+  sub_10yr_misconduct_excluded_nt: { label: 'NT sub-10-year misconduct dismissal — pro-rata forfeited under s.10', tone: 'warning' },
+  nt_10yr_plus_misconduct_complete_blocks_only: { label: 'NT 10+ year misconduct — only complete 10y/15y blocks payable per s.10(1A) (NT-divergent)', tone: 'warning' },
+  nt_per_year_formula_applied: { label: 'NT per-year `RP × HWW × 1.3` summation applied per s.11(3)', tone: 'info' },
+  nt_per_year_hours_history_missing: { label: 'NT per-year hours history not supplied — flat single-year fallback applied', tone: 'warning' },
+  nt_per_year_hours_history_partial: { label: 'NT per-year hours history incomplete — missing years filled from current weekly gross', tone: 'warning' },
+  nt_workers_comp_excluded: { label: 'NT workers compensation absence excluded from service (s.12 — NT-divergent)', tone: 'info' },
+  nt_unpaid_maternity_excluded: { label: 'NT unpaid maternity leave excluded from service (s.12)', tone: 'info' },
+  nt_unpaid_sick_leave_excluded: { label: 'NT unpaid sick leave excluded from service (s.12)', tone: 'info' },
+  nt_leave_without_pay_excluded: { label: 'NT leave without pay excluded from service (s.12)', tone: 'info' },
+  nt_industrial_dispute_excluded: { label: 'NT worker-led industrial dispute time excluded from service (s.12)', tone: 'info' },
+  nt_ph_inclusive_in_lsl: { label: 'NT public holidays during LSL are part of LSL and do NOT extend the period (s.9 — NT-divergent, parallels SA)', tone: 'info' },
+  nt_retirement_qualifying_age_pension_age: { label: 'NT s.10(2) retirement gate uses Age Pension age (Cth SS Act 1991 s.23 — currently 67)', tone: 'info' },
+  // `nt_retirement_age_lookup_year_used` (spec line 209) is documented in the
+  // signed spec but not emitted by the v1 NT engine — `nt_retirement_qualifying
+  // _age_pension_age` covers the same surface. Engine instead emits
+  // `nt_casual_loading_assumed_included_in_hourly_rate` for casual/PT path
+  // assumptions (TC-NT-029).
+  nt_casual_loading_assumed_included_in_hourly_rate: { label: 'NT casual loading assumed pre-included in hourly rate (s.7 / s.11 — casual ordinary-pay assumption)', tone: 'info' },
+  nt_cashout_forbidden_s10_4: { label: 'NT cash-out FORBIDDEN under s.10(4) — engine refused cash_out trigger', tone: 'warning' },
+  nt_advance_leave_not_permitted: { label: 'NT leave in advance not permitted — sub-10-year taking leave returns $0', tone: 'warning' },
+  nt_payable_as_soon_as_practicable_advisory: { label: 'NT pay-on-termination — "as soon as practicable" per s.10 (indicative 14-day window)', tone: 'info' },
+  nt_bonus_usually_paid_with_pay_included: { label: 'NT bonus included in ordinary pay per s.7(2)(b) — broadest bonus-inclusion in Australia', tone: 'info' },
+  nt_bonus_usually_paid_with_pay_excluded: { label: 'NT bonus excluded from ordinary pay — operator did not confirm s.7(2)(b) "usually paid with pay"', tone: 'info' },
+  nt_board_lodging_included: { label: 'NT board and lodging cash value included per s.7(2)(c) (statutory fallback $15+$5/wk if unsupplied)', tone: 'info' },
+  nt_industry_leading_hand_skill_qualification_allowance_included: { label: 'NT industry / leading-hand / skill / qualification / service grant allowances included in ordinary pay (s.7(2))', tone: 'info' },
+  nt_district_site_climatic_allowance_excluded: { label: 'NT district / site / climatic allowances excluded from ordinary pay (s.7(2))', tone: 'info' },
+  nt_overtime_excluded: { label: 'NT overtime payments excluded from ordinary pay (s.7(2))', tone: 'info' },
+  nt_penalty_rates_excluded: { label: 'NT penalty rates excluded from ordinary pay (s.7(2))', tone: 'info' },
+  nt_casual_continuity_preserved_default: { label: 'NT casual continuity — permissive default applied (no statutory test in s.12)', tone: 'info' },
+  nt_casual_continuity_broken: { label: 'NT casual continuity broken — operator confirmed; pre-break service forfeited', tone: 'warning' },
+  nt_related_corporation_service_aggregated: { label: 'NT related-corporation service aggregated per s.12(6)/(7)', tone: 'info' },
+  transfer_of_business_continuity_preserved_nt: { label: 'NT transfer of business — service preserved (s.12(8)/(9))', tone: 'info' },
+  nt_apprentice_12mo_continuity_preserved: { label: 'NT apprentice → tradesperson re-employment within 12 months — continuity preserved (s.12(3))', tone: 'info' },
+  nt_lsl_calculated_at_wc_reduced_rate_warning: { label: 'NT LSL calculated at WC-reduced rate (defensive — NT WC normally does not count as service)', tone: 'warning' },
 };
 
 export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPanelProps) {
