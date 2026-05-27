@@ -20,10 +20,13 @@
   "expected": {
     "status": "computed",
     "payableIndicator": "payable",
+    "valueOfWeek": "1500.00",
+    "valueOfDay": "300.00",
+    "totalEntitlementWeeks": "16.9044",
+    "totalEntitlementDollars": "25356.67",
     "expected_citations": [
       { "section": "NT LSL Act 1981 s.12(6)", "rule": "continuous-service.related-corp-aggregated" }
     ],
-    "warnings": ["nt_related_corporation_service_aggregated"],
-    "_reconciliation_note": "valueOfWeek reflects per-year sum / aggregated-payable-weeks; with related-corp boost, real elapsed years (11) yield per-year buckets but accrual normalises across aggregated 13-yr payable weeks → valueOfWeek smaller than currentWeeklyGross. Reconciliation item — see T9.3 surface."
+    "warnings": ["nt_related_corporation_service_aggregated"]
   }
 }

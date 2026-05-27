@@ -360,6 +360,19 @@ export function valueOfWeekNT(
     : [];
   const perYearHistorySupplied = operatorHistory.length > 0;
 
+  // Related-corp aggregation (s.12(6)/(7) — TBD-NT-15): the service walker has
+  // already aggregated `nt_related_corporation_service_years` into the
+  // accrual's `effectiveYearsForPayout`, but the per-year sum here only covers
+  // PHYSICAL year buckets between `effectiveServiceStart` and `psd`. To make
+  // `valueOfWeek × payableWeeks` equal `currentWeeklyGross × aggregatedYears
+  // × 1.3` (the load-bearing dollar output), we append virtual full-tenure
+  // buckets representing the related-corp years at the rate-at-cessation. The
+  // 38 hr/wk and `currentWeeklyGross / 38` choices are display-only artefacts
+  // — only the dollar product is load-bearing (= currentWeeklyGross × 1.3 per
+  // virtual year). Reconciliation T9.3 Item 7 ruling 2026-05-27.
+  const relatedCorpYearsRaw = extras.nt_related_corporation_service_years ?? 0;
+  const relatedCorpYears = new Decimal(relatedCorpYearsRaw);
+
   // Determine the years-to-sum. The orchestrator passes context for the
   // misconduct branch; otherwise we use the elapsed years from effective
   // service start to psd.
@@ -381,6 +394,39 @@ export function valueOfWeekNT(
       yearsToSum,
       operatorHistory
     );
+
+    // Append related-corp virtual buckets up to the accrual headroom. Each
+    // virtual bucket is one full year at 38 hr/wk with rate
+    // `currentWeeklyGross / 38` → yearDollars = currentWeeklyGross × 1.3.
+    const physicalYearsSummed = Decimal.min(elapsedYears, yearsToSum);
+    const headroom = yearsToSum.minus(physicalYearsSummed);
+    const relatedYearsToAdd = Decimal.min(relatedCorpYears, headroom);
+    const wholeVirtualYears = relatedYearsToAdd.floor().toNumber();
+    if (wholeVirtualYears > 0) {
+      const RP_HOURLY = deriveHourlyRate(employee); // currentWeeklyGross / 38
+      const virtualHoursPerWeek = new Decimal(38);
+      const virtualYearDollars = RP_HOURLY.times(virtualHoursPerWeek).times(
+        NT_PER_YEAR_FACTOR
+      );
+      // Anchor virtual buckets to the day after the last physical bucket (or
+      // psd if no physical buckets existed). Dates are presentational only —
+      // the dollar product is load-bearing.
+      let virtualCursor: ISODate =
+        buckets.length > 0
+          ? addDaysISO(buckets[buckets.length - 1].yearEnd, 1)
+          : addDaysISO(psd, 1);
+      for (let i = 0; i < wholeVirtualYears; i++) {
+        const yearEnd = addDaysISO(virtualCursor, 364);
+        buckets.push({
+          yearStart: virtualCursor,
+          yearEnd,
+          hoursPerWeek: virtualHoursPerWeek,
+          yearDollars: virtualYearDollars,
+          source: 'fallback',
+        });
+        virtualCursor = addDaysISO(yearEnd, 1);
+      }
+    }
 
     if (buckets.length > 0) {
       let totalDollars = new Decimal(0);

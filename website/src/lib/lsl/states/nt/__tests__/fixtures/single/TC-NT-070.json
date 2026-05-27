@@ -20,10 +20,13 @@
   "expected": {
     "status": "computed",
     "payableIndicator": "payable",
+    "valueOfWeek": "1500.00",
+    "valueOfDay": "300.00",
+    "totalEntitlementWeeks": "13.0027",
+    "totalEntitlementDollars": "19504.00",
     "expected_citations": [
       { "section": "NT LSL Act 1981 s.12(6)", "rule": "continuous-service.related-corp-aggregated" }
     ],
-    "warnings": ["nt_related_corporation_service_aggregated"],
-    "_reconciliation_note": "Related-corp aggregation lifts years_of_continuous_service to 10 → qualifies for full 13-wk payout. valueOfWeek (per-year sum / aggregated payable weeks) is HALVED ($750.15) vs currentWeeklyGross ($1500.00) because per-year buckets cover only the physical 5 yrs but accrual normalises over 10 yrs. Engine arithmetic exact ($9754) but the surfaced per-week figure is counter-intuitive. PM ruling needed."
+    "warnings": ["nt_related_corporation_service_aggregated"]
   }
 }

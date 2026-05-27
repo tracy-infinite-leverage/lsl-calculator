@@ -36,7 +36,10 @@
   "expected": {
     "status": "computed",
     "payableIndicator": "payable",
-    "warnings": ["nt_per_year_formula_applied"],
-    "_reconciliation_note": "Per-year sum with varying 20/30/38 hr/wk produces blended valueOfWeek (~1789.51 from probe). Documents that varying-hours case correctly averages across buckets weighted by hours. NT-unique behaviour."
+    "valueOfWeek": "1789.51",
+    "valueOfDay": "357.90",
+    "totalEntitlementWeeks": "16.9027",
+    "totalEntitlementDollars": "30247.44",
+    "warnings": ["nt_per_year_formula_applied"]
   }
 }
