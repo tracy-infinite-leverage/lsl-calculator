@@ -179,74 +179,74 @@ These three spikes resolve the only known technical unknowns. They must complete
 **Dependencies**: Task 4.1
 **Assignee**: Developer
 
-### Task 4.4: Migration — `handle_new_user` trigger ✅ DONE (code) 2026-05-27 / ⏳ APPLY PENDING
+### Task 4.4: Migration — `handle_new_user` trigger ✅ DONE 2026-05-27
 
 **Description**: Create the `SECURITY DEFINER` function `public.handle_new_user()` and the `on_auth_user_created` trigger on `auth.users` insert per plan §2.2.4. Function inserts default-named org, admin membership, and audit-log row atomically. Validates AC-AUTH-1 and AC-AUTH-14 at the database layer.
 
-**Status:** SQL written at `website/supabase/migrations/20260527000004_handle_new_user_trigger.sql`. Verbatim per plan §2.2.4 — `SECURITY DEFINER`, `set search_path = public`, atomic three-insert body. **Not yet applied** — see HANDOFF-resume-phase-4-apply.md.
+**Status:** SQL at `website/supabase/migrations/20260527042647_handle_new_user_trigger.sql`. Applied to `lsl-platform` (version 20260527042647). Verbatim per plan §2.2.4 — `SECURITY DEFINER`, `set search_path = public`, atomic three-insert body. Migration 5 (`20260527042753_harden_phase4_functions.sql`) revokes EXECUTE from `public`, `anon`, and `authenticated` so the function is unreachable as a PostgREST RPC (clears advisor WARN 0028 + 0029). The trigger path still works because SECURITY DEFINER runs as the function owner, not the caller.
 
 **Acceptance Criteria**:
 - [x] Function created with `SECURITY DEFINER` and `set search_path = public`.
 - [x] Default org name derived as `split_part(email,'@',1) || '''s Organisation'`.
 - [x] Audit-log row inserted with `event_type = 'signup'` and `metadata.org_id` set.
 - [x] Trigger `on_auth_user_created` fires `AFTER INSERT ON auth.users`.
-- [ ] Behaviour confirmed by SQL test: insert a fake `auth.users` row, see 1 org + 1 member + 1 audit row. — **covered by Task 4.5 integration test**; verifies post-apply
+- [x] Behaviour confirmed by SQL test: insert a fake `auth.users` row, see 1 org + 1 member + 1 audit row. — verified by Task 4.5 integration test (3 cases passing live + in CI).
 - [x] Migrations are forward-only (no rollback DDL written). If 4.4 fails in production after 4.1–4.3 succeeded, the partial state (3 tables, no trigger) is a valid pre-Phase-5 state — Phase 5 cannot start until the trigger lands.
-- [ ] **Applied to remote `lsl-platform` project** — pending next session
+- [x] **Applied to remote `lsl-platform` project** — verified via `list_migrations`. Function is no longer callable as PostgREST RPC (REVOKE EXECUTE from public/anon/authenticated in migration 5).
 
 **Effort**: M
 **Dependencies**: Task 4.1, Task 4.2, Task 4.3, Task 1.2
 **Assignee**: Developer
 
-### Task 4.5: Integration test — signup trigger atomicity ✅ DONE (code) 2026-05-27 / ⏳ RUN PENDING
+### Task 4.5: Integration test — signup trigger atomicity ✅ DONE 2026-05-27
 
 **Description**: Vitest integration test against the remote `lsl-platform` Supabase project (DEV-AUTH-4 resolution). Asserts that creating an `auth.users` row produces exactly one `organisations` row, one `org_members` row with `role='admin'`, and one `auth_audit_log` row with `event_type='signup'`. Also asserts the org_members count tracks org count after multiple signups.
 
 **Validates**: AC-AUTH-1
 
-**Status:** Test written at `website/src/__tests__/auth/phase4-trigger-atomicity.test.ts` (3 test cases). Shared helpers at `website/src/__tests__/auth/_helpers.ts` load env via `@next/env`'s `loadEnvConfig`. Suite uses `describe.skipIf(!supabaseEnvConfigured())` for local-dev opt-out; hard-throws at module init when `CI === 'true'` AND env is missing. **Currently skipping locally** because `.env.local` Supabase keys are empty — runs once Tracy populates them or once CI secrets are wired.
+**Status:** Test at `website/src/__tests__/auth/phase4-trigger-atomicity.test.ts` (3 cases). Shared helpers at `website/src/__tests__/auth/_helpers.ts` load `.env.local` via a minimal inline parser — `@next/env`'s `loadEnvConfig` intentionally skips `.env.local` when `NODE_ENV === 'test'`, which silently disabled the suite under vitest until the loader was swapped. Suite uses `describe.skipIf(!supabaseEnvConfigured())` for local-dev opt-out; hard-throws at module init when `CI === 'true'` AND env is missing. All 3 cases run live + in CI.
 
 **Acceptance Criteria**:
 - [x] Test file in `website/src/__tests__/auth/` or equivalent.
-- [ ] Test passes against the remote `lsl-platform` Supabase project. — pending env-vars + migration-apply
+- [x] Test passes against the remote `lsl-platform` Supabase project.
 - [x] Test confirms invariant: `count(organisations) == count(org_members where role='admin')` after each signup.
-- [ ] Test runs in CI on every PR. — pending CI-secrets configuration
+- [x] Test runs in CI on every PR.
 
 **Effort**: M
 **Dependencies**: Task 4.4
 **Assignee**: Developer
 
-### Task 4.6: Integration test — cross-tenant RLS denial ✅ DONE (code) 2026-05-27 / ⏳ RUN PENDING
+### Task 4.6: Integration test — cross-tenant RLS denial ✅ DONE 2026-05-27
 
 **Description**: Vitest integration test. Creates two users in two orgs; asserts each can only read their own `organisations` and `org_members` rows; asserts every cross-tenant query returns zero rows.
 
 **Validates**: AC-AUTH-13
 
-**Status:** Test written at `website/src/__tests__/auth/phase4-cross-tenant-rls.test.ts` (4 test cases: symmetric A↔B reads, anonymous-cannot-read, authenticated-cannot-read-audit-log). Each test signs in via the anon client (subject to RLS) — the most realistic simulation of the production access path. **Currently skipping locally** until env vars are populated.
+**Status:** Test at `website/src/__tests__/auth/phase4-cross-tenant-rls.test.ts` (4 cases: symmetric A↔B reads, anonymous-cannot-read, authenticated-cannot-read-audit-log). Each test signs in via the anon client (subject to RLS) — the most realistic simulation of the production access path. All 4 cases run live + in CI; failure blocks merge per spec.
 
 **Acceptance Criteria**:
 - [x] Test creates user-A in org-A and user-B in org-B via signup flow.
 - [x] As user-A, `select * from organisations` returns exactly org-A.
 - [x] As user-A, `select * from organisations where id = '<org-B id>'` returns zero rows.
 - [x] Same assertions for `org_members`.
-- [ ] Test runs in CI on every PR. **Failure blocks merge.** — pending CI-secrets configuration
+- [x] Test runs in CI on every PR. **Failure blocks merge.**
 
 **Effort**: M
 **Dependencies**: Task 4.4
 **Assignee**: Developer
 
-### Task 4.7: Integration test — one-org-per-user UNIQUE [P] ✅ DONE (code) 2026-05-27 / ⏳ RUN PENDING
+### Task 4.7: Integration test — one-org-per-user UNIQUE [P] ✅ DONE 2026-05-27
 
 **Description**: Vitest integration test that attempts to insert a second `org_members` row for the same `user_id` and asserts a unique-constraint violation is raised.
 
 **Validates**: AC-AUTH-14
 
-**Status:** Test written at `website/src/__tests__/auth/phase4-unique-membership.test.ts` (2 test cases: rejected duplicate raises 23505, original trigger-created row remains intact post-rejection). The duplicate-insert path creates an independent test-only second org to prove the constraint is on `user_id` rather than on `(org_id, user_id)`. **Currently skipping locally** until env vars are populated.
+**Status:** Test at `website/src/__tests__/auth/phase4-unique-membership.test.ts` (2 cases: rejected duplicate raises 23505, original trigger-created row remains intact post-rejection). The duplicate-insert path creates an independent test-only second org to prove the constraint is on `user_id` rather than on `(org_id, user_id)`. All 2 cases run live + in CI.
 
 **Acceptance Criteria**:
 - [x] Test attempts second insert via service-role (bypassing RLS).
 - [x] PostgreSQL error code `23505` (unique_violation) is raised.
-- [ ] Test runs in CI on every PR. — pending CI-secrets configuration
+- [x] Test runs in CI on every PR.
 
 **Effort**: S
 **Dependencies**: Task 4.2
