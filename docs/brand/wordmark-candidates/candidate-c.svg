@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate C — Monogram + wordmark (most distinctive sub-brand identity)
+  Glyph:     "LSL" in a rounded gold square, white type — directly echoes the parent mark's "gold square head" (p.4)
+             positioned to the LEFT of the wordmark, mirroring how the APA logomark sits within the parent wordmark.
+  Primary:   "LSL Calculator"                       — Montserrat Semibold, navy #48608a
+  Secondary: "by Australian Payroll Association"   — Source Sans Pro Regular, navy #48608a
+  Posture:   Wordmark + glyph lockup. Most app-icon-friendly. Scales down to favicon naturally.
+             Strongest "sibling product" identity of the three.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 320" role="img" aria-label="LSL Calculator by Australian Payroll Association — Candidate C">
+  <defs>
+    <style><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Source+Sans+3:wght@400&display=swap');
+      .glyph    { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; fill: #ffffff; }
+      .primary  { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; fill: #48608a; }
+      .secondary{ font-family: 'Source Sans 3', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; font-weight: 400; fill: #48608a; }
+    ]]></style>
+  </defs>
+  <rect width="1300" height="320" fill="#ffffff"/>
+
+  <!-- Gold rounded-square glyph (mirrors parent mark's golden square head, p.4 — rounding matches p.10 app-icon corners) -->
+  <rect x="60" y="80" width="180" height="180" rx="28" ry="28" fill="#d9a428"/>
+  <text x="150" y="200" text-anchor="middle" class="glyph" font-size="78" letter-spacing="2">LSL</text>
+
+  <!-- Primary mark -->
+  <text x="290" y="175" class="primary" font-size="88" letter-spacing="-1.5">LSL Calculator</text>
+
+  <!-- Secondary mark -->
+  <text x="294" y="225" class="secondary" font-size="26" letter-spacing="0.4">by Australian Payroll Association</text>
+</svg>
