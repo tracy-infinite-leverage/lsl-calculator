@@ -8,13 +8,23 @@ this guard first. No exceptions.
 
 ## Hard gate — `ANTHROPIC_API_KEY` in Vercel Production env
 
+**STATUS 2026-05-27 — superseded by PDF Removal (see below).** The recommended path to clear this gate is no longer "add the key" — it is **delete the code that needs the key**. The operator has approved ripping the PDF ingestion path out of the platform entirely (sub-spec `.specify/features/005-lsl-platform/sub-specs/pdf-removal.md`). Once that lands, `ANTHROPIC_API_KEY` is no longer required in Vercel Production and this gate closes by elimination.
+
+Original gate text retained below for historical context until pdf-removal ships.
+
+---
+
+### Original gate (retained until pdf-removal ships)
+
 The Vercel production project (`lsl-calculator` on team
 `infiniteleverage-2`) exists but does NOT yet have an
 `ANTHROPIC_API_KEY` set in the Production environment. Without it,
 `/api/extract-pdf` and `/api/normalize-csv` will return 503 in
 production and customers can't use the PDF / auto-normalised-CSV paths.
 
-Before any merge to `main` that would deploy:
+**Preferred resolution (2026-05-27):** ship the pdf-removal sub-spec. Delete `/api/extract-pdf`, `/api/normalize-csv`, `website/src/lib/lsl/parsers/pdf/*`, `website/src/components/lsl/pdf-upload.tsx`, and `website/src/server/anthropic.ts`. Drop the `@anthropic-ai/sdk` dependency from `website/package.json`. With no consumer of `ANTHROPIC_API_KEY`, this gate is moot.
+
+**Fallback resolution (only if pdf-removal is deferred):** before any merge to `main` that would deploy:
 
 1. Get a production API key from https://console.anthropic.com (this
    key may be on Anthropic's standard tier — ZDR is a nice-to-have, not
