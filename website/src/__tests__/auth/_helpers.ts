@@ -13,13 +13,36 @@
 //   • NEXT_PUBLIC_SUPABASE_ANON_KEY  — anon key (used for RLS-as-user assertions)
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { loadEnvConfig } from '@next/env';
-import { resolve } from 'node:path';
 import { randomBytes } from 'node:crypto';
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-// Load .env.local at module-init using Next.js's own loader so vitest sees the
-// same values that `next dev` does. Idempotent — safe to call multiple times.
-loadEnvConfig(resolve(__dirname, '../../..'));
+// Load `.env.local` at module-init. We don't use `@next/env`'s loadEnvConfig
+// here because it intentionally skips `.env.local` when NODE_ENV === 'test'
+// (Next.js's convention to keep test runs deterministic), and vitest sets
+// NODE_ENV=test by default — silently leaving our Supabase keys unset.
+//
+// Instead, a minimal `.env.local` parser: KEY=VALUE per line, ignore comments
+// and blank lines, strip surrounding double-quotes only. We do NOT overwrite
+// values already present in process.env (CI secrets / shell exports win).
+const ENV_LOCAL_PATH = resolve(process.cwd(), '.env.local');
+if (existsSync(ENV_LOCAL_PATH)) {
+  const raw = readFileSync(ENV_LOCAL_PATH, 'utf8');
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if (value.startsWith('"') && value.endsWith('"')) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined || process.env[key] === '') {
+      process.env[key] = value;
+    }
+  }
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
