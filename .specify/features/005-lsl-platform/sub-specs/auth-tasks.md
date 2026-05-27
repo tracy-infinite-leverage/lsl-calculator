@@ -123,112 +123,130 @@ These three spikes resolve the only known technical unknowns. They must complete
 
 ## Phase 4: Schema, RLS, signup trigger
 
-### Task 4.1: Migration — `organisations` table + RLS
+### Task 4.1: Migration — `organisations` table + RLS ✅ DONE (code) 2026-05-27 / ⏳ APPLY PENDING
 
 **Description**: Create `public.organisations` per plan §2.2 with `id`, `name`, `created_at`, `updated_at`, `deleted_at`, `delete_scheduled_at`. Add `tg_set_updated_at()` helper and trigger. Enable RLS with the two read/update policies from plan §2.2.
 
+**Status:** SQL written at `website/supabase/migrations/20260527000001_create_organisations.sql`. RLS clauses use `(select auth.uid())` (performance-advisor-friendly form — see Decisions Log entry from 2026-05-27). **Not yet applied to the remote project** — pending the Supabase MCP rebind or manual dashboard apply (see HANDOFF-resume-phase-4-apply.md).
+
 **Acceptance Criteria**:
-- [ ] Migration file in `website/supabase/migrations/` follows Supabase naming convention.
-- [ ] Table created with all six columns and constraints from plan §2.2.1.
-- [ ] `tg_set_updated_at()` helper exists and trigger keeps `updated_at` current on row change.
-- [ ] RLS enabled.
-- [ ] Policies "members read own org" (SELECT) and "admin update own org" (UPDATE) installed.
-- [ ] No client-side INSERT or DELETE policy exists.
+- [x] Migration file in `website/supabase/migrations/` follows Supabase naming convention (`YYYYMMDDHHMMSS_<snake_case>.sql`).
+- [x] Table created with all six columns and constraints from plan §2.2.1.
+- [x] `tg_set_updated_at()` helper exists and trigger keeps `updated_at` current on row change.
+- [x] RLS enabled.
+- [x] Policies "members read own org" (SELECT) and "admin update own org" (UPDATE) installed.
+- [x] No client-side INSERT or DELETE policy exists.
+- [ ] **Applied to remote `lsl-platform` project** (verify via `mcp__supabase__list_tables(schemas=['public'])` after MCP rebind, or check dashboard). — pending next session
 
 **Effort**: S
 **Dependencies**: Task 3.1
 **Assignee**: Developer (uses Supabase MCP)
 
-### Task 4.2: Migration — `org_members` table + RLS [P]
+### Task 4.2: Migration — `org_members` table + RLS [P] ✅ DONE (code) 2026-05-27 / ⏳ APPLY PENDING
 
 **Description**: Create `public.org_members` per plan §2.2.2 with UNIQUE constraint on `user_id` (enforces one-org-per-user per spec OQ-4 / AC-AUTH-14). Enable RLS with the "members read own membership" policy.
 
+**Status:** SQL written at `website/supabase/migrations/20260527000002_create_org_members.sql`. Includes a supporting `org_members_org_id_idx` index on `org_id` (the FK on `user_id` is already covered by the UNIQUE constraint, so no separate index needed). RLS uses `(select auth.uid())`. **Not yet applied** — see HANDOFF-resume-phase-4-apply.md.
+
 **Acceptance Criteria**:
-- [ ] Table created with all seven columns and constraints from plan §2.2.2.
-- [ ] `UNIQUE(user_id)` constraint present.
-- [ ] FK to `auth.users(id) ON DELETE CASCADE` present.
-- [ ] FK to `public.organisations(id) ON DELETE CASCADE` present.
-- [ ] CHECK constraint on `role` allows only `('admin','payroll_user','read_only')`.
-- [ ] RLS enabled.
-- [ ] SELECT policy "members read own membership" installed.
-- [ ] No client-side INSERT/UPDATE/DELETE policy.
+- [x] Table created with all seven columns and constraints from plan §2.2.2.
+- [x] `UNIQUE(user_id)` constraint present.
+- [x] FK to `auth.users(id) ON DELETE CASCADE` present.
+- [x] FK to `public.organisations(id) ON DELETE CASCADE` present.
+- [x] CHECK constraint on `role` allows only `('admin','payroll_user','read_only')`.
+- [x] RLS enabled.
+- [x] SELECT policy "members read own membership" installed.
+- [x] No client-side INSERT/UPDATE/DELETE policy.
+- [ ] **Applied to remote `lsl-platform` project** — pending next session
 
 **Effort**: S
 **Dependencies**: Task 4.1
 **Assignee**: Developer
 
-### Task 4.3: Migration — `auth_audit_log` table [P]
+### Task 4.3: Migration — `auth_audit_log` table [P] ✅ DONE (code) 2026-05-27 / ⏳ APPLY PENDING
 
 **Description**: Create `public.auth_audit_log` per plan §2.2.3 with no public RLS policies (service-role-only).
 
+**Status:** SQL written at `website/supabase/migrations/20260527000003_create_auth_audit_log.sql`. Adds two helpful indexes (`auth_audit_log_user_id_idx`, `auth_audit_log_created_at_idx DESC`) for incident-response queries. **Not yet applied** — see HANDOFF-resume-phase-4-apply.md.
+
 **Acceptance Criteria**:
-- [ ] Table created with all seven columns from plan §2.2.3.
-- [ ] FK to `auth.users(id) ON DELETE SET NULL` (audit row survives user delete).
-- [ ] RLS enabled with no policies for `anon` or `authenticated` (only service-role can read/write).
+- [x] Table created with all seven columns from plan §2.2.3.
+- [x] FK to `auth.users(id) ON DELETE SET NULL` (audit row survives user delete).
+- [x] RLS enabled with no policies for `anon` or `authenticated` (only service-role can read/write).
+- [ ] **Applied to remote `lsl-platform` project** — pending next session
 
 **Effort**: S
 **Dependencies**: Task 4.1
 **Assignee**: Developer
 
-### Task 4.4: Migration — `handle_new_user` trigger
+### Task 4.4: Migration — `handle_new_user` trigger ✅ DONE (code) 2026-05-27 / ⏳ APPLY PENDING
 
 **Description**: Create the `SECURITY DEFINER` function `public.handle_new_user()` and the `on_auth_user_created` trigger on `auth.users` insert per plan §2.2.4. Function inserts default-named org, admin membership, and audit-log row atomically. Validates AC-AUTH-1 and AC-AUTH-14 at the database layer.
 
+**Status:** SQL written at `website/supabase/migrations/20260527000004_handle_new_user_trigger.sql`. Verbatim per plan §2.2.4 — `SECURITY DEFINER`, `set search_path = public`, atomic three-insert body. **Not yet applied** — see HANDOFF-resume-phase-4-apply.md.
+
 **Acceptance Criteria**:
-- [ ] Function created with `SECURITY DEFINER` and `set search_path = public`.
-- [ ] Default org name derived as `split_part(email,'@',1) || '''s Organisation'`.
-- [ ] Audit-log row inserted with `event_type = 'signup'` and `metadata.org_id` set.
-- [ ] Trigger `on_auth_user_created` fires `AFTER INSERT ON auth.users`.
-- [ ] Behaviour confirmed by SQL test: insert a fake `auth.users` row, see 1 org + 1 member + 1 audit row.
-- [ ] Migrations are forward-only (no rollback DDL written). If 4.4 fails in production after 4.1–4.3 succeeded, the partial state (3 tables, no trigger) is a valid pre-Phase-5 state — Phase 5 cannot start until the trigger lands.
+- [x] Function created with `SECURITY DEFINER` and `set search_path = public`.
+- [x] Default org name derived as `split_part(email,'@',1) || '''s Organisation'`.
+- [x] Audit-log row inserted with `event_type = 'signup'` and `metadata.org_id` set.
+- [x] Trigger `on_auth_user_created` fires `AFTER INSERT ON auth.users`.
+- [ ] Behaviour confirmed by SQL test: insert a fake `auth.users` row, see 1 org + 1 member + 1 audit row. — **covered by Task 4.5 integration test**; verifies post-apply
+- [x] Migrations are forward-only (no rollback DDL written). If 4.4 fails in production after 4.1–4.3 succeeded, the partial state (3 tables, no trigger) is a valid pre-Phase-5 state — Phase 5 cannot start until the trigger lands.
+- [ ] **Applied to remote `lsl-platform` project** — pending next session
 
 **Effort**: M
 **Dependencies**: Task 4.1, Task 4.2, Task 4.3, Task 1.2
 **Assignee**: Developer
 
-### Task 4.5: Integration test — signup trigger atomicity
+### Task 4.5: Integration test — signup trigger atomicity ✅ DONE (code) 2026-05-27 / ⏳ RUN PENDING
 
-**Description**: Vitest integration test against a local `supabase start` instance. Asserts that creating an `auth.users` row produces exactly one `organisations` row, one `org_members` row with `role='admin'`, and one `auth_audit_log` row with `event_type='signup'`. Also asserts the org_members count tracks org count after multiple signups.
+**Description**: Vitest integration test against the remote `lsl-platform` Supabase project (DEV-AUTH-4 resolution). Asserts that creating an `auth.users` row produces exactly one `organisations` row, one `org_members` row with `role='admin'`, and one `auth_audit_log` row with `event_type='signup'`. Also asserts the org_members count tracks org count after multiple signups.
 
 **Validates**: AC-AUTH-1
 
+**Status:** Test written at `website/src/__tests__/auth/phase4-trigger-atomicity.test.ts` (3 test cases). Shared helpers at `website/src/__tests__/auth/_helpers.ts` load env via `@next/env`'s `loadEnvConfig`. Suite uses `describe.skipIf(!supabaseEnvConfigured())` for local-dev opt-out; hard-throws at module init when `CI === 'true'` AND env is missing. **Currently skipping locally** because `.env.local` Supabase keys are empty — runs once Tracy populates them or once CI secrets are wired.
+
 **Acceptance Criteria**:
-- [ ] Test file in `website/src/__tests__/auth/` or equivalent.
-- [ ] Test passes against ephemeral local Supabase.
-- [ ] Test confirms invariant: `count(organisations) == count(org_members where role='admin')` after each signup.
-- [ ] Test runs in CI on every PR.
+- [x] Test file in `website/src/__tests__/auth/` or equivalent.
+- [ ] Test passes against the remote `lsl-platform` Supabase project. — pending env-vars + migration-apply
+- [x] Test confirms invariant: `count(organisations) == count(org_members where role='admin')` after each signup.
+- [ ] Test runs in CI on every PR. — pending CI-secrets configuration
 
 **Effort**: M
 **Dependencies**: Task 4.4
 **Assignee**: Developer
 
-### Task 4.6: Integration test — cross-tenant RLS denial
+### Task 4.6: Integration test — cross-tenant RLS denial ✅ DONE (code) 2026-05-27 / ⏳ RUN PENDING
 
 **Description**: Vitest integration test. Creates two users in two orgs; asserts each can only read their own `organisations` and `org_members` rows; asserts every cross-tenant query returns zero rows.
 
 **Validates**: AC-AUTH-13
 
+**Status:** Test written at `website/src/__tests__/auth/phase4-cross-tenant-rls.test.ts` (4 test cases: symmetric A↔B reads, anonymous-cannot-read, authenticated-cannot-read-audit-log). Each test signs in via the anon client (subject to RLS) — the most realistic simulation of the production access path. **Currently skipping locally** until env vars are populated.
+
 **Acceptance Criteria**:
-- [ ] Test creates user-A in org-A and user-B in org-B via signup flow.
-- [ ] As user-A, `select * from organisations` returns exactly org-A.
-- [ ] As user-A, `select * from organisations where id = '<org-B id>'` returns zero rows.
-- [ ] Same assertions for `org_members`.
-- [ ] Test runs in CI on every PR. **Failure blocks merge.**
+- [x] Test creates user-A in org-A and user-B in org-B via signup flow.
+- [x] As user-A, `select * from organisations` returns exactly org-A.
+- [x] As user-A, `select * from organisations where id = '<org-B id>'` returns zero rows.
+- [x] Same assertions for `org_members`.
+- [ ] Test runs in CI on every PR. **Failure blocks merge.** — pending CI-secrets configuration
 
 **Effort**: M
 **Dependencies**: Task 4.4
 **Assignee**: Developer
 
-### Task 4.7: Integration test — one-org-per-user UNIQUE [P]
+### Task 4.7: Integration test — one-org-per-user UNIQUE [P] ✅ DONE (code) 2026-05-27 / ⏳ RUN PENDING
 
 **Description**: Vitest integration test that attempts to insert a second `org_members` row for the same `user_id` and asserts a unique-constraint violation is raised.
 
 **Validates**: AC-AUTH-14
 
+**Status:** Test written at `website/src/__tests__/auth/phase4-unique-membership.test.ts` (2 test cases: rejected duplicate raises 23505, original trigger-created row remains intact post-rejection). The duplicate-insert path creates an independent test-only second org to prove the constraint is on `user_id` rather than on `(org_id, user_id)`. **Currently skipping locally** until env vars are populated.
+
 **Acceptance Criteria**:
-- [ ] Test attempts second insert via service-role (bypassing RLS).
-- [ ] PostgreSQL error code `23505` (unique_violation) is raised.
-- [ ] Test runs in CI on every PR.
+- [x] Test attempts second insert via service-role (bypassing RLS).
+- [x] PostgreSQL error code `23505` (unique_violation) is raised.
+- [ ] Test runs in CI on every PR. — pending CI-secrets configuration
 
 **Effort**: S
 **Dependencies**: Task 4.2
