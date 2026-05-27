@@ -275,7 +275,7 @@ These three spikes resolve the only known technical unknowns. They must complete
 - Wrap the `getUser()` call in try/catch per dev-grill amendment B3; on thrown error, redirect to `/app/login?error=service_unavailable`.
 - Return `getResponse()` instead of a fresh `NextResponse.next()` so refresh-token cookies + cache-control headers land on the outgoing response.
 
-### Task 5.2: Proxy — unverified-session gate (Next.js 16 `proxy.ts`)
+### Task 5.2: Proxy — unverified-session gate (Next.js 16 `proxy.ts`) ✅ DONE 2026-05-26
 
 **Description**: Create `src/proxy.ts` enforcing plan §2.3 contract. Exported function is `proxy` (Next.js 16 renamed `middleware` → `proxy`; runtime is Node.js). Matches on `/app/*`. Three allow-listed routes for unverified users: `/app/verify-email`, `/app/account`, `/app/logout`. All other `/app/*` redirects unverified to `/app/verify-email`. Unauthenticated users redirect to `/app/login` (except public auth routes).
 
