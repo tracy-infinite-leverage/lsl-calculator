@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: website/package-lock.json
 
@@ -45,7 +45,17 @@ jobs:
       - name: TypeScript
         run: npx tsc --noEmit
 
-      - name: Vitest (gold-standard suite + unit tests)
+      - name: Vitest (gold-standard suite + unit tests + Phase 4 auth integration)
+        # The three Supabase env vars below are required by the Phase 4 auth
+        # integration suites at website/src/__tests__/auth/ — they hit the
+        # `lsl-platform` Supabase project to verify AC-AUTH-1 / AC-AUTH-13 /
+        # AC-AUTH-14. Without them, the suites hard-fail at module init in
+        # CI (CI=true is set by GitHub Actions by default) so a misconfigured
+        # CI never silently passes the load-bearing cross-tenant RLS test.
+        env:
+          NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npx vitest run
 
       - name: Build
@@ -76,7 +86,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: website/package-lock.json
 
@@ -133,7 +143,7 @@ jobs:
         if: steps.filter.outputs.engine_touched == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: website/package-lock.json
 
@@ -192,7 +202,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: website/package-lock.json
 
