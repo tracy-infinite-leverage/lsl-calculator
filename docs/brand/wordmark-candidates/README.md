@@ -1,5 +1,18 @@
 # LSL Calculator — Sub-Brand Wordmark Candidates (E6.1 / Task 1.2)
 
+> ## ✅ DECISION: Candidate B — APPROVED
+>
+> **Approved by:** Tracy Angwin (operator)
+> **Approved on:** 2026-05-28
+> **Rationale:** Best fit for a product whose primary deliverable is formal PDF reports for CFOs and boards. The gold accent rule abstractly references the parent APA gold-square head per Brand Guidelines p.4 without literally copying the parent logomark — exactly the right "sibling, not copy" posture for OQ-1.
+>
+> **Downstream impact:**
+> - Task 1.3 (icon direction) executes against Candidate B's hint: **navy icons with selective gold accents**, app icon = navy field with small gold mark (echoing parent's gold-square-on-blue composition from p.10).
+> - Task 1.4 (final asset production) renders Candidate B's SVG as the master, with 1×/2×/3× PNGs, favicon set, monochrome variant, and white-on-navy variant.
+> - Candidates A and C are kept in this folder for traceability but are NOT used downstream.
+
+---
+
 Three candidate wordmarks for **"LSL Calculator by Australian Payroll Association"** — produced 2026-05-28 by the designer agent for operator review.
 
 All three honour the locked constraints from spec v0.4 (§5.1, §7.6, §8.1, §11 R-3) and the parent APA Brand Guidelines v2 (copied to `docs/brand/apa-brand-source.pdf`):
