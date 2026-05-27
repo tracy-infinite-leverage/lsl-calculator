@@ -135,7 +135,7 @@
     "trigger": { "kind": "as_at", "asAtDate": "2026-05-26" }
   },
   "expected": {
-    "summary": { "computed": 9, "blocked": 1, "failed": 0 },
+    "summary": { "computed": 10, "blocked": 0, "failed": 0 },
     "rowStatuses": {
       "NVQWSAT01": "computed",
       "NVQWSAT02": "computed",
@@ -146,7 +146,7 @@
       "NVQWSAT07": "computed",
       "NVQWSAT08": "computed",
       "NVQWSAT09": "computed",
-      "NVQWSAT10": "blocked_cross_jurisdiction"
+      "NVQWSAT10": "computed"
     }
   }
 }
