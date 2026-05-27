@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Calculator, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Calculator, RotateCcw, AlertTriangle, Plus, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,6 +33,7 @@ import {
   TERMINATION_INITIATOR_OPTIONS,
   TERMINATION_REASON_OPTIONS,
   type FormState,
+  type NTHoursPerWeekByYearDraft,
 } from './types';
 import {
   formToEngine,
@@ -83,6 +84,39 @@ export function SingleModeForm() {
         return `Gross ordinary pay per the governing jurisdiction's LSL Act. ${baseSuffix}`;
     }
   })();
+
+  // NT per-year hours-per-week dynamic list helpers (E2 Phase 9 / T9.5).
+  function addNtHoursRow() {
+    const row: NTHoursPerWeekByYearDraft = {
+      id: `nt-hpw-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      yearStart: '',
+      yearEnd: '',
+      hoursPerWeek: '',
+    };
+    setState((s) => ({
+      ...s,
+      nt_hours_per_week_by_year: [...s.nt_hours_per_week_by_year, row],
+    }));
+  }
+  function updateNtHoursRow(
+    id: string,
+    patch: Partial<NTHoursPerWeekByYearDraft>
+  ) {
+    setState((s) => ({
+      ...s,
+      nt_hours_per_week_by_year: s.nt_hours_per_week_by_year.map((r) =>
+        r.id === id ? { ...r, ...patch } : r
+      ),
+    }));
+  }
+  function removeNtHoursRow(id: string) {
+    setState((s) => ({
+      ...s,
+      nt_hours_per_week_by_year: s.nt_hours_per_week_by_year.filter(
+        (r) => r.id !== id
+      ),
+    }));
+  }
 
   function toggleState(s: State) {
     setState((cur) => {
@@ -612,6 +646,268 @@ export function SingleModeForm() {
                   <span className="block text-xs text-muted-foreground">
                     Confers the s.5 6-month re-employment tolerance. Default
                     is the standard 3-month tolerance.
+                  </span>
+                </span>
+              </label>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* NT-conditional extra-inputs card (E2 Phase 9 / T9.5).
+          Renders only when NT is in scope. The NT engine consumes 7 `nt_*`
+          keys from `extraInputs`; other state engines ignore every field here
+          entirely. Each field maps 1:1 to a key documented in
+          website/src/lib/lsl/states/nt/extra-inputs.ts. */}
+      {(state.statesOfService.includes('NT') ||
+        state.governingJurisdiction === 'NT') && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Northern Territory-specific inputs</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-xs text-muted-foreground">
+              NT-specific signals used by the NT LSL Act 1981 engine. Each
+              field is optional — supply only those that apply. Empty values
+              fall back to the documented permissive defaults.
+            </p>
+
+            {/* Per-year hours-per-week history — TBD-NT-01 load-bearing.
+                Dynamic add-row pattern matching ContinuousServiceList. Each row
+                = 2 date pickers + 1 hours/wk number. Empty array allowed —
+                engine falls back to single-year flat path with
+                `nt_per_year_hours_history_missing`. */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Per-year hours-per-week history (s.11(3) — NT UNIQUE)
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Hours per week worked during each completed year of service.
+                Used by the per-year <code>RP × HWW × 1.3</code> formula. Leave
+                empty to fall back to a single-year flat calculation using
+                <em> Current weekly gross pay</em> above.
+              </p>
+              {state.nt_hours_per_week_by_year.length > 0 && (
+                <div className="space-y-2">
+                  {state.nt_hours_per_week_by_year.map((row, i) => (
+                    <div
+                      key={row.id}
+                      className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto] items-end rounded-md border p-3 bg-muted/30"
+                    >
+                      <Field
+                        label="Year start"
+                        htmlFor={`nt-hpw-start-${row.id}`}
+                      >
+                        <Input
+                          id={`nt-hpw-start-${row.id}`}
+                          type="date"
+                          value={row.yearStart}
+                          onChange={(e) =>
+                            updateNtHoursRow(row.id, {
+                              yearStart: e.target.value,
+                            })
+                          }
+                        />
+                      </Field>
+                      <Field
+                        label="Year end"
+                        htmlFor={`nt-hpw-end-${row.id}`}
+                      >
+                        <Input
+                          id={`nt-hpw-end-${row.id}`}
+                          type="date"
+                          value={row.yearEnd}
+                          onChange={(e) =>
+                            updateNtHoursRow(row.id, {
+                              yearEnd: e.target.value,
+                            })
+                          }
+                        />
+                      </Field>
+                      <Field
+                        label="Hours per week"
+                        htmlFor={`nt-hpw-hours-${row.id}`}
+                      >
+                        <Input
+                          id={`nt-hpw-hours-${row.id}`}
+                          type="number"
+                          step="0.01"
+                          inputMode="decimal"
+                          placeholder="e.g. 38"
+                          value={row.hoursPerWeek}
+                          onChange={(e) =>
+                            updateNtHoursRow(row.id, {
+                              hoursPerWeek: e.target.value,
+                            })
+                          }
+                        />
+                      </Field>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeNtHoursRow(row.id)}
+                        aria-label={`Remove year ${i + 1}`}
+                        className="mb-1"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addNtHoursRow}
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add year
+              </Button>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="Board / lodging cash value (AUD per week)"
+                htmlFor="nt_board_lodging_cash_value_weekly"
+                hint="Weekly cash value of board/lodging provided per s.7(2)(c). Leave empty to use the NT statutory fallback ($15/wk board + $5/wk lodging)."
+              >
+                <Input
+                  id="nt_board_lodging_cash_value_weekly"
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={state.nt_board_lodging_cash_value_weekly}
+                  onChange={(e) =>
+                    update('nt_board_lodging_cash_value_weekly', e.target.value)
+                  }
+                />
+              </Field>
+              <Field
+                label="Related-corporation service (years)"
+                htmlFor="nt_related_corporation_service_years"
+                hint="Additional years of service with related corporations per s.12(6)/(7). Added to continuous-service total."
+              >
+                <Input
+                  id="nt_related_corporation_service_years"
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={state.nt_related_corporation_service_years}
+                  onChange={(e) =>
+                    update(
+                      'nt_related_corporation_service_years',
+                      e.target.value
+                    )
+                  }
+                />
+              </Field>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="nt_casual_continuity_preserved"
+                className="text-sm font-medium"
+              >
+                Casual continuity (s.12)
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                The NT Act has no specific casual-continuity test. Leave on
+                <em> auto</em> for the permissive default (continuity
+                preserved). Override only when you have a defensible reason.
+              </p>
+              <RadioGroup
+                id="nt_casual_continuity_preserved"
+                value={state.nt_casual_continuity_preserved || 'auto'}
+                onValueChange={(v: string) =>
+                  update(
+                    'nt_casual_continuity_preserved',
+                    v === 'auto' ? '' : (v as '' | 'true' | 'false')
+                  )
+                }
+                className="flex flex-col gap-2"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem
+                    value="auto"
+                    id="nt_casual_continuity_preserved-auto"
+                  />
+                  <Label htmlFor="nt_casual_continuity_preserved-auto">
+                    Auto (permissive default — continuity preserved)
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem
+                    value="true"
+                    id="nt_casual_continuity_preserved-true"
+                  />
+                  <Label htmlFor="nt_casual_continuity_preserved-true">
+                    Continuity preserved (operator confirmed)
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem
+                    value="false"
+                    id="nt_casual_continuity_preserved-false"
+                  />
+                  <Label htmlFor="nt_casual_continuity_preserved-false">
+                    Continuity broken (pre-break service forfeited)
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={state.nt_age_pension_age_at_termination_reached}
+                  onCheckedChange={(v: boolean | 'indeterminate') =>
+                    update(
+                      'nt_age_pension_age_at_termination_reached',
+                      Boolean(v)
+                    )
+                  }
+                />
+                <span>
+                  Age Pension age reached at termination
+                  <span className="block text-xs text-muted-foreground">
+                    Operator override for the s.10(2) retirement-age gate when
+                    employee DOB is unavailable. Bypasses the Cth SS Act 1991
+                    s.23 lookup (currently 67).
+                  </span>
+                </span>
+              </label>
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={state.nt_bonus_usually_paid_with_pay}
+                  onCheckedChange={(v: boolean | 'indeterminate') =>
+                    update('nt_bonus_usually_paid_with_pay', Boolean(v))
+                  }
+                />
+                <span>
+                  Bonus usually paid with pay (s.7(2)(b) inclusion)
+                  <span className="block text-xs text-muted-foreground">
+                    NT has the broadest bonus-inclusion rule of any Australian
+                    state. Tick only if bonuses are usually paid with the
+                    regular pay.
+                  </span>
+                </span>
+              </label>
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={state.nt_employer_initiated_dismissal}
+                  onCheckedChange={(v: boolean | 'indeterminate') =>
+                    update('nt_employer_initiated_dismissal', Boolean(v))
+                  }
+                />
+                <span>
+                  Employer-initiated dismissal (s.10(2) qualifying reason)
+                  <span className="block text-xs text-muted-foreground">
+                    When ticked AND the termination reason is not misconduct,
+                    the s.10(2) retirement-age gate is bypassed via the
+                    employer-not-misconduct path.
                   </span>
                 </span>
               </label>

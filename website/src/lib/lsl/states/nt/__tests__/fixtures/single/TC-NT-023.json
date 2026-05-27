@@ -1,0 +1,50 @@
+{
+  "name": "TC-NT-023",
+  "title": "9.5 yrs FT serious misconduct — sub-10, $0 forfeited",
+  "source": "NT LSL Act 1981 s.10 — sub-10-yr misconduct forfeiture",
+  "input": {
+    "employee": {
+      "id": "TC-NT-023",
+      "startDate": "2016-11-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "serious_misconduct"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "expected_citations": [
+      {
+        "section": "NT LSL Act 1981 s.11",
+        "rule": "ordinary-pay.fixed-rate"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10(2)",
+        "rule": "accrual.7-to-10yr.serious-misconduct-excluded"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10",
+        "rule": "termination.pay-as-soon-as-practicable"
+      }
+    ],
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "sub_10yr_misconduct_excluded_nt",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

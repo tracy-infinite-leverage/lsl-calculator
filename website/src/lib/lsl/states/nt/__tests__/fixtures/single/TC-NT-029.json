@@ -1,0 +1,39 @@
+{
+  "name": "TC-NT-029",
+  "title": "9 yrs casual continuity confirmed by operator — qualifies",
+  "source": "NT LSL Act 1981 s.12; TBD-NT-03 operator-flag-based casual continuity",
+  "input": {
+    "employee": {
+      "id": "TC-NT-029",
+      "startDate": "2017-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "casual",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1200.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "nt_casual_continuity_preserved": true
+      }
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "illness_incapacity"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1200.00",
+    "payableIndicator": "payable",
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_casual_loading_assumed_included_in_hourly_rate",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

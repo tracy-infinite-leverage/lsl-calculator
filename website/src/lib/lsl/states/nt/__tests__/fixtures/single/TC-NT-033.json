@@ -1,0 +1,63 @@
+{
+  "name": "TC-NT-033",
+  "title": "11 yrs FT with transfer-of-business event — continuity preserved",
+  "source": "NT LSL Act 1981 s.12(8)/(9) — transfer-of-business preserves continuity",
+  "input": {
+    "employee": {
+      "id": "TC-NT-033",
+      "startDate": "2015-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": [
+        {
+          "type": "transfer_of_business",
+          "startDate": "2020-06-01"
+        }
+      ]
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      {
+        "section": "NT LSL Act 1981 s.11",
+        "rule": "ordinary-pay.fixed-rate"
+      },
+      {
+        "section": "NT LSL Act 1981 s.12(8)",
+        "rule": "continuous-service.transfer-of-business-preserves"
+      },
+      {
+        "section": "NT LSL Act 1981 s.8",
+        "rule": "accrual.qualifying-period-10yr-13wks"
+      },
+      {
+        "section": "NT LSL Act 1981 s.8",
+        "rule": "accrual.continuous-1.3-per-year"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10",
+        "rule": "termination.pay-as-soon-as-practicable"
+      }
+    ],
+    "warnings": [
+      "transfer_of_business_continuity_preserved_nt",
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

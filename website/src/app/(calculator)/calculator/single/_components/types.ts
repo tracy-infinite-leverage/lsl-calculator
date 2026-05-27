@@ -106,6 +106,36 @@ export interface FormState {
   tas_casual_continuity_break_date: string;
   tas_employee_in_northern_tas: boolean;
   tas_slackness_return_within_14_days: boolean;
+
+  /**
+   * NT-specific extra-inputs (E2 Phase 9 / T9.5). Surfaced in the single-mode
+   * form ONLY when `statesOfService` includes / `governingJurisdiction` equals
+   * `'NT'`. Empty strings / false / `''` tri-state defaults map to omitted
+   * engine fields. Other state engines ignore every key here entirely.
+   *
+   * See `website/src/lib/lsl/states/nt/extra-inputs.ts` for engine-side docs
+   * on each key.
+   */
+  nt_hours_per_week_by_year: NTHoursPerWeekByYearDraft[];
+  nt_age_pension_age_at_termination_reached: boolean;
+  nt_casual_continuity_preserved: '' | 'true' | 'false';
+  nt_bonus_usually_paid_with_pay: boolean;
+  nt_board_lodging_cash_value_weekly: string;
+  nt_related_corporation_service_years: string;
+  nt_employer_initiated_dismissal: boolean;
+}
+
+/**
+ * Per-year hours-per-week row used by the NT `nt_hours_per_week_by_year` form
+ * field (E2 Phase 9). Strings throughout for input control; coerced before
+ * the engine sees them. Mirrors `NTHoursPerWeekByYear` in
+ * `website/src/lib/lsl/states/nt/extra-inputs.ts`.
+ */
+export interface NTHoursPerWeekByYearDraft {
+  id: string;
+  yearStart: string;
+  yearEnd: string;
+  hoursPerWeek: string;
 }
 
 export function emptyFormState(): FormState {
@@ -141,6 +171,15 @@ export function emptyFormState(): FormState {
     tas_casual_continuity_break_date: '',
     tas_employee_in_northern_tas: false,
     tas_slackness_return_within_14_days: false,
+    // NT extra-inputs — defaults map to omitted engine fields. Tri-state casual
+    // continuity defaults to '' (engine treats as undefined → permissive).
+    nt_hours_per_week_by_year: [],
+    nt_age_pension_age_at_termination_reached: false,
+    nt_casual_continuity_preserved: '',
+    nt_bonus_usually_paid_with_pay: false,
+    nt_board_lodging_cash_value_weekly: '',
+    nt_related_corporation_service_years: '',
+    nt_employer_initiated_dismissal: false,
   };
 }
 

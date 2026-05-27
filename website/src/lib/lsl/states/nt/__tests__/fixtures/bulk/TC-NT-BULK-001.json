@@ -1,0 +1,87 @@
+{
+  "name": "TC-NT-BULK-001",
+  "title": "5-employee NT-only fixture, mixed tenures and triggers",
+  "source": "spec F17 + AC16; docs/qa/test-cases-nt.md §Bulk",
+  "input": {
+    "employees": [
+      {
+        "id": "N01",
+        "startDate": "2016-05-27",
+        "endDate": "2026-05-27",
+        "employmentType": "full_time",
+        "statesOfService": ["NT"],
+        "governingJurisdiction": "NT",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "redundancy" }
+      },
+      {
+        "id": "N02",
+        "startDate": "2018-05-27",
+        "endDate": "2026-05-27",
+        "employmentType": "full_time",
+        "statesOfService": ["NT"],
+        "governingJurisdiction": "NT",
+        "currentWeeklyGross": "1400.00",
+        "wageHistory": [],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "illness_incapacity" }
+      },
+      {
+        "id": "N03",
+        "startDate": "2014-05-27",
+        "endDate": "2026-05-27",
+        "employmentType": "full_time",
+        "statesOfService": ["NT"],
+        "governingJurisdiction": "NT",
+        "currentWeeklyGross": "1600.00",
+        "wageHistory": [],
+        "serviceEvents": [],
+        "extraInputs": {
+          "nt_hours_per_week_by_year": [
+            { "yearStart": "2014-05-27", "yearEnd": "2026-05-27", "hoursPerWeek": 38 }
+          ]
+        },
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "voluntary_resignation" }
+      },
+      {
+        "id": "N04",
+        "startDate": "2017-05-27",
+        "endDate": "2026-05-27",
+        "employmentType": "full_time",
+        "statesOfService": ["NT"],
+        "governingJurisdiction": "NT",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "serious_misconduct" }
+      },
+      {
+        "id": "N05",
+        "startDate": "2018-05-27",
+        "employmentType": "full_time",
+        "statesOfService": ["NT"],
+        "governingJurisdiction": "NT",
+        "currentWeeklyGross": "1500.00",
+        "wageHistory": [],
+        "serviceEvents": [],
+        "_perRowTrigger": { "kind": "cash_out", "cashOutDate": "2026-05-27" }
+      }
+    ],
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-27" }
+  },
+  "expected": {
+    "summary": { "computed": 4, "blocked": 0, "failed": 1 },
+    "rowStatuses": {
+      "N01": "computed",
+      "N02": "computed",
+      "N03": "computed",
+      "N04": "computed",
+      "N05": "failed"
+    },
+    "rowErrors": {
+      "N05": "nt_cashout_forbidden_s10_4"
+    }
+  }
+}

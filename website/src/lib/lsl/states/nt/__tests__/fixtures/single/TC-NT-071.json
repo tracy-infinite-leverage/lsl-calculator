@@ -1,0 +1,32 @@
+{
+  "name": "TC-NT-071",
+  "title": "5 yrs FT taking-leave request — REFUSED, $0 + advisory (NT has no advance-leave clause)",
+  "source": "NT LSL Act 1981 — no statutory basis for advance leave; TBD-NT-08 leave-in-advance branch",
+  "input": {
+    "employee": {
+      "id": "TC-NT-071",
+      "startDate": "2021-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "taking_leave",
+      "leaveStartDate": "2026-06-01",
+      "leaveWeeks": 4
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": [
+      "nt_advance_leave_not_permitted"
+    ]
+  }
+}
