@@ -1,0 +1,35 @@
+{
+  "name": "TC-SA-CASHOUT-TOPUP-COMMISSION-002",
+  "title": "Cash-out at 12 yrs commission worker — substantive rate static through coverage → NO manual-reconcile advisory (negative)",
+  "source": "SA LSL Act 1987 s.8(3a)(b); spec.md §6 method-level overrides; PR #42 QA P2",
+  "input": {
+    "employee": {
+      "id": "TC-SA-CASHOUT-TOPUP-COMMISSION-002",
+      "startDate": "2014-06-01",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1500.00",
+      "categoryOverride": "C",
+      "categoryOverrideConfirmed": true,
+      "wageHistory": [
+        { "periodStart": "2014-06-01", "periodEnd": "2026-06-14", "grossPay": "1130571.43", "frequency": "weekly" },
+        { "periodStart": "2026-06-15", "periodEnd": "2026-09-06", "grossPay": "18000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": { "sa_cashed_out_weeks": 14 }
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "payable",
+    "warnings": [
+      "sa_cashout_post_accrual_advisory",
+      "sa_commission_52wk_lookback_applied"
+    ],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5", "rule": "cashout.post-10yr-written-agreement-required" }
+    ]
+  }
+}
