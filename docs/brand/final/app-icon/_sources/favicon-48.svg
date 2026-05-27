@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  App icon — 48×48 simplified glyph (favicon).
+  Per icon-direction.md §7: same composition as 32×32, single "L".
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="LSL favicon 48">
+  <defs>
+    <style><![CDATA[
+      .monogram { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; fill: #ffffff; }
+    ]]></style>
+  </defs>
+  <rect x="0" y="0" width="48" height="48" rx="9" fill="#48608a"/>
+  <text x="24" y="34" text-anchor="middle" class="monogram" font-size="30">L</text>
+  <rect x="33" y="33" width="9" height="9" rx="1.5" fill="#d9a428"/>
+</svg>

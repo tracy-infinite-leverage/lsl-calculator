@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LSL Calculator app icon — 512x512 master.
+  Composition:
+    - Navy field, rounded square (radius 96 = ~18.75% — matches APA Brand Guidelines p.10 app-icon precedent)
+    - White "LSL" monogram in Montserrat Bold, centred
+    - Small gold square in bottom-right corner — echoes Candidate B's gold-rule accent rule
+      and references parent APA mark's "golden square head" (Brand Guidelines p.4)
+  Sibling-product posture: own visual identity, inherits parent grammar (gold-square-on-navy from p.10)
+                          without literally copying the parent logomark.
+  Design choice 1 (gold-square-corner vs gold-underline):  GOLD-SQUARE-CORNER — picked
+    Rationale: directly mirrors p.10 parent app-icon geometry (gold square-on-navy);
+    underline would conflict with the wordmark's gold rule (visual duplication, not echo).
+  Design choice 2 (serifed-LSL vs sans-LSL):  SANS-LSL (Montserrat Bold) — picked
+    Rationale: Montserrat is the locked title typeface (spec §5.1); a serifed monogram
+    would create a typographic family of three, breaking the two-typeface system.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LSL Calculator app icon">
+  <defs>
+    <style><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+      .monogram { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; fill: #ffffff; letter-spacing: -2px; }
+    ]]></style>
+  </defs>
+
+  <!-- Navy rounded-square field -->
+  <rect x="0" y="0" width="512" height="512" rx="96" fill="#48608a"/>
+
+  <!-- White "LSL" monogram, centred -->
+  <text x="256" y="296" text-anchor="middle" class="monogram" font-size="180">LSL</text>
+
+  <!-- Small gold square, bottom-right corner — echoes parent's gold-square head + Candidate B's gold accent rule -->
+  <rect x="412" y="412" width="56" height="56" rx="8" fill="#d9a428"/>
+</svg>

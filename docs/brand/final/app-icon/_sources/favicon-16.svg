@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  App icon — 16×16 simplified glyph (favicon).
+  Per icon-direction.md §7: at 16×16 the monogram is dropped entirely.
+  Composition: navy rounded square + gold corner square only.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-label="LSL favicon 16">
+  <rect x="0" y="0" width="16" height="16" rx="3" fill="#48608a"/>
+  <rect x="10" y="10" width="4" height="4" rx="0.5" fill="#d9a428"/>
+</svg>
