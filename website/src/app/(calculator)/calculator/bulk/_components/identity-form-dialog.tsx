@@ -25,7 +25,7 @@ import type {
   SingleEmployeeIdentity,
 } from '@/lib/lsl/parsers/csv/normalize-apply';
 import type { EmploymentType, State } from '@/lib/lsl/engine/types';
-import { isStateEncoded } from '@/lib/lsl/dispatch';
+import { isStateUIShipped } from '@/lib/lsl/dispatch';
 
 const STATE_CODES: State[] = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'];
 
@@ -157,10 +157,10 @@ export function IdentityFormDialog({
               </SelectTrigger>
               <SelectContent>
                 {STATE_CODES.map((s) => {
-                  const encoded = isStateEncoded(s);
+                  const uiShipped = isStateUIShipped(s);
                   return (
-                    <SelectItem key={s} value={s} disabled={!encoded}>
-                      {encoded ? s : `${s} (coming soon)`}
+                    <SelectItem key={s} value={s} disabled={!uiShipped}>
+                      {uiShipped ? s : `${s} (coming soon)`}
                     </SelectItem>
                   );
                 })}

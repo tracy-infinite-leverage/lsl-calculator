@@ -21,6 +21,7 @@ import { WA_RULE_SET } from '@/lib/lsl/states/wa';
 import { SA_RULE_SET } from '@/lib/lsl/states/sa';
 import { ACT_RULE_SET } from '@/lib/lsl/states/act';
 import { TAS_RULE_SET } from '@/lib/lsl/states/tas';
+import { NT_RULE_SET } from '@/lib/lsl/states/nt';
 
 /**
  * Registry of state → rule set. Add one entry per state as it ships.
@@ -36,7 +37,7 @@ const STATE_REGISTRY: Partial<Record<State, StateRuleSet>> = {
   SA: SA_RULE_SET,
   ACT: ACT_RULE_SET,
   TAS: TAS_RULE_SET,
-  // ...
+  NT: NT_RULE_SET,
 };
 
 /**
@@ -50,6 +51,33 @@ export const ENCODED_STATES: ReadonlyArray<State> = Object.keys(STATE_REGISTRY) 
 /** Check whether a state has a registered rule set today. */
 export function isStateEncoded(state: State): boolean {
   return state in STATE_REGISTRY;
+}
+
+/**
+ * The set of states whose UI is fully shipped (input wizard, warning-label maps,
+ * result-panel affordances, etc.).
+ *
+ * Decoupled from `ENCODED_STATES` to support multi-task state shipping: a state's
+ * engine can land in an earlier task while the surrounding UI lands in a later
+ * task (e.g. NT engine in T9.1, NT UI in T9.5). The state-picker dropdowns read
+ * from here so an engine-only state stays disabled and labelled "coming soon".
+ *
+ * Invariant: every entry must also be in `ENCODED_STATES`. When the trailing UI
+ * task ships, collapse this back to `ENCODED_STATES` and remove the indirection.
+ */
+export const UI_SHIPPED_STATES: ReadonlyArray<State> = [
+  'NSW',
+  'VIC',
+  'QLD',
+  'WA',
+  'SA',
+  'ACT',
+  'TAS',
+];
+
+/** Check whether a state's UI is fully shipped today. */
+export function isStateUIShipped(state: State): boolean {
+  return UI_SHIPPED_STATES.includes(state);
 }
 
 /**
