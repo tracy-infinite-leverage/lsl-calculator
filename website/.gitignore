@@ -30,6 +30,9 @@
 .DS_Store
 *.pem
 
+# local Claude Code tooling (e.g. launch.json for preview server)
+.claude/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

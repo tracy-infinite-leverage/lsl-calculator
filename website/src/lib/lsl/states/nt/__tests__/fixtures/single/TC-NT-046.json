@@ -1,0 +1,38 @@
+{
+  "name": "TC-NT-046",
+  "title": "10 yrs FT with operator-supplied board/lodging cash value — s.7(2)(c) advisory",
+  "source": "NT LSL Act 1981 s.7(2)(c); TBD-NT-11 — board/lodging cash value advisory",
+  "input": {
+    "employee": {
+      "id": "TC-NT-046",
+      "startDate": "2016-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1520.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "nt_board_lodging_cash_value_weekly": 20
+      }
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1520.00",
+    "payableIndicator": "payable",
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

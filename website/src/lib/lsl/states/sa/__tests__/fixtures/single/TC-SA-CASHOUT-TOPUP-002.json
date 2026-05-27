@@ -1,0 +1,33 @@
+{
+  "name": "TC-SA-CASHOUT-TOPUP-002",
+  "title": "Cash-out at 12 yrs FT — rate static through 14-wk coverage → NO variation top-up (negative case)",
+  "source": "SA LSL Act 1987 s.8(3a)(b); spec.md §6 method-level overrides",
+  "input": {
+    "employee": {
+      "id": "TC-SA-CASHOUT-TOPUP-002",
+      "startDate": "2014-06-01",
+      "employmentType": "full_time",
+      "statesOfService": ["SA"],
+      "governingJurisdiction": "SA",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        { "periodStart": "2014-06-01", "periodEnd": "2026-06-14", "grossPay": "942214.29", "frequency": "weekly" },
+        { "periodStart": "2026-06-15", "periodEnd": "2026-09-06", "grossPay": "18000.00", "frequency": "weekly" }
+      ],
+      "serviceEvents": [],
+      "extraInputs": { "sa_cashed_out_weeks": 14 }
+    },
+    "trigger": { "kind": "cash_out", "cashOutDate": "2026-06-01" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "warnings": [
+      "sa_cashout_post_accrual_advisory"
+    ],
+    "expected_citations": [
+      { "section": "SA LSL Act 1987 s.5", "rule": "cashout.post-10yr-written-agreement-required" }
+    ]
+  }
+}

@@ -78,3 +78,26 @@ export class VICCashOutProhibitedError extends EngineError {
     this.name = 'VICCashOutProhibitedError';
   }
 }
+
+/**
+ * Thrown when an NT employee receives a `cash_out` trigger.
+ *
+ * NT LSL Act 1981 s.10(4) explicitly forbids any "payment in lieu" of LSL
+ * beyond the s.10(1) / s.10(2) cessation payouts. Per TBD-NT-08 RESOLVED
+ * 2026-05-27 Option (b) (hard error), the engine refuses cash-out triggers
+ * for NT-jurisdiction employees with status:failed and emits the
+ * `nt_cashout_forbidden_s10_4` error code (NOT a warning advisory).
+ *
+ * Cross-state symmetry with `VICCashOutProhibitedError` (VIC s.34 — criminal
+ * offence). Stronger signal than the TAS / QLD / ACT advisory-with-$0
+ * treatment because the NT prohibition is explicit and absolute.
+ */
+export class NTCashOutForbiddenError extends EngineError {
+  constructor() {
+    super(
+      'nt_cashout_forbidden_s10_4',
+      'Cash-out / payment-in-lieu is forbidden by NT LSL Act 1981 s.10(4). The Act explicitly states that no payment in lieu of long service leave may be made beyond the cessation payouts under s.10(1) (10+ yrs full payout) and s.10(2) (7–10 yrs pro-rata). No numeric output computed. This trigger cannot proceed under NT law. To pay out unused LSL at the end of employment, use the termination trigger instead.'
+    );
+    this.name = 'NTCashOutForbiddenError';
+  }
+}

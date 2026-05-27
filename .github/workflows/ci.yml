@@ -5,6 +5,15 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # workflow_dispatch lets us manually re-fire CI against any ref when the
+  # pull_request:synchronize webhook fails to schedule a run (a known GitHub
+  # behaviour — see PR #32 incident on 2026-05-26: the merge-from-main commit
+  # e386b1d and the empty commit ee83624 both produced zero workflow runs,
+  # leaving branch protection waiting on required checks that would never
+  # arrive). Recovery: Actions tab → CI → "Run workflow" → pick the stuck
+  # branch. The required check contexts will register against HEAD on
+  # completion and unblock the merge.
+  workflow_dispatch:
 
 # Cancel in-flight runs on the same ref when new commits arrive — saves minutes
 # on rapid pushes during PR iteration.

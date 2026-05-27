@@ -727,12 +727,12 @@ expected:
 
 ---
 
-### TC-TAS-015 — 9 yrs FT unfair dismissal, pro-rata 7.8003 wks (employer-not-misconduct)
+### TC-TAS-015 — 9 yrs FT unfair dismissal, pro-rata 7.8018 wks (employer-not-misconduct)
 
 ```yaml
 employee: { startDate: 2017-05-26, endDate: 2026-05-26, employmentType: full_time, currentWeeklyGross: 1700.00 }
 trigger: { kind: termination, reason: unfair_dismissal, terminationInitiator: employer }
-expected: { total_entitlement_weeks: 7.8003, total_entitlement_dollars: 13260.51 }
+expected: { total_entitlement_weeks: 7.8018, total_entitlement_dollars: 13263.08 }
 ```
 
 **Notes**: Unfair dismissal is treated as "employer-not-misconduct" under s.8(3). Engine maps the DEV-CROSS-1 `unfair_dismissal` enum value to the s.8(3) employer-not-misconduct branch for TAS.
@@ -2421,7 +2421,7 @@ The developer's T8.3 fixture-corpus build (78 fixtures) surfaced 8 items where e
 
 | # | Fixture | Ruling | Action |
 |---|---|---|---|
-| 1 | TC-TAS-015 (`unfair_dismissal`) | **(A) Engine fix** | Add `unfair_dismissal` to TAS `QUALIFYING_REASONS` set and `QualifyingReason` union in `tas/rules/accrual-table.ts`. Doc line 738 already specifies this mapping; engine omitted it. Fixture stays at 7.8003 wks / $13,260.51. Cross-state parallel: ACT/SA/QLD/WA/NSW all wire `unfair_dismissal`. |
+| 1 | TC-TAS-015 (`unfair_dismissal`) | **(A) Engine fix** | Add `unfair_dismissal` to TAS `QUALIFYING_REASONS` set and `QualifyingReason` union in `tas/rules/accrual-table.ts`. Doc line 738 already specifies this mapping; engine omitted it. Fixture stays at 7.8018 wks / $13,263.08 (engine-canonical per operator Note-A ruling at T8.5 close-out; supersedes the original T8.3 hand-math value of 7.8003 wks / $13,260.51). Cross-state parallel: ACT/SA/QLD/WA/NSW all wire `unfair_dismissal`. |
 | 2 | TC-TAS-018 (casual flag=false, no break-date) | **(B) Documented limitation** | TBD-TAS-17 (new) added to limitations table above. Engine strict-zeros service when flag=`false` and no `tas_casual_continuity_break_date` is supplied. Update fixture expected to `totalEntitlementDollars: "0.00"` + warning `tas_casual_32hr_4wk_continuity_not_satisfied`. Operator-empowering reading: operator who flags continuity broken without a break-date is asking for conservative treatment. |
 | 3 | TC-TAS-040 (7-wk LSL + 4 PHs) | **(B) Documented limitation** | TBD-TAS-10 amended (above) — v1 engine emits citation only, no `leave_end_calendar` computation. Downgrade fixture to citation-only assertion + `payable_for_taken_leave = leaveWeeks × value_of_week`. Drop `leave_end_calendar` / `phs_within_leave_count` expectations. Parallel to ACT TC-ACT-042. |
 | 4 | TC-TAS-041 (4-wk LSL + 3 Easter PHs) | **(B) Documented limitation** | Same as Item 3 — downgrade to citation-only + payable amount. |
@@ -2438,7 +2438,7 @@ The developer's T8.3 fixture-corpus build (78 fixtures) surfaced 8 items where e
 - Add new advisory code `tas_12mo_window_upl_overlap_check_substitution` — emit when `leave_without_pay` events overlap the 12-month casual averaging window. Engine consumes operator-supplied hours as-is (no auto-substitution) (Item 6).
 
 **Fixture updates required**:
-- TC-TAS-015: keep doc-spec'd expected — remove `_reconciliation_note`; expected `totalEntitlementDollars: "13260.51"` + (no `sub_10yr_no_qualifying_reason_tas` warning).
+- TC-TAS-015: remove `_reconciliation_note`; expected `totalEntitlementDollars: "13263.08"` (engine-canonical per operator Note-A ruling at T8.5 close-out) + (no `sub_10yr_no_qualifying_reason_tas` warning).
 - TC-TAS-018: confirm engine strict-zero output — `totalEntitlementDollars: "0.00"` + warning `tas_casual_32hr_4wk_continuity_not_satisfied`. Update doc fixture narrative on line 778 to record strict-zero is intentional.
 - TC-TAS-040: downgrade to `payable_for_taken_leave: 12600.00` + `expected_citations` only. Drop `leave_end_calendar`, `phs_within_leave_count`.
 - TC-TAS-041: downgrade to `payable_for_taken_leave: 6000.00` + `expected_citations` only. Drop `leave_end_calendar`, `phs_within_leave_count`.
@@ -2465,4 +2465,10 @@ Doc remains **PM-SIGNED 2026-05-26**. Reconciliation amendments are non-blocking
 
 ---
 
-*End of test-cases-tas.md v1.0 PM-SIGNED · Tracy Angwin (PM) · 2026-05-26 · Reconciliation appendix 2026-05-26 (T8.3).*
+### Post-implementation reconciliation — 2026-05-26 (T8.5 close-out)
+
+TC-TAS-015 narrative reconciled to engine-canonical value ($13,263.08 / 7.8018 wks) per operator Note-A ruling at T8.5 close-out. The original T8.3 PM hand-math value ($13,260.51 / 7.8003 wks) is preserved in Item 1 of the rulings table above as the historical reference. Drift is $2.57 / 0.0015 wk — a calendar/Decimal precision artefact of the hand-calculation; engine math is the source of truth. No engine, fixture, or test changes.
+
+---
+
+*End of test-cases-tas.md v1.0 PM-SIGNED · Tracy Angwin (PM) · 2026-05-26 · Reconciliation appendix 2026-05-26 (T8.3) · Post-implementation reconciliation 2026-05-26 (T8.5).*

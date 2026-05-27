@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ENCODED_STATES, isStateEncoded } from '@/lib/lsl/dispatch';
+import { isStateUIShipped, UI_SHIPPED_STATES } from '@/lib/lsl/dispatch';
 import type { State } from '@/lib/lsl/engine/types';
 import {
   ALL_STATES_ORDERED,
@@ -42,8 +42,9 @@ interface StateSelectorProps {
  * and labelled "coming soon".
  *
  * Behaviour:
- * - Renders the full 8-state list. Only states present in `ENCODED_STATES`
- *   (currently `['NSW', 'VIC']`) are selectable.
+ * - Renders the full 8-state list. Only states present in `UI_SHIPPED_STATES`
+ *   are selectable. Engine-encoded-but-UI-pending states (e.g. NT after T9.1,
+ *   before T9.5) stay disabled and labelled "(coming soon)".
  * - Persists the last 3 picks to `localStorage` under `RECENT_STATES_STORAGE_KEY`
  *   as an LRU array — newest first.
  * - Renders the last 3 picks as quick-pick chip buttons above the select.
@@ -76,7 +77,7 @@ export function StateSelector({
 
   const handlePick = React.useCallback(
     (state: State) => {
-      if (!isStateEncoded(state)) return;
+      if (!isStateUIShipped(state)) return;
       onChange(state);
       setRecent((prev) => {
         const next = pushRecent(prev, state);
@@ -110,7 +111,7 @@ export function StateSelector({
               type="button"
               variant={value === s ? 'default' : 'outline'}
               size="sm"
-              disabled={disabled || !isStateEncoded(s)}
+              disabled={disabled || !isStateUIShipped(s)}
               onClick={() => handlePick(s)}
               aria-pressed={value === s}
             >
@@ -133,18 +134,18 @@ export function StateSelector({
         </SelectTrigger>
         <SelectContent>
           {ALL_STATES_ORDERED.map((s) => {
-            const encoded = isStateEncoded(s);
+            const uiShipped = isStateUIShipped(s);
             return (
-              <SelectItem key={s} value={s} disabled={!encoded}>
-                {encoded ? s : `${s} (coming soon)`}
+              <SelectItem key={s} value={s} disabled={!uiShipped}>
+                {uiShipped ? s : `${s} (coming soon)`}
               </SelectItem>
             );
           })}
         </SelectContent>
       </Select>
       <p className="text-xs text-muted-foreground">
-        Currently supported: {ENCODED_STATES.join(', ')}. Other states will be added in upcoming
-        releases.
+        Currently supported: {UI_SHIPPED_STATES.join(', ')}. Other states will be added in
+        upcoming releases.
       </p>
     </div>
   );

@@ -1,0 +1,27 @@
+{
+  "name": "TC-NT-065",
+  "title": "12 yrs FT cash-out attempt at 10+ tenure — STILL FORBIDDEN per s.10(4)",
+  "source": "NT LSL Act 1981 s.10(4); TBD-NT-08 — tenure irrelevant, hard error",
+  "input": {
+    "employee": {
+      "id": "TC-NT-065",
+      "startDate": "2014-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "cash_out",
+      "cashOutDate": "2026-05-27"
+    }
+  },
+  "expected": {
+    "status": "failed",
+    "errorCode": "nt_cashout_forbidden_s10_4"
+  }
+}

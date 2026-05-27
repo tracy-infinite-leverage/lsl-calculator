@@ -1,3 +1,8 @@
+// TAS engine gold-standard fixture runner.
+// Audit trail: docs/qa/test-cases-tas.md (+ 2026-05-26 reconciliation appendix);
+// QA verdict: docs/qa/qa-report-E3-tas-phase-8.md;
+// Handoff: docs/engineering/changes/2026-05-26-e3-phase-8-tas-engine/HANDOFF.md.
+
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';

@@ -1,0 +1,42 @@
+{
+  "name": "TC-NT-072",
+  "title": "8 yrs FT as-at snapshot — qualifying-period threshold bypassed per E1 spec D20",
+  "source": "NT LSL Act 1981 s.8; E1 spec D20 — as-at bypasses gates",
+  "input": {
+    "employee": {
+      "id": "TC-NT-072",
+      "startDate": "2018-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "as_at",
+      "asAtDate": "2026-05-27"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      {
+        "section": "NT LSL Act 1981 s.11",
+        "rule": "ordinary-pay.fixed-rate"
+      },
+      {
+        "section": "NT LSL Act 1981 s.8",
+        "rule": "accrual.snapshot.no-qualifying-reason-threshold"
+      },
+      {
+        "section": "NT LSL Act 1981 s.8",
+        "rule": "trigger.as-at.snapshot"
+      }
+    ]
+  }
+}

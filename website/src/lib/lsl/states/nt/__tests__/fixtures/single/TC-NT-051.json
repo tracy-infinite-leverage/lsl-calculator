@@ -1,0 +1,43 @@
+{
+  "name": "TC-NT-051",
+  "title": "10 yrs FT bonus present but flag NOT set — bonus EXCLUDED",
+  "source": "NT LSL Act 1981 s.7(2)(b); TBD-NT-07 — default exclude",
+  "input": {
+    "employee": {
+      "id": "TC-NT-051",
+      "startDate": "2016-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [
+        {
+          "periodStart": "2025-05-28",
+          "periodEnd": "2026-05-27",
+          "grossPay": "78000",
+          "frequency": "weekly",
+          "note": "annual incentive bonus paid Dec — not usually with pay"
+        }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

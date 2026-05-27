@@ -1,0 +1,41 @@
+{
+  "name": "TC-NT-035",
+  "title": "11 yrs FT with industrial-action event — period excluded from service",
+  "source": "NT LSL Act 1981 s.12 — industrial dispute does NOT count",
+  "input": {
+    "employee": {
+      "id": "TC-NT-035",
+      "startDate": "2015-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": [
+        {
+          "type": "industrial_action",
+          "startDate": "2022-06-01",
+          "endDate": "2022-06-30"
+        }
+      ]
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

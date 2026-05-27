@@ -1,0 +1,36 @@
+{
+  "name": "TC-NT-010",
+  "title": "6.5 yrs FT illness/incapacity — still sub-7, $0",
+  "source": "NT LSL Act 1981 s.10(2) — qualifying reason but below 7-yr floor",
+  "input": {
+    "employee": {
+      "id": "TC-NT-010",
+      "startDate": "2019-11-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1200.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "illness_incapacity"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "sub_7yr_no_entitlement_nt",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

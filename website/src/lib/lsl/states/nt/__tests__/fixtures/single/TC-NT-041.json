@@ -1,0 +1,56 @@
+{
+  "name": "TC-NT-041",
+  "title": "11 yrs FT taking 13 weeks LSL — PH-INCLUSIVE per s.9 (NT-DIVERGENT)",
+  "source": "NT LSL Act 1981 s.9 — PH within LSL period does NOT extend (parallel to SA)",
+  "input": {
+    "employee": {
+      "id": "TC-NT-041",
+      "startDate": "2015-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "taking_leave",
+      "leaveStartDate": "2026-06-01",
+      "leaveWeeks": 13
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      {
+        "section": "NT LSL Act 1981 s.11",
+        "rule": "ordinary-pay.fixed-rate"
+      },
+      {
+        "section": "NT LSL Act 1981 s.8",
+        "rule": "accrual.qualifying-period-10yr-13wks"
+      },
+      {
+        "section": "NT LSL Act 1981 s.8",
+        "rule": "accrual.continuous-1.3-per-year"
+      },
+      {
+        "section": "NT LSL Act 1981 s.9",
+        "rule": "trigger.taking-leave.ph-inclusive-no-extension"
+      },
+      {
+        "section": "NT LSL Act 1981 s.8",
+        "rule": "trigger.taking-leave"
+      }
+    ],
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_ph_inclusive_in_lsl"
+    ]
+  }
+}

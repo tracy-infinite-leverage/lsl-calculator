@@ -1,0 +1,52 @@
+{
+  "name": "TC-NT-003",
+  "title": "8 yrs FT retirement at Age Pension age (dob 1955 → 66 reached at 2026) — qualifies via s.10(2)",
+  "source": "NT LSL Act 1981 s.10(2) retirement gate; Cth SS Act 1991 s.23 lookup; TBD-NT-02",
+  "input": {
+    "employee": {
+      "id": "TC-NT-003",
+      "startDate": "2018-05-27",
+      "endDate": "2026-05-27",
+      "dob": "1955-06-01",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "retirement"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      {
+        "section": "NT LSL Act 1981 s.11",
+        "rule": "ordinary-pay.fixed-rate"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10(2)",
+        "rule": "accrual.7-to-10yr.retirement-qualifies-via-age-pension-age"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10",
+        "rule": "termination.pay-as-soon-as-practicable"
+      }
+    ],
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_retirement_qualifying_age_pension_age",
+      "nt_retirement_age_lookup_year_used",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

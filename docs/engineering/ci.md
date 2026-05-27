@@ -36,10 +36,13 @@ For the gate to actually block merges, GitHub's branch protection on `main` need
 
 1. Settings → Branches → Add rule for `main`
 2. ✅ Require status checks to pass before merging
-3. Add required checks: **`test`** and **`playwright`**
+3. Add required checks (these are the `name:` values of the jobs, not the job IDs):
+   - **`TypeScript · Vitest · Build`** (job ID `test`)
+   - **`Playwright (chromium · webkit · firefox · mobile-chrome)`** (job ID `playwright`)
 4. ✅ Require branches to be up to date before merging
+5. ✅ Do not allow bypassing the above settings (`enforce_admins: true`)
 
-This must be done manually in the GitHub UI by the owner — the workflow file alone doesn't enforce protection.
+This must be done manually in the GitHub UI by the owner — the workflow file alone doesn't enforce protection. Verify with `gh api repos/<owner>/<repo>/branches/main/protection`.
 
 ## Local equivalent
 
@@ -101,3 +104,68 @@ The standard Playwright job in `ci.yml` runs against `next dev` for speed.
 A production-build job can be added as a second Playwright workflow gated
 by labels (e.g. `production-build-check`) so it runs only on PRs touching
 risky areas. Not enabled by default to keep CI minutes predictable.
+
+## Recovery — stuck required checks on a PR
+
+Branch protection on `main` requires the two contexts
+`TypeScript · Vitest · Build` and `Playwright (chromium · webkit · firefox · mobile-chrome)`
+to register green **against the PR's HEAD SHA** before merge. GitHub
+evaluates required checks against HEAD only — not against the rollup of
+all commits on the branch.
+
+### Symptom
+
+`gh pr view <n> --json mergeStateStatus` shows `BLOCKED`, and the
+"Merge pull request" button is disabled with **"Required statuses must
+pass before merging"** even though earlier commits on the branch had
+green CI. `gh pr merge --admin` fails with:
+
+> `GraphQL: N of N required status checks are expected. (mergePullRequest)`
+
+### Root cause (known GitHub behaviour)
+
+GitHub's `pull_request:synchronize` webhook occasionally does not fire
+for certain push events:
+
+- **Merge-from-base commits** (e.g. `git merge main` into the feature
+  branch) where the resulting tree matches a previously-built ref.
+- **Empty commits** (`git commit --allow-empty`) — Actions sometimes
+  de-duplicates these.
+- **Webhook delivery glitches** (rare).
+
+When this happens, the new HEAD SHA has no associated workflow run, so
+no required-check status is reported against it, and branch protection
+waits forever. **Confirmed incident: PR #32, 2026-05-26** — commits
+`e386b1d` (merge of main) and `ee83624` (empty commit) both produced
+zero workflow runs.
+
+### Recovery — in priority order
+
+1. **Re-run CI via `workflow_dispatch`** (preferred, fastest):
+
+   ```bash
+   gh workflow run ci.yml --ref <feature-branch-name>
+   ```
+
+   Or in the UI: Actions → "CI" → "Run workflow" → pick the branch.
+   The run reports check_runs against the branch's HEAD SHA, which
+   satisfies branch protection. ~5 minutes for the full matrix.
+
+2. **Push a meaningful one-line change** (fallback if dispatch fails):
+   Add a code comment or doc note that genuinely belongs on the branch.
+   Empty / no-op commits may also fail to fire — don't rely on them.
+
+3. **Open a fresh PR** (last resort): if dispatch and a real commit
+   both fail, GitHub `opened` events fire reliably. Cherry-pick the
+   commits onto a new branch and open a new PR. This was the PR #32
+   → PR #33 / PR #34 workaround.
+
+### What we deliberately do NOT do
+
+- **Never run `gh pr merge --admin` to bypass.** Branch protection has
+  `enforce_admins: true` — admin bypass is disabled by design.
+- **Never relax the required-checks list** to unblock a single PR.
+  Required checks exist for a reason; if they're not firing, fix the
+  firing, not the policy.
+- **Never push an empty commit and assume it will fire.** It often
+  won't. Use `workflow_dispatch` instead.
