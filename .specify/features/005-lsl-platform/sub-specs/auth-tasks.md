@@ -238,18 +238,24 @@ These three spikes resolve the only known technical unknowns. They must complete
 
 ## Phase 5: Core auth UX + middleware
 
-### Task 5.1: Supabase SSR helpers
+### Task 5.1: Supabase SSR helpers ✅ DONE 2026-05-26
 
 **Description**: Create `src/lib/supabase/server.ts`, `src/lib/supabase/client.ts`, and `src/lib/supabase/middleware.ts` per the `@supabase/ssr` standard pattern.
 
 **Acceptance Criteria**:
-- [ ] Three files exist with the canonical helpers (`createBrowserClient`, `createServerClient`, middleware updater).
-- [ ] No env-var literals in code — all reads go through `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-- [ ] Unit test confirms each helper returns a Supabase client instance.
+- [x] Three files exist with the canonical helpers (`createBrowserClient`, `createServerClient`, middleware updater). → **Created** at `website/src/lib/supabase/{client,server,middleware}.ts`. The browser helper exports `createSupabaseBrowserClient`; the server helper exports `createSupabaseServerClient` (async, awaits Next.js 16's async `cookies()` API); the middleware helper exports `createSupabaseProxyClient(request)` returning `{ supabase, getResponse }` for use in `src/proxy.ts` (Task 5.2). All three use the modern `getAll`/`setAll` cookie shape — no deprecated `get`/`set`/`remove`. The server helper's `setAll` wraps cookie writes in a try/catch so Server Component callers no-op silently (cookie writes are not allowed in that context; the proxy refreshes sessions instead). The proxy helper's `setAll` re-creates the `NextResponse`, mirrors cookies onto both request and response (so downstream reads in the same request see refreshed tokens), and applies the cache-control headers Supabase passes (`Cache-Control: private, no-cache, no-store...`) to prevent CDN caching of auth responses.
+- [x] No env-var literals in code — all reads go through `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`. → **Verified.** Each factory reads both env vars and throws a clear error if either is missing (covered by tests below).
+- [x] Unit test confirms each helper returns a Supabase client instance. → **6 unit tests in `website/src/lib/supabase/supabase.test.ts`**: each helper has one "returns a SupabaseClient instance" test (asserts `.auth.getUser` is a function) and one "throws a clear error when env vars are missing" test. All 6 pass; full suite (1939 tests across 39 files) still green; `npm run build` clean against Next.js 16.2.6 + Turbopack.
 
 **Effort**: S
 **Dependencies**: Task 3.2
 **Assignee**: Developer
+
+**Notes for Task 5.2 (proxy.ts):**
+- Import `createSupabaseProxyClient` from `@/lib/supabase/middleware`.
+- Call `await supabase.auth.getUser()` (NOT `getClaims()` — see DEV-AUTH-1).
+- Wrap the `getUser()` call in try/catch per dev-grill amendment B3; on thrown error, redirect to `/app/login?error=service_unavailable`.
+- Return `getResponse()` instead of a fresh `NextResponse.next()` so refresh-token cookies + cache-control headers land on the outgoing response.
 
 ### Task 5.2: Proxy — unverified-session gate (Next.js 16 `proxy.ts`)
 
