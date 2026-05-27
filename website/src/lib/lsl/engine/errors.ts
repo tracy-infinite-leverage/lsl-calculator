@@ -78,3 +78,24 @@ export class VICCashOutProhibitedError extends EngineError {
     this.name = 'VICCashOutProhibitedError';
   }
 }
+
+/**
+ * Thrown when NT receives a `cash_out` trigger.
+ *
+ * Cashing out long service leave is forbidden under NT LSL Act 1981 s.10(4) —
+ * "no other payment in lieu" is permitted beyond the s.10(1)/(2) cessation
+ * payouts. Per TBD-NT-08 RESOLVED Option (b) 2026-05-27 (docs/qa/test-cases-
+ * nt.md), the calculator MUST refuse to produce a numeric result for a
+ * cash-out scenario. Cross-state parallel to VIC s.34 (different mechanism —
+ * VIC is a criminal offence; NT is a strict statutory prohibition — same
+ * engine semantics: hard error, no numeric output).
+ */
+export class NTCashOutForbiddenError extends EngineError {
+  constructor() {
+    super(
+      'nt_cashout_forbidden_s10_4',
+      'Cashing out long service leave is forbidden under NT LSL Act 1981 s.10(4) — "no other payment in lieu" is permitted beyond the s.10(1)/(2) cessation payouts. The calculator cannot produce a value for a cash-out scenario. To compute what the worker would receive at cessation, change the trigger to "termination" with a qualifying reason.'
+    );
+    this.name = 'NTCashOutForbiddenError';
+  }
+}

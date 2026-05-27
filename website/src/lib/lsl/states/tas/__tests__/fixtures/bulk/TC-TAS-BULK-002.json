@@ -135,7 +135,8 @@
     "trigger": { "kind": "as_at", "asAtDate": "2026-05-26" }
   },
   "expected": {
-    "summary": { "computed": 9, "blocked": 1, "failed": 0 },
+    "summary": { "computed": 10, "blocked": 0, "failed": 0 },
+    "_reconciliation_note": "Phase 9 (NT) — NVQWSAT10 was the unshipped-NT canary (blocked_cross_jurisdiction). NT is now encoded so NVQWSAT10 routes to the NT orchestrator and computes (sub-7-yr accrued_not_currently_payable per s.10). Updated as part of T9.1 dispatch wire-in 2026-05-27.",
     "rowStatuses": {
       "NVQWSAT01": "computed",
       "NVQWSAT02": "computed",
@@ -146,7 +147,7 @@
       "NVQWSAT07": "computed",
       "NVQWSAT08": "computed",
       "NVQWSAT09": "computed",
-      "NVQWSAT10": "blocked_cross_jurisdiction"
+      "NVQWSAT10": "computed"
     }
   }
 }
