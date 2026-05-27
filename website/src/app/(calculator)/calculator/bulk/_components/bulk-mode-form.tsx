@@ -14,29 +14,17 @@ import { parseBulkCSV, type BulkParsedEmployee } from '@/lib/lsl/parsers/csv/bul
 import { bulkToEngineEmployees, bulkToEngine } from '@/lib/lsl/parsers/csv/bulk-to-engine';
 import { runBulk, type BulkProgress } from '@/lib/lsl/bulk-runner';
 import { calculateSafe } from '@/lib/lsl/dispatch';
-import { asISODate, type PayFrequency, type State, type Trigger } from '@/lib/lsl/engine/types';
+import { asISODate, type State, type Trigger } from '@/lib/lsl/engine/types';
 import type { Result } from '@/lib/lsl/engine/types';
-import { applyNormalizationSpec, type SingleEmployeeIdentity } from '@/lib/lsl/parsers/csv/normalize-apply';
-import type { NormalizationSpec } from '@/lib/lsl/parsers/csv/normalize-schema';
 import { BulkPreviewTable } from './bulk-preview-table';
 import { BulkResultsTable } from './bulk-results-table';
 import { UnblockJurisdictionModal } from './unblock-jurisdiction-modal';
-import { IdentityFormDialog } from './identity-form-dialog';
 import { saveBulkState, loadBulkState, clearBulkState } from './bulk-storage';
 import { track, bucketElapsed } from '@/lib/observability/track';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
 type Stage =
   | { kind: 'idle' }
-  | { kind: 'normalizing' }
   | { kind: 'parse_error'; message: string }
-  | { kind: 'needs_identity'; pendingCSV: string; spec: NormalizationSpec }
   | { kind: 'preview'; parsed: BulkParsedEmployee[]; warnings: string[]; errors: string[] }
   | { kind: 'running'; progress: BulkProgress; total: number }
   | {
@@ -54,7 +42,6 @@ E003,Carol Lee,2018-01-10,casual,NSW,950.00,2025-05-22,2026-05-21,49400.00,weekl
 export function BulkModeForm() {
   const [stage, setStage] = React.useState<Stage>({ kind: 'idle' });
   const [csvText, setCsvText] = React.useState<string>('');
-  const [payFrequency, setPayFrequency] = React.useState<PayFrequency>('weekly');
   const [unblockTarget, setUnblockTarget] = React.useState<string | null>(null);
   const fileRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -72,70 +59,20 @@ export function BulkModeForm() {
   }, []);
 
   /**
-   * Normalize-then-parse flow:
-   *   1. Send CSV + frequency to /api/normalize-csv (Claude returns a spec).
-   *   2. If mode === 'single_employee', open identity form; otherwise jump
-   *      straight to applying the spec.
-   *   3. applyNormalizationSpec produces canonical CSV.
-   *   4. parseBulkCSV consumes the canonical CSV → preview stage.
+   * Canonical CSV ingestion (E5.0 — PDF Removal sub-spec, 2026-05-27):
+   *
+   *   1. parseBulkCSV consumes the user-supplied CSV directly.
+   *   2. The CSV MUST match the canonical schema shown in the "Schema" tab —
+   *      column auto-detection / date-format normalisation was removed in
+   *      the PDF Removal slice (see
+   *      `.specify/features/005-lsl-platform/sub-specs/pdf-removal.md`).
+   *   3. The forthcoming E5.3 platform mapping wizard will reintroduce
+   *      column-mapping convenience for authenticated tenants; the public
+   *      calculator is canonical-CSV-only.
    */
-  async function handleCSVText(text: string) {
+  function handleCSVText(text: string) {
     setCsvText(text);
-    setStage({ kind: 'normalizing' });
-    try {
-      const res = await fetch('/api/normalize-csv', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ csv: text, payFrequency }),
-      });
-      if (!res.ok) {
-        const json = (await res.json().catch(() => ({}))) as {
-          userMessage?: string;
-          error?: string;
-        };
-        setStage({
-          kind: 'parse_error',
-          message: json.userMessage ?? `Auto-conversion failed (HTTP ${res.status}).`,
-        });
-        return;
-      }
-      const body = (await res.json()) as { ok: true; spec: NormalizationSpec };
-      const spec = body.spec;
-
-      if (spec.mode === 'single_employee') {
-        // Pause for the identity form.
-        setStage({ kind: 'needs_identity', pendingCSV: text, spec });
-        return;
-      }
-
-      applySpecAndPreview(text, spec, undefined);
-    } catch (err) {
-      setStage({
-        kind: 'parse_error',
-        message: err instanceof Error ? err.message : 'Auto-conversion failed.',
-      });
-    }
-  }
-
-  function applySpecAndPreview(
-    rawCSV: string,
-    spec: NormalizationSpec,
-    identity: SingleEmployeeIdentity | undefined
-  ) {
-    const applied = applyNormalizationSpec({
-      csv: rawCSV,
-      spec,
-      payFrequency,
-      identity,
-    });
-    if (applied.canonicalCSV === '' && applied.errors.length > 0) {
-      setStage({
-        kind: 'parse_error',
-        message: applied.errors.map((e) => e.message).join('; '),
-      });
-      return;
-    }
-    const result = parseBulkCSV(applied.canonicalCSV);
+    const result = parseBulkCSV(text);
     if (result.employees.length === 0 && result.errors.length > 0) {
       setStage({
         kind: 'parse_error',
@@ -147,28 +84,24 @@ export function BulkModeForm() {
     setStage({
       kind: 'preview',
       parsed: result.employees,
-      warnings: [
-        ...applied.warnings,
-        ...result.warnings.map((w) => `Row ${w.row} (${w.employeeId ?? '-'}): ${w.message}`),
-      ],
-      errors: [
-        ...applied.errors.map((e) => `Source row ${e.sourceRow}: ${e.message}`),
-        ...result.errors.map((e) => `Row ${e.row} (${e.employeeId ?? '-'}): ${e.message}`),
-      ],
+      warnings: result.warnings.map(
+        (w) => `Row ${w.row} (${w.employeeId ?? '-'}): ${w.message}`
+      ),
+      errors: result.errors.map(
+        (e) => `Row ${e.row} (${e.employeeId ?? '-'}): ${e.message}`
+      ),
     });
-  }
-
-  function handleIdentitySubmit(identity: SingleEmployeeIdentity) {
-    if (stage.kind !== 'needs_identity') return;
-    applySpecAndPreview(stage.pendingCSV, stage.spec, identity);
   }
 
   async function handleFile(file: File) {
     try {
       const text = await file.text();
-      await handleCSVText(text);
+      handleCSVText(text);
     } catch (err) {
-      setStage({ kind: 'parse_error', message: err instanceof Error ? err.message : 'Could not read file.' });
+      setStage({
+        kind: 'parse_error',
+        message: err instanceof Error ? err.message : 'Could not read file.',
+      });
     }
   }
 
@@ -275,35 +208,11 @@ export function BulkModeForm() {
         <CardHeader>
           <CardTitle>1. Upload your CSV</CardTitle>
           <CardDescription>
-            We auto-detect columns + date formats with Claude. Any reasonable payroll export
-            works — the calculator converts it to its canonical shape before processing.
+            Upload a CSV in the canonical schema shown below. Dates are <code>YYYY-MM-DD</code>;
+            the <code>frequency</code> column is required per wage row.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid sm:grid-cols-[200px_1fr] gap-3 items-end">
-            <div className="space-y-1.5">
-              <Label htmlFor="pay-frequency">Pay frequency for this file</Label>
-              <Select
-                value={payFrequency}
-                onValueChange={(v: string) => setPayFrequency(v as PayFrequency)}
-              >
-                <SelectTrigger id="pay-frequency">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="fortnightly">Fortnightly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="other">Other (irregular)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Applied to every wage row in the file. If your file has a frequency column, it
-              will be ignored — this dropdown wins.
-            </p>
-          </div>
-
           <Tabs defaultValue="file">
             <TabsList>
               <TabsTrigger value="file">File upload</TabsTrigger>
@@ -329,7 +238,7 @@ export function BulkModeForm() {
                 variant="outline"
                 size="sm"
                 type="button"
-                onClick={() => void handleCSVText(SAMPLE_CSV)}
+                onClick={() => handleCSVText(SAMPLE_CSV)}
               >
                 Load sample CSV (3 employees)
               </Button>
@@ -340,11 +249,11 @@ export function BulkModeForm() {
               <textarea
                 id="bulk-paste"
                 className="w-full h-40 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
-                placeholder="period_start,period_end,gross_pay,... or any other shape — we'll figure it out."
+                placeholder="employee_id,legal_name,start_date,employment_type,states,current_weekly_gross,period_start,period_end,gross_pay,frequency"
                 value={csvText}
                 onChange={(e) => setCsvText(e.target.value)}
               />
-              <Button type="button" onClick={() => void handleCSVText(csvText)} disabled={!csvText.trim()}>
+              <Button type="button" onClick={() => handleCSVText(csvText)} disabled={!csvText.trim()}>
                 Parse CSV
               </Button>
             </TabsContent>
@@ -352,8 +261,9 @@ export function BulkModeForm() {
             <TabsContent value="schema" className="text-sm space-y-2">
               <p className="text-muted-foreground">
                 Header row (case-insensitive). One row per pay period. Employee-scope columns must
-                repeat identically on every row for the same <code>employee_id</code>. You can
-                upload anything that resembles this; Claude normalises before processing.
+                repeat identically on every row for the same <code>employee_id</code>. The CSV must
+                match this schema exactly — column auto-detection is not available on the public
+                calculator.
               </p>
               <div className="overflow-x-auto">
               <table className="w-full text-xs border border-border min-w-[480px]">
@@ -376,19 +286,13 @@ export function BulkModeForm() {
                   <tr><td className="p-1.5">trigger_kind</td><td>Optional</td><td>as_at | taking_leave | termination.</td></tr>
                   <tr><td className="p-1.5">trigger_date</td><td>If trigger_kind</td><td>YYYY-MM-DD.</td></tr>
                   <tr><td className="p-1.5">period_start, period_end, gross_pay</td><td>Yes</td><td>The wage row.</td></tr>
-                  <tr><td className="p-1.5">period_days, note</td><td>Optional</td><td>Per wage row. Frequency is set above, not in the CSV.</td></tr>
+                  <tr><td className="p-1.5">frequency</td><td>Yes</td><td>weekly | fortnightly | monthly | other (per wage row).</td></tr>
+                  <tr><td className="p-1.5">period_days, note</td><td>Optional</td><td>Per wage row. <code>period_days</code> required when <code>frequency=other</code>.</td></tr>
                 </tbody>
               </table>
               </div>
             </TabsContent>
           </Tabs>
-
-          {stage.kind === 'normalizing' && (
-            <p className="text-sm text-muted-foreground flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Reading your CSV with Claude — detecting columns, dates, and currency format…
-            </p>
-          )}
 
           {stage.kind === 'parse_error' && (
             <Alert variant="destructive">
@@ -537,13 +441,6 @@ export function BulkModeForm() {
         currentGoverning={unblockEmployee?.governingJurisdiction ?? null}
         onCancel={() => setUnblockTarget(null)}
         onResolve={handleUnblockResolve}
-      />
-
-      <IdentityFormDialog
-        open={stage.kind === 'needs_identity'}
-        notes={stage.kind === 'needs_identity' ? stage.spec.notes : null}
-        onCancel={() => setStage({ kind: 'idle' })}
-        onSubmit={handleIdentitySubmit}
       />
     </div>
   );

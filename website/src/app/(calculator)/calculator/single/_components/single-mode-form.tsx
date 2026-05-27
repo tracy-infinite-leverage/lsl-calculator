@@ -20,9 +20,7 @@ import { WageHistoryUpload } from '@/components/lsl/wage-history-upload';
 import { ContinuousServiceList } from '@/components/lsl/continuous-service-list';
 import { ResultPanel } from '@/components/lsl/result-panel';
 import { ClassifierConfirmModal } from '@/components/lsl/classifier-confirm-modal';
-import { PdfUpload } from '@/components/lsl/pdf-upload';
 import { StateSelector } from '@/components/lsl/state-selector';
-import type { ExtractedEmployee } from '@/lib/lsl/parsers/pdf/schema';
 import { classify, type Result, type State } from '@/lib/lsl/engine';
 import { calculate } from '@/lib/lsl/dispatch';
 import { trackStateEvent } from '@/lib/observability/track';
@@ -260,55 +258,8 @@ export function SingleModeForm() {
     }
   }
 
-  function handlePdfConfirmed(employees: ExtractedEmployee[]) {
-    if (employees.length === 0) return;
-    const e = employees[0]; // single mode = first employee
-
-    setState((s) => {
-      const next: FormState = { ...s };
-      if (e.legal_name) next.legalName = e.legal_name;
-      if (e.external_employee_id) next.externalEmployeeId = e.external_employee_id;
-      if (e.start_date) next.startDate = e.start_date;
-      if (e.end_date) next.terminationDate = e.end_date;
-      if (e.employment_type) next.employmentType = e.employment_type;
-      if (e.current_weekly_gross) next.currentWeeklyGross = e.current_weekly_gross;
-      if (e.states_of_service.length > 0) next.statesOfService = e.states_of_service;
-      // Convert wage history
-      if (e.wage_history.length > 0) {
-        next.wageHistory = e.wage_history.map((w, i) => ({
-          id: `pdf-${Date.now()}-${i}`,
-          periodStart: w.period_start,
-          periodEnd: w.period_end,
-          grossPay: w.gross_pay,
-          frequency: w.frequency ?? '',
-          periodDays: w.period_days != null ? String(w.period_days) : '',
-          note: '',
-        }));
-      }
-      // Convert service events
-      if (e.service_events.length > 0) {
-        next.serviceEvents = e.service_events.map((ev, i) => ({
-          id: `pdf-ev-${Date.now()}-${i}`,
-          type: ev.type,
-          startDate: ev.start_date,
-          endDate: ev.end_date ?? '',
-          note: ev.note ?? '',
-        }));
-      }
-      return next;
-    });
-  }
-
   return (
     <div className="space-y-6">
-      <PdfUpload
-        onConfirmed={handlePdfConfirmed}
-        onSwitchToCSV={() => {
-          // Scroll to the wage-history CSV upload section
-          document.getElementById('csv-upload')?.scrollIntoView({ behavior: 'smooth' });
-        }}
-      />
-
       <Card>
         <CardHeader>
           <CardTitle>Employee details</CardTitle>

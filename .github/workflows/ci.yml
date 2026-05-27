@@ -59,11 +59,6 @@ jobs:
         run: npx vitest run
 
       - name: Build
-        # Use a placeholder ANTHROPIC_API_KEY for the build phase only.
-        # The build doesn't make API calls — this just satisfies the env-var
-        # check on module init in src/server/anthropic.ts at module load.
-        env:
-          ANTHROPIC_API_KEY: build-time-placeholder
         run: npm run build
 
   # E2 per-state matrix — runs each state's suite in its own shard.
@@ -94,8 +89,6 @@ jobs:
         run: npm ci
 
       - name: Run state suite
-        env:
-          ANTHROPIC_API_KEY: build-time-placeholder
         run: |
           if [ "${{ matrix.state }}" = "engine" ]; then
             npx vitest run src/lib/lsl/engine
@@ -153,8 +146,6 @@ jobs:
 
       - name: Run all state suites and engine suite
         if: steps.filter.outputs.engine_touched == 'true'
-        env:
-          ANTHROPIC_API_KEY: build-time-placeholder
         run: |
           set -e
           echo "## Cross-state regression results" >> "$GITHUB_STEP_SUMMARY"
@@ -214,11 +205,8 @@ jobs:
 
       - name: Run Playwright matrix
         # The CI env var triggers the full browser matrix in playwright.config.ts.
-        # Mock-based PDF tests work without a real Anthropic key — the placeholder
-        # is sufficient because the route is mocked via page.route().
         env:
           CI: true
-          ANTHROPIC_API_KEY: build-time-placeholder
         run: npx playwright test
 
       - name: Upload Playwright report on failure

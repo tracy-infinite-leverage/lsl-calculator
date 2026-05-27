@@ -124,6 +124,37 @@ _Dev findings: `.specify/features/002-all-state-coverage/dev-findings.md` (0 HIG
 
 _Spec: `.specify/features/005-lsl-platform/spec.md` **v1.0 APPROVED 2026-05-26**. All 15 open questions plus E1 Phase 7 disposition resolved — see spec §12 for the locked decision table._
 
+### E5 · 2026-05-27 sub-spec refresh — operator decisions on E5.2 / E5.3 / E5.4 + PDF removal companion
+
+The umbrella E5 spec v1.0 stands. The operator landed a major piece of scoping work 2026-05-27 covering CSV-based payroll data ingestion and PDF code removal. The four sub-specs that flow from it have been refined / scoped, **without revising the umbrella spec or its locked decisions**:
+
+- **PDF Removal (companion to E5)** — `.specify/features/005-lsl-platform/sub-specs/pdf-removal.md`. Sequenced **first** — independent of E5.1's auth slice. Deletes `/api/extract-pdf`, `/api/normalize-csv`, `website/src/lib/lsl/parsers/pdf/*`, `website/src/components/lsl/pdf-upload.tsx`, the `@anthropic-ai/sdk` dependency, and the `ANTHROPIC_API_KEY` env var. Closes the LAUNCH-GUARD hard gate by elimination — the platform was already CSV-only in v1; this strips the legacy LLM-extraction code so the dev team designs E5.4 ingestion against a CSV-only codebase from the start.
+- **E5.2 Employee Masterfile + Customer Setup** — `.specify/features/005-lsl-platform/sub-specs/employee-masterfile.md`. Single-employer customers (no bureau in v1). Customer setup on the org (`employer_legal_name`, `abn`, `default_work_jurisdiction`, `default_pay_frequency`). Employee table with effective-dated history for `employment_type` / `pay_frequency` / `classification` / `hours_per_week` / `default_work_jurisdiction`. Per-employee `pay_frequency` (mixed within an org allowed). `sex` required for TAS (s.8(3) sex-specific retirement gate); `dob` required for NT (federal Age Pension age lookup). PII strip on TFN / bank / super columns before insert. `scheme` column reserved for v1.1 portable LSL (writes `state_lsl` only in v1; data model permits portable codes without migration).
+- **E5.3 Pay-Code Mapping (auto-detection + wizard)** — `.specify/features/005-lsl-platform/sub-specs/pay-code-mapping.md`. Column auto-detection by header name + pay-code value pattern, with a mapping wizard fallback. Inline wizard during first import, incremental on subsequent imports. Versioned mapping store — every change preserved; valuations capture `mapping_version_id` at run time so re-mapping cannot retroactively shift historical valuations. System-managed `pay_code_aliases` knowledge base seeded at launch (no LLM in v1; LLM-assisted suggestions deferred to v1.1 per umbrella spec).
+- **E5.4 Pay-Period Ingestion (CSV, versioned, audited)** — `.specify/features/005-lsl-platform/sub-specs/pay-period-ingestion.md`. Generic CSV from any payroll source. Full historical onboarding (10+ years per tenured employee). Work-location-per-pay-period (`work_jurisdiction` field on every row — **authoritative for jurisdiction at valuation time, overrides masterfile default**). Versioned re-imports via `superseded_at` / `superseded_by_import_id` pattern; historical valuations replay against live-view-at-time. Partial commit on bad rows — valid rows land, invalid rows queue in `pay_period_exceptions` for review. Immutable `import_audit_log` (uploader, timestamp, SHA-256 file hash, row counts, mapping version, engine version, source-file storage pointer). PII strip at the boundary. Supabase hosted in **`ap-southeast-2` (Sydney)** — resolves the umbrella spec's "deferred compliance consideration" on data residency. Service-layer abstraction so v2 API ingestion can write through the same persistence path.
+
+**What did not change in the umbrella spec:**
+- Pay-bucket taxonomy (umbrella §6) is unchanged.
+- Per-state engine-resolved bucket treatment is unchanged.
+- v1 scope to the 8 Australian state/territory LSL Acts is unchanged. Portable LSL (construction / contract cleaning / coal) is **deferred to v1.1**; data model permits it without migration churn.
+- Pricing, branding, deployment model — all unchanged.
+
+**Open questions flagged in the sub-specs (do not block engineering kickoff):**
+- E5.2 OQ-EMP-1: opening-balance UX (CSV column vs setup wizard vs both) — PM recommends both; needs operator confirmation before E5.5 valuations.
+- E5.2 OQ-EMP-2: data retention after termination — PM recommends 7 years (Fair Work Act minimum); flag for legal review.
+- E5.2 OQ-EMP-3: audit log retention — PM recommends indefinite for the org's lifetime.
+- E5.3 OQ-MAP-1: wizard inline vs separate pre-import setup — PM recommends inline by default; JSON import as alternative.
+- E5.4 OQ-ING-3: dedup uniqueness key — PM recommends `(org_id, employee_external_id, pay_period_end, pay_code_raw)`; **explicit dev-finding flagged to validate against real-world payroll exports before pilot**.
+
+**Sequencing recommendation:**
+1. **PDF removal** — first, independent. Closes the LAUNCH-GUARD gate.
+2. **E5.1 auth slice** — currently in flight on `feat/E5.1-auth-slice`; merge when QA signs off.
+3. **E5.2 Employee Masterfile** — depends on E5.1 merged.
+4. **E5.3 Pay-Code Mapping** — depends on E5.2 (FK target).
+5. **E5.4 Pay-Period Ingestion** — depends on E5.1 + E5.2 + E5.3.
+6. **E5.5 Valuations + Liability Reports** — depends on E5.4 having pay history persisted.
+7. **E5.6 LSL Reconciliation** — depends on E5.5.
+
 ---
 
 ## E4 · Payroll System Integrations

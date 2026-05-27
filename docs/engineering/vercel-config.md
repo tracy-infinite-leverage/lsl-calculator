@@ -49,7 +49,7 @@ Recorded here per the global-engineering rule "Never modify environment variable
 
 | Variable | Scope | Source | Notes |
 |---|---|---|---|
-| `ANTHROPIC_API_KEY` | Production, Preview | manual (no-retention tier key) | Powers `/api/extract-pdf` + `/api/normalize-csv`. Pre-launch guard at `docs/launch/LAUNCH-GUARD.md`. |
+| ~~`ANTHROPIC_API_KEY`~~ | Production, Preview | **REMOVED 2026-05-27** | Previously powered `/api/extract-pdf` + `/api/normalize-csv`. Both routes deleted by PDF Removal slice (`feat/E5.0-pdf-removal`). Operator follow-up: drop the leftover variable from Vercel via Settings → Environment Variables. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Production, Preview, Development | account-scoped Supabase MCP (`get_project_url` on project `woxtujkxatosbirikxtq`) | Public — RLS is the security boundary. Wired 2026-05-27 (Task 3.3). |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production, Preview, Development | account-scoped Supabase MCP (`get_publishable_keys`, legacy anon JWT) | Public — RLS is the security boundary. Wired 2026-05-27 (Task 3.3). |
 | `SUPABASE_SERVICE_ROLE_KEY` | Production, Preview, Development | operator-controlled (`website/.env.local`, gitignored) | **Secret — server-side only.** Bypasses RLS. Used by `purge-expired-orgs` Edge Function and the `handle_new_user` `SECURITY DEFINER` trigger. Wired 2026-05-27 (Task 3.3). |
@@ -68,7 +68,7 @@ Vercel validates `vercel.json` on every deploy. The `$schema` directive in the f
 
 - [ ] Vercel production project on Pro plan (or Enterprise)
 - [ ] Production region confirmed as `syd1`
-- [ ] `ANTHROPIC_API_KEY` set in Production environment (no-retention tier key)
+- [x] `ANTHROPIC_API_KEY` no longer required — PDF Removal slice closed the gate 2026-05-27. Operator follow-up: drop the leftover env var if still present.
 - [x] `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` set in Production + Preview + Development (Task 3.3, wired 2026-05-27)
 - [x] Domain mapped to `www.lslcalculator.com.au` (live 2026-05-25)
 - [ ] Branch protection on `main` requires `test` + `playwright` CI checks (see `ci.md`)
