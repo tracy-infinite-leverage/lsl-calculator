@@ -1,0 +1,35 @@
+{
+  "name": "TC-NT-044",
+  "title": "10 yrs FT fixed-rate at $1,800/wk — base wages baseline (s.7(2))",
+  "source": "NT LSL Act 1981 s.7(2) — base wages INCLUDED in ordinary pay",
+  "input": {
+    "employee": {
+      "id": "TC-NT-044",
+      "startDate": "2016-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1800.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "redundancy"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1800.00",
+    "payableIndicator": "payable",
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

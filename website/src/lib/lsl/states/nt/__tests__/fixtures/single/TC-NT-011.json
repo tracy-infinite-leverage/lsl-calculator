@@ -1,0 +1,44 @@
+{
+  "name": "TC-NT-011",
+  "title": "7 yrs exactly FT illness/incapacity — at-threshold qualifying, pro-rata payable",
+  "source": "NT LSL Act 1981 s.10(2) — 7-yr threshold with named qualifying reason",
+  "input": {
+    "employee": {
+      "id": "TC-NT-011",
+      "startDate": "2019-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1200.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "illness_incapacity"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1200.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      {
+        "section": "NT LSL Act 1981 s.11",
+        "rule": "ordinary-pay.fixed-rate"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10(2)",
+        "rule": "accrual.7-to-10yr.illness_incapacity-qualifies"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10",
+        "rule": "termination.pay-as-soon-as-practicable"
+      }
+    ]
+  }
+}

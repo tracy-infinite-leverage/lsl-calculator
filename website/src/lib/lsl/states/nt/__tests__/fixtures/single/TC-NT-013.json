@@ -1,0 +1,51 @@
+{
+  "name": "TC-NT-013",
+  "title": "9 yrs FT retirement (no dob supplied) — no qualifying signal → $0",
+  "source": "NT LSL Act 1981 s.10(2) retirement gate; TBD-NT-02 — dob lookup OR override required",
+  "input": {
+    "employee": {
+      "id": "TC-NT-013",
+      "startDate": "2017-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": [
+        "NT"
+      ],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "retirement"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "expected_citations": [
+      {
+        "section": "NT LSL Act 1981 s.11",
+        "rule": "ordinary-pay.fixed-rate"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10(2)",
+        "rule": "accrual.7-to-10yr.retirement-no-qualifying-signal"
+      },
+      {
+        "section": "NT LSL Act 1981 s.10",
+        "rule": "termination.pay-as-soon-as-practicable"
+      }
+    ],
+    "warnings": [
+      "nt_hours_per_year_history_not_supplied",
+      "nt_bonus_usually_paid_with_pay_excluded",
+      "nt_retirement_gate_unverified",
+      "sub_10yr_no_qualifying_reason_nt",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

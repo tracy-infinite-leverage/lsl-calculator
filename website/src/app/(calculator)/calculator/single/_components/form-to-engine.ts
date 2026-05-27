@@ -241,6 +241,63 @@ export function formToEngine(state: FormState): { employee: Employee; trigger: T
     }
   }
 
+  // NT extra-inputs (E2 Phase 9 / T9.5) — wire only when NT is in scope. NT
+  // engine reads `nt_*` keys directly from `extraInputs` (no shape-mapping like
+  // TAS). Empty values map to omitted keys to preserve byte-identity with
+  // pre-Phase-9 fixtures for non-NT calcs.
+  const isNtInScope =
+    state.statesOfService.includes('NT') ||
+    state.governingJurisdiction === 'NT';
+  if (isNtInScope) {
+    const ntExtras: Record<string, unknown> = {};
+    // Per-year hours history — only emit rows the user has actually filled
+    // (yearStart + yearEnd + hoursPerWeek all non-empty + parseable). Engine
+    // treats an empty array as "no operator history" and falls back per
+    // `nt_per_year_hours_history_missing`.
+    const ntHoursRows = state.nt_hours_per_week_by_year
+      .map((r) => {
+        if (!r.yearStart || !r.yearEnd || !r.hoursPerWeek) return null;
+        const hpw = Number(r.hoursPerWeek);
+        if (!Number.isFinite(hpw)) return null;
+        return { yearStart: r.yearStart, yearEnd: r.yearEnd, hoursPerWeek: hpw };
+      })
+      .filter((r): r is { yearStart: string; yearEnd: string; hoursPerWeek: number } => r !== null);
+    if (ntHoursRows.length > 0) {
+      ntExtras.nt_hours_per_week_by_year = ntHoursRows;
+    }
+    if (state.nt_age_pension_age_at_termination_reached) {
+      ntExtras.nt_age_pension_age_at_termination_reached = true;
+    }
+    if (state.nt_casual_continuity_preserved === 'true') {
+      ntExtras.nt_casual_continuity_preserved = true;
+    } else if (state.nt_casual_continuity_preserved === 'false') {
+      ntExtras.nt_casual_continuity_preserved = false;
+    }
+    if (state.nt_bonus_usually_paid_with_pay) {
+      ntExtras.nt_bonus_usually_paid_with_pay = true;
+    }
+    if (state.nt_board_lodging_cash_value_weekly) {
+      const n = Number(state.nt_board_lodging_cash_value_weekly);
+      if (Number.isFinite(n) && n > 0) {
+        ntExtras.nt_board_lodging_cash_value_weekly = n;
+      }
+    }
+    if (state.nt_related_corporation_service_years) {
+      const n = Number(state.nt_related_corporation_service_years);
+      if (Number.isFinite(n) && n > 0) {
+        ntExtras.nt_related_corporation_service_years = n;
+      }
+    }
+    if (state.nt_employer_initiated_dismissal) {
+      ntExtras.nt_employer_initiated_dismissal = true;
+    }
+    if (Object.keys(ntExtras).length > 0) {
+      // Merge with any pre-existing extraInputs (e.g. TAS wiring above). NT
+      // and TAS keys are disjoint by prefix so no clobbering risk.
+      employee.extraInputs = { ...(employee.extraInputs ?? {}), ...ntExtras };
+    }
+  }
+
   let trigger: Trigger;
   if (state.triggerKind === 'taking_leave') {
     trigger = { kind: 'taking_leave', leaveStartDate: asISODate(state.leaveStartDate) };
