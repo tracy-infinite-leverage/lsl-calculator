@@ -34,7 +34,7 @@ export default function Home() {
                 <CardTitle>Single employee</CardTitle>
                 <CardDescription>
                   One employee, one event. Taking leave, termination, or a LSL liability
-                  snapshot. Enter wage history by CSV (PDF extraction coming soon).
+                  snapshot. Enter wage history by CSV.
                 </CardDescription>
               </CardHeader>
               <CardContent>
