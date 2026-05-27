@@ -63,6 +63,7 @@ const WARNING_LABELS: Record<string, { label: string; tone: 'info' | 'warning' }
   sa_cashout_pre_accrual_not_authorised: { label: 'SA cash-out sub-10-year — not authorised under s.5', tone: 'warning' },
   sa_cashout_no_entitlement_to_cash_out: { label: 'SA sub-7-yr cash-out — no entitlement has yet accrued', tone: 'info' },
   sa_cashout_variation_topup_required: { label: 'SA cash-out variation top-up required — rate rose during coverage period (s.8(3a)(b) statutory minimum)', tone: 'warning' },
+  sa_cashout_variation_topup_manual_reconcile_commission: { label: 'SA cash-out variation top-up — commission path requires manual reconciliation (s.8(3a)(b) ambiguous baseline)', tone: 'warning' },
   sa_lsl_calculated_at_wc_reduced_rate_warning: { label: 'SA LSL calculated at WC-reduced rate (s.4 literal — no higher-of-rates equivalent)', tone: 'warning' },
   sa_higher_duties_rate_applied: { label: 'SA higher-duties acting rate applied as ordinary weekly rate (s.4 SA-unique)', tone: 'info' },
   sa_commission_52wk_lookback_applied: { label: 'SA commission worker — 52-week income lookback applied', tone: 'info' },

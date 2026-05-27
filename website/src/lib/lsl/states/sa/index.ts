@@ -277,35 +277,78 @@ export function calculateSA(employee: Employee, trigger: Trigger): Result {
 
       // ── s.8(3a)(b) variation-top-up detection. Statutory minimum: if the
       // worker's ordinary rate rises during the cash-out coverage window,
-      // the employer MUST make a further payment. Engine emits the warning
-      // with rate facts and the computed top-up amount.
+      // the employer MUST make a further payment.
+      //
+      // Path-dependent emission (commission vs everything else):
+      //   - Commission path (`vow.path === 'commission-52wk'`): `vow.value` is
+      //     a 52-wk income average, NOT the substantive rate at cash-out, so
+      //     using it as the comparison baseline silently under-emits when the
+      //     substantive base rate rises but stays below the historical
+      //     average. Compare against `currentWeeklyGross` (substantive) and
+      //     emit `sa_cashout_variation_topup_manual_reconcile_commission` —
+      //     an advisory that flags the legal ambiguity around "rate at
+      //     cash-out" for commission workers (52-wk avg vs substantive) and
+      //     hands the reconciliation to the user.
+      //   - All other paths (fixed-rate FT, casual-156wk, higher-duties acting
+      //     rate): `vow.value` IS the rate at cash-out by statute/SafeWork SA
+      //     guidance, so auto-detect and emit definitive top-up.
       const cashedOutWeeks =
         saExtras.sa_cashed_out_weeks !== undefined
           ? d(saExtras.sa_cashed_out_weeks)
           : accrual.payableWeeks;
-      const topup = detectSACashoutVariationTopup(
-        employee.wageHistory,
-        trigger.cashOutDate,
-        cashedOutWeeks,
-        vow.value
-      );
-      if (topup) {
-        const risesText = topup.rises
-          .map(
-            (r) =>
-              `${displayAUD(r.rate)}/wk effective ${r.effectiveFrom} covering ${displayWeeks(r.affectedWeeks, 4)} weeks`
-          )
-          .join('; ');
-        result.warnings.push({
-          code: 'sa_cashout_variation_topup_required',
-          message:
-            `Statutory variation top-up required under SA LSL Act 1987 s.8(3a)(b). ` +
-            `The worker's ordinary rate rose during the cash-out coverage period (${trigger.cashOutDate} through ${topup.coverageEnd}, ${displayWeeks(cashedOutWeeks, 4)} weeks cashed out). ` +
-            `Rate at cash-out: ${displayAUD(topup.rateAtCashOut)}/wk. ` +
-            `Rising rate(s): ${risesText}. ` +
-            `Required further payment (rate-difference × affected weeks): ${displayAUD(topup.totalTopUp)}. ` +
-            `This is a statutory minimum — under-payment breaches the Act.`,
-        });
+      if (vow.path === 'commission-52wk') {
+        const substantive = d(employee.currentWeeklyGross);
+        const topupCommission = detectSACashoutVariationTopup(
+          employee.wageHistory,
+          trigger.cashOutDate,
+          cashedOutWeeks,
+          substantive
+        );
+        if (topupCommission) {
+          const risesText = topupCommission.rises
+            .map(
+              (r) =>
+                `${displayAUD(r.rate)}/wk effective ${r.effectiveFrom} covering ${displayWeeks(r.affectedWeeks, 4)} weeks`
+            )
+            .join('; ');
+          result.warnings.push({
+            code: 'sa_cashout_variation_topup_manual_reconcile_commission',
+            message:
+              `Possible statutory variation top-up under SA LSL Act 1987 s.8(3a)(b) — manual reconciliation required. ` +
+              `Worker is on the SA commission path: engine uses 52-wk income average ${displayAUD(vow.value)}/wk as the value-of-week. ` +
+              `Substantive weekly rate at cash-out: ${displayAUD(substantive)}/wk. ` +
+              `Coverage period: ${trigger.cashOutDate} through ${topupCommission.coverageEnd} (${displayWeeks(cashedOutWeeks, 4)} weeks cashed out). ` +
+              `Post-cash-out rate(s) observed above substantive: ${risesText}. ` +
+              `Indicative top-up if substantive is the comparison baseline: ${displayAUD(topupCommission.totalTopUp)}. ` +
+              `Engine cannot auto-emit a definitive top-up: "rate at cash-out" for commission workers is legally ambiguous (52-wk income average vs substantive base rate). ` +
+              `Reconcile manually under your legal interpretation. This is a statutory minimum — under-payment breaches the Act.`,
+          });
+        }
+      } else {
+        const topup = detectSACashoutVariationTopup(
+          employee.wageHistory,
+          trigger.cashOutDate,
+          cashedOutWeeks,
+          vow.value
+        );
+        if (topup) {
+          const risesText = topup.rises
+            .map(
+              (r) =>
+                `${displayAUD(r.rate)}/wk effective ${r.effectiveFrom} covering ${displayWeeks(r.affectedWeeks, 4)} weeks`
+            )
+            .join('; ');
+          result.warnings.push({
+            code: 'sa_cashout_variation_topup_required',
+            message:
+              `Statutory variation top-up required under SA LSL Act 1987 s.8(3a)(b). ` +
+              `The worker's ordinary rate rose during the cash-out coverage period (${trigger.cashOutDate} through ${topup.coverageEnd}, ${displayWeeks(cashedOutWeeks, 4)} weeks cashed out). ` +
+              `Rate at cash-out: ${displayAUD(topup.rateAtCashOut)}/wk. ` +
+              `Rising rate(s): ${risesText}. ` +
+              `Required further payment (rate-difference × affected weeks): ${displayAUD(topup.totalTopUp)}. ` +
+              `This is a statutory minimum — under-payment breaches the Act.`,
+          });
+        }
       }
     }
   }
