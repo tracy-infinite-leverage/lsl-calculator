@@ -1,0 +1,30 @@
+{
+  "name": "TC-NT-057",
+  "title": "10 yrs FT with constant 38hr/wk per-year history — exactly 10y cliff with operator history",
+  "source": "NT LSL Act 1981 s.11(3); s.10(1) — 10-yr cliff with full operator history",
+  "input": {
+    "employee": {
+      "id": "TC-NT-057",
+      "startDate": "2016-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "nt_hours_per_week_by_year": [
+          { "yearStart": "2016-05-27", "yearEnd": "2026-05-27", "hoursPerWeek": 38 }
+        ]
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "warnings": ["nt_per_year_formula_applied"]
+  }
+}

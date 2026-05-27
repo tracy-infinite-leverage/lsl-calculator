@@ -1,0 +1,27 @@
+{
+  "name": "TC-NT-068",
+  "title": "12 yrs FT death — full payout per s.10(3) cross-ref s.10(1)",
+  "source": "NT LSL Act 1981 s.10(3) + s.10(1) — death 10+ full payout",
+  "input": {
+    "employee": {
+      "id": "TC-NT-068",
+      "startDate": "2014-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "death" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.10(3)", "rule": "trigger.termination.death.10yr-plus.personal-representative" }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "TC-NT-070",
+  "title": "5 yrs FT direct + 5 yrs related-corp = 10 yrs aggregated qualifies for full payout",
+  "source": "NT LSL Act 1981 s.12(6)/(7); TBD-NT-15 — related-corp service aggregation",
+  "input": {
+    "employee": {
+      "id": "TC-NT-070",
+      "startDate": "2021-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": { "nt_related_corporation_service_years": 5 }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.12(6)", "rule": "continuous-service.related-corp-aggregated" }
+    ],
+    "warnings": ["nt_related_corporation_service_aggregated"],
+    "_reconciliation_note": "Related-corp aggregation lifts years_of_continuous_service to 10 → qualifies for full 13-wk payout. valueOfWeek (per-year sum / aggregated payable weeks) is HALVED ($750.15) vs currentWeeklyGross ($1500.00) because per-year buckets cover only the physical 5 yrs but accrual normalises over 10 yrs. Engine arithmetic exact ($9754) but the surfaced per-week figure is counter-intuitive. PM ruling needed."
+  }
+}

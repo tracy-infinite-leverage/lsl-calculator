@@ -1,0 +1,23 @@
+{
+  "name": "TC-NT-073",
+  "title": "12 yrs FT as-at snapshot — past qualifying period, payable",
+  "source": "NT LSL Act 1981 s.8; E1 spec D20 — as-at at 10+ tenure",
+  "input": {
+    "employee": {
+      "id": "TC-NT-073",
+      "startDate": "2014-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "as_at", "asAtDate": "2026-05-27" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable"
+  }
+}

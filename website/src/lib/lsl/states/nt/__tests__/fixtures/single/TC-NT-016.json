@@ -1,0 +1,31 @@
+{
+  "name": "TC-NT-016",
+  "title": "8 yrs FT employer-initiated not-misconduct dismissal — qualifies",
+  "source": "NT LSL Act 1981 s.10(2); cross-state employer-initiated-not-misconduct path",
+  "input": {
+    "employee": {
+      "id": "TC-NT-016",
+      "startDate": "2018-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1400.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": {
+      "kind": "termination",
+      "terminationDate": "2026-05-27",
+      "reason": "employer_initiated_not_misconduct"
+    }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1400.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.10(2)", "rule": "accrual.7-to-10yr.employer_initiated_not_misconduct-qualifies" }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "TC-NT-063",
+  "title": "20 yrs FT taking 26 weeks LSL — 13 + 13 = 26 wks per s.8",
+  "source": "NT LSL Act 1981 s.8 — long-tenure accrual",
+  "input": {
+    "employee": {
+      "id": "TC-NT-063",
+      "startDate": "2006-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 26 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "warnings": ["nt_ph_inclusive_in_lsl"]
+  }
+}

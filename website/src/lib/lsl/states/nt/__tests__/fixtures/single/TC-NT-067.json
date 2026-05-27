@@ -1,0 +1,27 @@
+{
+  "name": "TC-NT-067",
+  "title": "8 yrs FT death — pro-rata payable to personal representative per s.10(3) cross-ref s.10(2)",
+  "source": "NT LSL Act 1981 s.10(3); TBD-NT-06 — death 7-10 yrs cross-references s.10(2)",
+  "input": {
+    "employee": {
+      "id": "TC-NT-067",
+      "startDate": "2018-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "death" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.10(3)", "rule": "trigger.termination.death.7-to-10yr.personal-representative" }
+    ]
+  }
+}

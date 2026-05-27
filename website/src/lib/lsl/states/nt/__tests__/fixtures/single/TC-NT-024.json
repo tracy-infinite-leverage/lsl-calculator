@@ -1,0 +1,30 @@
+{
+  "name": "TC-NT-024",
+  "title": "Exactly 10 yrs FT serious misconduct — 13 wks block payable (NT s.10(1A))",
+  "source": "NT LSL Act 1981 s.10(1A) — complete 10-yr block payable; NT UNIQUE TBD-NT-05",
+  "input": {
+    "employee": {
+      "id": "TC-NT-024",
+      "startDate": "2016-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "totalEntitlementWeeks": "13.0000",
+    "totalEntitlementDollars": "19500.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.10(1A)", "rule": "accrual.10yr-plus-misconduct-complete-blocks-only" }
+    ],
+    "warnings": ["nt_10yr_plus_misconduct_complete_blocks_only"]
+  }
+}

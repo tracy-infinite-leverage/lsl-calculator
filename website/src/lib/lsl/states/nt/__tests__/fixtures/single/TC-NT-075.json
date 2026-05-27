@@ -1,0 +1,21 @@
+{
+  "name": "TC-NT-075",
+  "title": "NT + VIC service, no governing nominated — BLOCKED",
+  "source": "Cross-jurisdiction; multi-state without governing nomination blocks",
+  "input": {
+    "employee": {
+      "id": "TC-NT-075",
+      "startDate": "2016-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT", "VIC"],
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "blocked_cross_jurisdiction"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "TC-NT-061",
+  "title": "11 yrs outworker — commission category, 12-mo lookback at LSL start",
+  "source": "NT LSL Act 1981 s.11; TBD-NT-10 — outworker is Category C",
+  "input": {
+    "employee": {
+      "id": "TC-NT-061",
+      "startDate": "2015-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "0",
+      "categoryOverride": "C",
+      "categoryOverrideConfirmed": true,
+      "wageHistory": [
+        {
+          "periodStart": "2025-06-02",
+          "periodEnd": "2026-06-01",
+          "grossPay": "85000",
+          "frequency": "weekly",
+          "note": "outworker piecework"
+        }
+      ],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-06-01", "leaveWeeks": 13 }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "payable",
+    "warnings": ["nt_ph_inclusive_in_lsl"]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "TC-NT-055",
+  "title": "11 yrs FT with PARTIAL per-year history (only 3 of 11 years supplied) — partial advisory",
+  "source": "NT LSL Act 1981 s.11(3) partial fallback; TBD-NT-01 — partial-history advisory",
+  "input": {
+    "employee": {
+      "id": "TC-NT-055",
+      "startDate": "2015-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": {
+        "nt_hours_per_week_by_year": [
+          { "yearStart": "2023-05-27", "yearEnd": "2024-05-26", "hoursPerWeek": 30 },
+          { "yearStart": "2024-05-27", "yearEnd": "2025-05-26", "hoursPerWeek": 32 },
+          { "yearStart": "2025-05-27", "yearEnd": "2026-05-27", "hoursPerWeek": 38 }
+        ]
+      }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "payable",
+    "warnings": ["nt_per_year_formula_applied", "nt_per_year_hours_history_partial"]
+  }
+}

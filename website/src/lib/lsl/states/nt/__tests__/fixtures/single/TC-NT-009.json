@@ -1,0 +1,30 @@
+{
+  "name": "TC-NT-009",
+  "title": "5 yrs FT redundancy — sub-7 floor, $0 entitlement",
+  "source": "NT LSL Act 1981 s.10(2) sub-7-yr floor — universal across all states",
+  "input": {
+    "employee": {
+      "id": "TC-NT-009",
+      "startDate": "2021-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1000.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1000.00",
+    "totalEntitlementWeeks": "0.0000",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.10(2)", "rule": "accrual.sub-7yr-no-entitlement" }
+    ],
+    "warnings": ["sub_7yr_no_entitlement_nt"]
+  }
+}

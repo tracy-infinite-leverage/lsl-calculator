@@ -1,0 +1,29 @@
+{
+  "name": "TC-NT-034",
+  "title": "11 yrs FT with related-corp 2-yr aggregation — total 13 yrs service",
+  "source": "NT LSL Act 1981 s.12(6)/(7); TBD-NT-15 related-corp aggregation",
+  "input": {
+    "employee": {
+      "id": "TC-NT-034",
+      "startDate": "2015-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": [],
+      "extraInputs": { "nt_related_corporation_service_years": 2 }
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.12(6)", "rule": "continuous-service.related-corp-aggregated" }
+    ],
+    "warnings": ["nt_related_corporation_service_aggregated"],
+    "_reconciliation_note": "valueOfWeek reflects per-year sum / aggregated-payable-weeks; with related-corp boost, real elapsed years (11) yield per-year buckets but accrual normalises across aggregated 13-yr payable weeks → valueOfWeek smaller than currentWeeklyGross. Reconciliation item — see T9.3 surface."
+  }
+}

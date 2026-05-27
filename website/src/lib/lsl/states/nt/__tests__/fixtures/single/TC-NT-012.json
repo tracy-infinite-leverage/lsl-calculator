@@ -1,0 +1,27 @@
+{
+  "name": "TC-NT-012",
+  "title": "9 yrs FT domestic pressing necessity — qualifies under s.10(2)",
+  "source": "NT LSL Act 1981 s.10(2) — domestic-pressing-necessity is a named qualifying reason",
+  "input": {
+    "employee": {
+      "id": "TC-NT-012",
+      "startDate": "2017-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1300.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "domestic_pressing_necessity" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1300.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.10(2)", "rule": "accrual.7-to-10yr.domestic_pressing_necessity-qualifies" }
+    ]
+  }
+}

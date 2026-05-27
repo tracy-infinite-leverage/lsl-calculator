@@ -1,0 +1,33 @@
+{
+  "name": "TC-NT-002",
+  "title": "8 yrs FT illness/incapacity → 7-10 yr pro-rata under s.10(2)",
+  "source": "NT LSL Act 1981 s.10(2) qualifying-reason gate; APA Masterclass NT — illness/incapacity is named s.10(2) reason",
+  "input": {
+    "employee": {
+      "id": "TC-NT-002",
+      "startDate": "2018-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "illness_incapacity" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "valueOfDay": "300.00",
+    "payableIndicator": "payable",
+    "expected_citations": [
+      { "section": "NT LSL Act 1981 s.10(2)", "rule": "accrual.7-to-10yr.illness_incapacity-qualifies" }
+    ],
+    "warnings": [
+      "nt_per_year_formula_applied",
+      "nt_per_year_hours_history_missing",
+      "nt_payable_as_soon_as_practicable_advisory"
+    ]
+  }
+}

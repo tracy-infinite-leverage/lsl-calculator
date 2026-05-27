@@ -1,0 +1,25 @@
+{
+  "name": "TC-NT-018",
+  "title": "8 yrs FT poor performance — non-qualifying, $0",
+  "source": "NT LSL Act 1981 s.10(2) strict closed list — poor performance not enumerated",
+  "input": {
+    "employee": {
+      "id": "TC-NT-018",
+      "startDate": "2018-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "poor_performance" }
+  },
+  "expected": {
+    "status": "computed",
+    "totalEntitlementDollars": "0.00",
+    "payableIndicator": "accrued_not_currently_payable",
+    "warnings": ["sub_10yr_no_qualifying_reason_nt"]
+  }
+}

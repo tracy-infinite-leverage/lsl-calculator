@@ -1,0 +1,27 @@
+{
+  "name": "TC-NT-026",
+  "title": "16 yrs FT serious misconduct → block truncated to 15 yrs (19.5 wks)",
+  "source": "NT LSL Act 1981 s.10(1A) — 16y truncates to 15-yr block; TBD-NT-05",
+  "input": {
+    "employee": {
+      "id": "TC-NT-026",
+      "startDate": "2010-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1500.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "serious_misconduct" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1500.00",
+    "totalEntitlementWeeks": "19.5000",
+    "totalEntitlementDollars": "29250.00",
+    "payableIndicator": "payable",
+    "warnings": ["nt_10yr_plus_misconduct_complete_blocks_only"]
+  }
+}

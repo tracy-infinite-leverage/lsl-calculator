@@ -1,0 +1,25 @@
+{
+  "name": "TC-NT-048",
+  "title": "10 yrs FT — verify penalty rates excluded advisory fires every NT calc",
+  "source": "NT LSL Act 1981 s.7(2) — penalty rates EXCLUDED",
+  "input": {
+    "employee": {
+      "id": "TC-NT-048",
+      "startDate": "2016-05-27",
+      "endDate": "2026-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1750.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "termination", "terminationDate": "2026-05-27", "reason": "redundancy" }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1750.00",
+    "payableIndicator": "payable",
+    "warnings": ["nt_penalty_rates_excluded"]
+  }
+}

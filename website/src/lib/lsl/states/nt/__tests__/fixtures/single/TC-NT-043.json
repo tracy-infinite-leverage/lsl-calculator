@@ -1,0 +1,24 @@
+{
+  "name": "TC-NT-043",
+  "title": "15 yrs FT taking 19.5 weeks LSL with Easter window — PH-INCLUSIVE",
+  "source": "NT LSL Act 1981 s.9; s.8 (15-yr accrual)",
+  "input": {
+    "employee": {
+      "id": "TC-NT-043",
+      "startDate": "2011-05-27",
+      "employmentType": "full_time",
+      "statesOfService": ["NT"],
+      "governingJurisdiction": "NT",
+      "currentWeeklyGross": "1700.00",
+      "wageHistory": [],
+      "serviceEvents": []
+    },
+    "trigger": { "kind": "taking_leave", "leaveStartDate": "2026-03-30", "leaveWeeks": 19.5 }
+  },
+  "expected": {
+    "status": "computed",
+    "valueOfWeek": "1700.00",
+    "payableIndicator": "payable",
+    "warnings": ["nt_ph_inclusive_in_lsl"]
+  }
+}
