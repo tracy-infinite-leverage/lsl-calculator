@@ -4,7 +4,7 @@ import { BulkModeForm } from './_components/bulk-mode-form';
 
 export const metadata: Metadata = {
   title: 'Bulk LSL calculator',
-  description: `Upload a CSV (or PDF) and run Long Service Leave calculations across many employees at once. ${ENCODED_STATES.join(', ')} supported.`,
+  description: `Upload a CSV and run Long Service Leave calculations across many employees at once. ${ENCODED_STATES.join(', ')} supported.`,
 };
 
 export default function BulkCalculatorPage() {
