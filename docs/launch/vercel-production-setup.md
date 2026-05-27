@@ -45,16 +45,18 @@ those values.
 
 ## Step 4 — Environment variables
 
-Project Settings → Environment Variables
+**Updated 2026-05-27**: `ANTHROPIC_API_KEY` is no longer required by the
+public calculator. The PDF Removal slice (`feat/E5.0-pdf-removal`)
+deleted every consumer of the key. See
+`docs/launch/LAUNCH-GUARD.md` for closure details.
 
-| Name | Value | Environment |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | (your ZDR-enabled production key, NOT the local one) | Production only |
+Current required env vars are the Supabase trio for the E5.1 auth slice
+— see `docs/engineering/vercel-config.md` for the full table.
 
-Do NOT set this for Preview environments — Preview deploys go through
-the Anthropic standard tier or get the same key, your call. Safer to
-have a separate Preview-only key under standard tier so any preview
-testing never accidentally uses production budget.
+If the `ANTHROPIC_API_KEY` variable still exists in Vercel from prior
+configuration, remove it via Project Settings → Environment Variables.
+Removal is operator-owned per the global engineering rule that the dev
+agent does not write to Vercel.
 
 ---
 

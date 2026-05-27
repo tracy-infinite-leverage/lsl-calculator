@@ -38,5 +38,5 @@ Standard-tier rewrite approved without further conditions.
 
 1. **Privacy notice** ✓ Tracy 2026-05-23 (standard-tier rewrite approved)
 2. **Data-handling policy** ✓ Tracy 2026-05-23 (standard-tier rewrite approved)
-3. **Production cutover** ⏳ blocked on `ANTHROPIC_API_KEY` in Vercel Production env (LAUNCH-GUARD hard gate)
-4. **ZDR upgrade** ⏳ nice-to-have, post-launch; switch keys + update both docs when Anthropic approves the ZDR request
+3. **Production cutover** ✓ unblocked 2026-05-27 — `ANTHROPIC_API_KEY` LAUNCH-GUARD gate closed by elimination via PDF Removal slice (`feat/E5.0-pdf-removal`)
+4. **ZDR upgrade** N/A — no longer relevant; Anthropic SDK removed from codebase 2026-05-27

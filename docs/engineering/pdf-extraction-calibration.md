@@ -1,5 +1,7 @@
 # PDF Extraction Calibration — D05 / Task 3.9
 
+> **SUPERSEDED 2026-05-27 by PDF Removal slice (`feat/E5.0-pdf-removal`).** The PDF extraction code path has been deleted (`/api/extract-pdf`, `website/src/lib/lsl/parsers/pdf/*`, `website/src/components/lsl/pdf-upload.tsx`, `website/src/server/anthropic.ts`, `@anthropic-ai/sdk`). There are no confidence thresholds left to calibrate. This document is retained as historical context for any future LLM-extraction revival; do not execute the plan against the current codebase. See `.specify/features/005-lsl-platform/sub-specs/pdf-removal.md` for the deletion rationale.
+
 **Status**: **DEFERRED indefinitely (won't fix v1)** — operator decision 2026-05-24. Default thresholds (aggregate `0.85`, per-field `0.7`) ship as-is. Calibration sits in the backlog rather than being discarded; revisit only if real production telemetry shows the confidence banner misbehaving (too often / too rarely). The remainder of this document is retained as the ready-to-go execution plan if that trigger fires.
 **Owner**: backlog (no v1 owner).
 **Linked**: `.specify/features/001-nsw-calculator/tasks.md` §3.9, `dev-findings.md` D05, `impl-plan.md` §4.4, Risk R1, `docs/launch/LAUNCH-GUARD.md` Documented Risk.

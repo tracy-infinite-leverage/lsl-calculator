@@ -1,18 +1,16 @@
 # Launch checklist & artifacts
 
-> ## 🛑 LAUNCH GUARD — `ANTHROPIC_API_KEY` must be set in Production env
+> ## ✅ LAUNCH GUARD — `ANTHROPIC_API_KEY` gate CLOSED 2026-05-27
 >
-> Before merging PR #1 to `main`:
+> The PDF Removal sub-spec shipped on `feat/E5.0-pdf-removal`. The hard
+> gate that required `ANTHROPIC_API_KEY` in Vercel Production is now moot
+> — the consuming code (`/api/extract-pdf`, `/api/normalize-csv`, and
+> related PDF parser modules) has been deleted. See
+> [`LAUNCH-GUARD.md`](./LAUNCH-GUARD.md) for closure details.
 >
-> 1. Get a production API key from https://console.anthropic.com (ZDR is
->    nice-to-have, not required — the privacy notice has been written to
->    match Anthropic's standard commercial terms).
-> 2. Set it via `vercel env add ANTHROPIC_API_KEY production` (interactive
->    paste) or the Vercel dashboard.
-> 3. Trigger a preview build + curl `/api/normalize-csv` on the preview URL
->    to confirm 200, not 503.
->
-> Full guard at [`LAUNCH-GUARD.md`](./LAUNCH-GUARD.md).
+> Operator follow-up after merge: remove the leftover `ANTHROPIC_API_KEY`
+> env var from Vercel Production / Preview / Development scopes via the
+> dashboard.
 
 Everything Tracy needs to action before flipping the NSW LSL Calculator to
 production. The code is done; what's left is human coordination.
@@ -27,7 +25,7 @@ In rough order of dependency:
 - [x] Vercel production project `lsl-calculator` created on team `infiniteleverage-2` (Sydney region, root dir `website/`)
 - [x] GitHub integration connected; preview build on `001-nsw-calculator` green (41s build)
 - [x] Production domain `www.lslcalculator.com.au` live (DNS configured, Vercel domain configured — 2026-05-25). Standalone domain replaced the originally-planned `lsl.austpayroll.com.au` subdomain.
-- [ ] `ANTHROPIC_API_KEY` set in Vercel Production environment — see LAUNCH-GUARD hard gate
+- [x] `ANTHROPIC_API_KEY` gate CLOSED 2026-05-27 (by deletion — PDF Removal slice `feat/E5.0-pdf-removal`). Operator follow-up: drop the leftover env var in Vercel.
 - [x] PR #1 moved from draft → ready for review (28+ commits, 262/262 vitest, 20/20 Playwright, CI green)
 - [ ] Final manual smoke on Vercel-issued URL after env var is set
 - [ ] Tracy merges PR #1 → `main` (Vercel auto-deploys to production)

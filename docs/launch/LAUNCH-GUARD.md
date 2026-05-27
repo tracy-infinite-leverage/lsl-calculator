@@ -8,44 +8,33 @@ this guard first. No exceptions.
 
 ## Hard gate — `ANTHROPIC_API_KEY` in Vercel Production env
 
-**STATUS 2026-05-27 — superseded by PDF Removal (see below).** The recommended path to clear this gate is no longer "add the key" — it is **delete the code that needs the key**. The operator has approved ripping the PDF ingestion path out of the platform entirely (sub-spec `.specify/features/005-lsl-platform/sub-specs/pdf-removal.md`). Once that lands, `ANTHROPIC_API_KEY` is no longer required in Vercel Production and this gate closes by elimination.
+**STATUS 2026-05-27 — GATE CLOSED BY ELIMINATION.** The PDF Removal sub-spec (`.specify/features/005-lsl-platform/sub-specs/pdf-removal.md`) has shipped on `feat/E5.0-pdf-removal`. `/api/extract-pdf`, `/api/normalize-csv`, `website/src/lib/lsl/parsers/pdf/*`, `website/src/components/lsl/pdf-upload.tsx`, `website/src/server/anthropic.ts`, and the `@anthropic-ai/sdk` dependency have all been deleted. `ANTHROPIC_API_KEY` has zero consumers in the codebase.
 
-Original gate text retained below for historical context until pdf-removal ships.
+**Operator follow-up after merge** (one-time, dashboard-only):
+
+1. Vercel → `lsl-calculator` → Settings → Environment Variables.
+2. Delete `ANTHROPIC_API_KEY` from Production, Preview, and Development scopes.
+3. (Optional) Revoke the key at https://console.anthropic.com/settings/keys.
+
+The dev agent does not touch Vercel env vars (per `~/.claude/rules/global-engineering.md` — Vercel MCP / CLI is read-only). Removing the leftover variable is operator-owned.
+
+**Historical context retained below.** Original gate text from before the deletion is kept for audit purposes only.
 
 ---
 
-### Original gate (retained until pdf-removal ships)
+### Historical gate text (superseded 2026-05-27)
 
 The Vercel production project (`lsl-calculator` on team
-`infiniteleverage-2`) exists but does NOT yet have an
-`ANTHROPIC_API_KEY` set in the Production environment. Without it,
-`/api/extract-pdf` and `/api/normalize-csv` will return 503 in
-production and customers can't use the PDF / auto-normalised-CSV paths.
+`infiniteleverage-2`) did NOT have an `ANTHROPIC_API_KEY` set in the
+Production environment. Without it, `/api/extract-pdf` and
+`/api/normalize-csv` returned 503 in production and customers could
+not use the PDF / auto-normalised-CSV paths.
 
-**Preferred resolution (2026-05-27):** ship the pdf-removal sub-spec. Delete `/api/extract-pdf`, `/api/normalize-csv`, `website/src/lib/lsl/parsers/pdf/*`, `website/src/components/lsl/pdf-upload.tsx`, and `website/src/server/anthropic.ts`. Drop the `@anthropic-ai/sdk` dependency from `website/package.json`. With no consumer of `ANTHROPIC_API_KEY`, this gate is moot.
-
-**Fallback resolution (only if pdf-removal is deferred):** before any merge to `main` that would deploy:
-
-1. Get a production API key from https://console.anthropic.com (this
-   key may be on Anthropic's standard tier — ZDR is a nice-to-have, not
-   a blocker; the privacy notice has been updated to match the standard
-   tier's published terms).
-2. Set it in Vercel via either:
-   - **Recommended**: ask the dev agent to run
-     `vercel env add ANTHROPIC_API_KEY production` and paste the key
-     into the interactive prompt. The key disappears from the terminal
-     after submission. It briefly appears in chat scrollback — rotate
-     the Anthropic key after launch as standard hygiene if you'd like.
-   - Or: paste it via the Vercel dashboard → Settings → Environment
-     Variables → Production only.
-3. Trigger a preview redeploy (push any commit) and curl
-   `/api/normalize-csv` on the resulting preview URL to confirm the
-   key works (expect 200 with a spec, not 503).
-
-**Do NOT use the local-dev key** (the one in `website/.env.local`)
-for Production unless you have specifically decided they should be
-the same. Best practice: separate keys per environment so revoking
-either doesn't affect the other.
+The originally-considered fallback was to add the key. The chosen
+resolution was to delete the consuming code instead (see status note
+above). This eliminates the operational burden (key rotation, ZDR
+hygiene, retention disclosure) at the cost of a UX feature that the
+operator confirmed was an optional convenience, not load-bearing.
 
 ---
 
@@ -68,35 +57,11 @@ required from agents.
 
 ## Documented risk — PDF extraction confidence thresholds uncalibrated
 
-PDF extraction is shipping with default confidence thresholds
-(aggregate `0.85`, per-field `0.7`) in
-`website/src/lib/lsl/parsers/pdf/confidence.ts`. Operator decided
-2026-05-24 to **defer calibration indefinitely** — task 3.9 sits in
-the backlog, not discarded. The original 50-PDF plan is retained as
-ready-to-execute if the trigger below fires.
-
-Without real-world calibration data the confidence gate is informed
-by synthetic test fixtures only. Both directions of error are
-possible:
-
-- **False positive**: "high confidence" on wrong data — banner does
-  not appear, user trusts the preview.
-- **False negative**: "low confidence" on correct data — banner
-  appears unnecessarily, users learn to ignore it.
-
-**Why this is not a hard gate**: the CSV-fallback path (AC26) is
-wired and verified, and the editable preview forces user review of
-every extracted field regardless of confidence score. A wrongly-tuned
-threshold cannot ship bad LSL values to a customer — it can only
-mis-decorate the preview.
-
-**Post-launch trigger to revisit**: if real production telemetry
-shows the banner firing inappropriately (too often / too rarely),
-re-open the calibration work then.
-
-**Cross-reference**: `docs/engineering/pdf-extraction-calibration.md`
-for the original execution plan, retained as historical context if
-calibration is ever revisited.
+**CLOSED 2026-05-27 — moot after PDF Removal.** The PDF extraction
+code path has been deleted (see status note in the Hard gate section
+above). There is no confidence threshold to calibrate. The original
+calibration plan at `docs/engineering/pdf-extraction-calibration.md`
+is retained as historical context only.
 
 ---
 

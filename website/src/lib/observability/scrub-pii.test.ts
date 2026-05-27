@@ -78,13 +78,13 @@ describe('scrubPII', () => {
   it('passes through error codes and routes', () => {
     const r = scrubPII({
       error_code: 'low_confidence',
-      route: '/api/extract-pdf',
+      route: '/api/export-pdf',
       status: 422,
       method: 'POST',
     });
     expect(r).toEqual({
       error_code: 'low_confidence',
-      route: '/api/extract-pdf',
+      route: '/api/export-pdf',
       status: 422,
       method: 'POST',
     });
