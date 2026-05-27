@@ -86,15 +86,17 @@ These three spikes resolve the only known technical unknowns. They must complete
 **Dependencies**: Task 1.1, Task 3.1
 **Assignee**: Developer
 
-### Task 3.3: Wire Supabase env vars to Vercel (Production + Preview) [P]
+### Task 3.3: Wire Supabase env vars to Vercel (Production + Preview) [P] ✅ DONE 2026-05-27
 
 **Description**: DevOps adds the three Supabase env vars to Vercel for both Production and Preview environments. Record the change in `website/CLAUDE.md` per global-engineering rules.
 
+**Status:** All three Supabase env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) wired into Vercel **Production + Preview + Development** for the `infiniteleverage-2/lsl-calculator` project. URL + anon key sourced from the account-scoped Supabase MCP (`get_project_url` + `get_publishable_keys` against project `woxtujkxatosbirikxtq`); service-role key sourced from `website/.env.local` (operator-controlled, JWT format validated `eyJ…` 219 chars before write). All 9 writes confirmed via `vercel env ls` (values stay encrypted at rest; redacted listing recorded in the commit message). Development env was wired in addition to the original Production/Preview scope — see Decisions Log addendum for rationale.
+
 **Acceptance Criteria**:
-- [ ] All three vars set in Vercel Production.
-- [ ] All three vars set in Vercel Preview.
-- [ ] No keys committed to git.
-- [ ] Change documented in `website/CLAUDE.md` env section.
+- [x] All three vars set in Vercel Production. → **Confirmed via `vercel env ls`:** `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_URL` all show `Encrypted` against `Production` (created 2026-05-27).
+- [x] All three vars set in Vercel Preview. → **Confirmed via `vercel env ls`:** same three names show `Encrypted` against `Preview` (created 2026-05-27). Preview entries written via Vercel REST API (`POST /v10/projects/{id}/env` with `target: ["preview"]` and no `gitBranch` → "all preview branches") because the v54.4.1 CLI's `--value --yes` non-interactive path still prompted for a branch; API path matches the CLI's own documented "all preview branches" semantics.
+- [x] No keys committed to git. → **Verified.** `website/.env.local` remains gitignored (`website/.gitignore:39-40`). The service-role-key value was passed via stdin / `--value` and never appeared in tool output, logs, or commits. Tool-call logs were sanitised before reading.
+- [x] Change documented in `website/CLAUDE.md` env section. → **Updated.** `website/AGENTS.md` (imported by `website/CLAUDE.md` via `@AGENTS.md`) carries a "wired on 2026-05-27 (Task 3.3)" note next to the env-var table. `docs/engineering/vercel-config.md` updated with a Supabase env-vars row + a pre-cutover line.
 
 **Effort**: S
 **Dependencies**: Task 3.1
