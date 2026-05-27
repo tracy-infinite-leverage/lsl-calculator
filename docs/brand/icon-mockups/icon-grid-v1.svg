@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Icon Grid v1 — 8 Lucide styling rules in action against the LSL Calculator brand system.
+  Palette: navy #48608a, gold #d9a428, grey-blue #a0aec1, white #ffffff.
+  Layout: 4 columns x 2 rows. Tile = 200x200. Icon glyph drawn at 64x64 viewBox-equivalent, stroke 2.
+  All icon paths are hand-redrawn versions of the Lucide identifiers cited, NOT copy-pasted from Lucide.
+  In production (Phase 2 / E6.2), icons are imported from lucide-react and styled via Tailwind tokens.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 480" role="img" aria-label="LSL Calculator icon system v1 — Lucide styling map mockup">
+  <defs>
+    <style><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap');
+      .label   { font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; fill: #48608a; font-size: 14px; }
+      .caption { font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif; font-weight: 400; fill: #808897; font-size: 11px; letter-spacing: 0.2px; }
+      .title   { font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; fill: #48608a; font-size: 18px; }
+      .tile    { fill: #ffffff; stroke: #e6eaf0; stroke-width: 1; }
+      .stroke-navy { stroke: #48608a; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .stroke-gold { stroke: #d9a428; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .stroke-grey { stroke: #a0aec1; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .stroke-white{ stroke: #ffffff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .fill-navy { fill: #48608a; }
+      .fill-gold { fill: #d9a428; }
+    ]]></style>
+  </defs>
+
+  <rect width="880" height="480" fill="#fafbfc"/>
+
+  <!-- Title strip -->
+  <text x="40" y="40" class="title">LSL Calculator icon system v1 — Lucide styling map</text>
+  <text x="40" y="60" class="caption">Navy default | Gold accent (active/important) | Grey-blue (disabled/secondary) | Encircled (section header) | Rounded square (brand surface)</text>
+
+  <!-- Row 1 y=90, Row 2 y=290 -->
+
+  <!-- ============ TILE 1: Navy default (Calculator) ============ -->
+  <rect x="40" y="90" width="200" height="180" class="tile" rx="6"/>
+  <g transform="translate(108,128)">
+    <!-- Calculator: body + screen + buttons -->
+    <rect x="0" y="0" width="64" height="84" rx="4" class="stroke-navy"/>
+    <rect x="8" y="8" width="48" height="14" rx="1" class="stroke-navy"/>
+    <circle cx="14" cy="36" r="2" class="fill-navy"/>
+    <circle cx="32" cy="36" r="2" class="fill-navy"/>
+    <circle cx="50" cy="36" r="2" class="fill-navy"/>
+    <circle cx="14" cy="50" r="2" class="fill-navy"/>
+    <circle cx="32" cy="50" r="2" class="fill-navy"/>
+    <circle cx="50" cy="50" r="2" class="fill-navy"/>
+    <circle cx="14" cy="64" r="2" class="fill-navy"/>
+    <circle cx="32" cy="64" r="2" class="fill-navy"/>
+    <circle cx="50" cy="64" r="2" class="fill-navy"/>
+  </g>
+  <text x="140" y="240" text-anchor="middle" class="label">Calculator</text>
+  <text x="140" y="256" text-anchor="middle" class="caption">Navy default</text>
+
+  <!-- ============ TILE 2: Navy + gold accent (CheckCircle2) ============ -->
+  <rect x="260" y="90" width="200" height="180" class="tile" rx="6"/>
+  <g transform="translate(328,128)">
+    <!-- CheckCircle2: circle in navy, inner tick in gold -->
+    <circle cx="32" cy="32" r="30" class="stroke-navy"/>
+    <path d="M19 33 L28 42 L46 22" class="stroke-gold" stroke-width="3"/>
+  </g>
+  <text x="360" y="240" text-anchor="middle" class="label">CheckCircle2</text>
+  <text x="360" y="256" text-anchor="middle" class="caption">Gold accent (active / done)</text>
+
+  <!-- ============ TILE 3: Date range with gold "today" marker (CalendarRange) ============ -->
+  <rect x="480" y="90" width="200" height="180" class="tile" rx="6"/>
+  <g transform="translate(548,128)">
+    <!-- Calendar body -->
+    <rect x="0" y="8" width="64" height="56" rx="4" class="stroke-navy"/>
+    <line x1="0" y1="22" x2="64" y2="22" class="stroke-navy"/>
+    <line x1="16" y1="2" x2="16" y2="14" class="stroke-navy"/>
+    <line x1="48" y1="2" x2="48" y2="14" class="stroke-navy"/>
+    <!-- Range bar -->
+    <rect x="10" y="30" width="44" height="6" rx="1" class="stroke-navy"/>
+    <!-- Today marker — gold filled square -->
+    <rect x="40" y="44" width="10" height="10" rx="1" class="fill-gold"/>
+  </g>
+  <text x="580" y="240" text-anchor="middle" class="label">CalendarRange</text>
+  <text x="580" y="256" text-anchor="middle" class="caption">Navy + gold "today" marker</text>
+
+  <!-- ============ TILE 4: Disabled state grey-blue (Settings) ============ -->
+  <rect x="700" y="90" width="160" height="180" class="tile" rx="6"/>
+  <g transform="translate(748,128)">
+    <!-- Settings gear -->
+    <circle cx="32" cy="32" r="10" class="stroke-grey"/>
+    <path d="M32 6 V14 M32 50 V58 M6 32 H14 M50 32 H58 M14 14 L20 20 M44 44 L50 50 M14 50 L20 44 M44 20 L50 14" class="stroke-grey"/>
+  </g>
+  <text x="780" y="240" text-anchor="middle" class="label">Settings</text>
+  <text x="780" y="256" text-anchor="middle" class="caption">Grey-blue (disabled / secondary)</text>
+
+  <!-- ============ ROW 2 ============ -->
+
+  <!-- ============ TILE 5: Encircled — navy filled circle, white icon (User) — section header treatment ============ -->
+  <rect x="40" y="290" width="200" height="180" class="tile" rx="6"/>
+  <circle cx="140" cy="358" r="40" class="fill-navy"/>
+  <g transform="translate(116,334)">
+    <!-- User glyph: head + shoulders, white stroke -->
+    <circle cx="24" cy="20" r="9" class="stroke-white"/>
+    <path d="M8 46 C8 36 16 30 24 30 C32 30 40 36 40 46" class="stroke-white"/>
+  </g>
+  <text x="140" y="440" text-anchor="middle" class="label">User (encircled)</text>
+  <text x="140" y="456" text-anchor="middle" class="caption">Section header / nav</text>
+
+  <!-- ============ TILE 6: Encircled — navy circle + gold inner ring (AlertTriangle for advisory state) ============ -->
+  <rect x="260" y="290" width="200" height="180" class="tile" rx="6"/>
+  <circle cx="360" cy="358" r="40" class="fill-navy"/>
+  <g transform="translate(330,330)">
+    <!-- AlertTriangle in white inside, gold "!" stem -->
+    <path d="M30 8 L56 52 L4 52 Z" class="stroke-white"/>
+    <line x1="30" y1="22" x2="30" y2="38" stroke="#d9a428" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="30" cy="45" r="2" class="fill-gold"/>
+  </g>
+  <text x="360" y="440" text-anchor="middle" class="label">AlertTriangle (encircled)</text>
+  <text x="360" y="456" text-anchor="middle" class="caption">Important — gold signal inside</text>
+
+  <!-- ============ TILE 7: Rounded square container (FileText / PDF report) — brand surface ============ -->
+  <rect x="480" y="290" width="200" height="180" class="tile" rx="6"/>
+  <rect x="552" y="318" width="80" height="80" rx="14" class="fill-navy"/>
+  <g transform="translate(572,332)">
+    <!-- FileText -->
+    <path d="M6 0 H30 L42 12 V52 H6 Z" class="stroke-white"/>
+    <path d="M30 0 V12 H42" class="stroke-white"/>
+    <line x1="14" y1="24" x2="34" y2="24" class="stroke-white"/>
+    <line x1="14" y1="32" x2="34" y2="32" class="stroke-white"/>
+    <line x1="14" y1="40" x2="28" y2="40" class="stroke-white"/>
+    <!-- Gold accent corner echo -->
+    <rect x="36" y="46" width="6" height="6" rx="0.5" class="fill-gold"/>
+  </g>
+  <text x="580" y="440" text-anchor="middle" class="label">FileText (rounded square)</text>
+  <text x="580" y="456" text-anchor="middle" class="caption">Brand surface — gold corner echo</text>
+
+  <!-- ============ TILE 8: DollarSign navy, restraint demo (no gold) ============ -->
+  <rect x="700" y="290" width="160" height="180" class="tile" rx="6"/>
+  <g transform="translate(748,328)">
+    <!-- DollarSign -->
+    <line x1="32" y1="0" x2="32" y2="64" class="stroke-navy" stroke-width="2.5"/>
+    <path d="M50 12 C50 6 42 4 32 4 C22 4 14 8 14 16 C14 24 22 26 32 28 C42 30 50 34 50 42 C50 50 42 54 32 54 C22 54 14 52 14 46" class="stroke-navy" stroke-width="2.5"/>
+  </g>
+  <text x="780" y="440" text-anchor="middle" class="label">DollarSign</text>
+  <text x="780" y="456" text-anchor="middle" class="caption">Navy default — restraint, no gold</text>
+
+</svg>

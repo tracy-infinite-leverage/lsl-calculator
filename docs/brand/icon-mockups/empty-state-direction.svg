@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Empty-state illustration direction — "Employees-empty" example.
+  Visual posture: light line-art, navy primary, sparing gold accent, grey-blue for secondary lines.
+  Rules:
+    - Stroke weight 1.5px at 240x240 viewBox (matches body icon weight at larger scale)
+    - No shadow, no fill, no gradient — outline only
+    - One gold accent per illustration max (the "add" plus mark)
+    - Generous whitespace inside the frame — the illustration should feel "open", inviting action
+    - The illustration sits ABOVE the empty-state headline + CTA; this file shows the illustration only
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="Employees empty state illustration direction">
+  <defs>
+    <style><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap');
+      .h1      { font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; fill: #48608a; font-size: 18px; }
+      .body    { font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif; font-weight: 400; fill: #808897; font-size: 12px; }
+      .stroke-navy { stroke: #48608a; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .stroke-grey { stroke: #a0aec1; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .stroke-gold { stroke: #d9a428; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .fill-gold   { fill: #d9a428; }
+    ]]></style>
+  </defs>
+
+  <rect width="480" height="360" fill="#ffffff"/>
+
+  <!-- Illustration: a table/roster with one "empty seat" highlighted by a gold plus mark -->
+
+  <!-- Table outline -->
+  <rect x="120" y="80" width="240" height="160" rx="6" class="stroke-navy"/>
+
+  <!-- Table header rule -->
+  <line x1="120" y1="104" x2="360" y2="104" class="stroke-navy"/>
+
+  <!-- Column dividers — grey-blue (secondary) -->
+  <line x1="200" y1="80" x2="200" y2="240" class="stroke-grey"/>
+  <line x1="280" y1="80" x2="280" y2="240" class="stroke-grey"/>
+
+  <!-- Row dividers — grey-blue (secondary, broken-line "subtle detail" per spec §5.1) -->
+  <line x1="120" y1="138" x2="360" y2="138" class="stroke-grey" stroke-dasharray="3 3"/>
+  <line x1="120" y1="172" x2="360" y2="172" class="stroke-grey" stroke-dasharray="3 3"/>
+  <line x1="120" y1="206" x2="360" y2="206" class="stroke-grey" stroke-dasharray="3 3"/>
+
+  <!-- Empty rows hinted with short faint lines — table is empty -->
+  <line x1="135" y1="121" x2="185" y2="121" class="stroke-grey"/>
+  <line x1="215" y1="121" x2="265" y2="121" class="stroke-grey"/>
+  <line x1="295" y1="121" x2="345" y2="121" class="stroke-grey"/>
+
+  <!-- Single gold "+" mark — the only colour signal — anchored inside a navy outlined circle -->
+  <circle cx="240" cy="185" r="22" class="stroke-navy"/>
+  <line x1="240" y1="174" x2="240" y2="196" class="stroke-gold"/>
+  <line x1="229" y1="185" x2="251" y2="185" class="stroke-gold"/>
+
+  <!-- Caption labels (this would NOT appear in the final empty state — included here to demonstrate the direction in context) -->
+  <text x="240" y="280" text-anchor="middle" class="h1">No employees yet</text>
+  <text x="240" y="300" text-anchor="middle" class="body">Add your first employee to start calculating LSL.</text>
+</svg>

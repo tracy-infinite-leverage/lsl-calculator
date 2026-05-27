@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Favicon set preview — 16x16 and 32x32 actual size, plus 2x and 8x magnifications.
+  At 16x16, the LSL monogram is illegible — the favicon uses a simplified glyph: navy rounded square
+  with a centred gold square (echoes parent's gold-square-head from p.4 + p.10).
+  At 32x32 we can fit a simplified "L" instead of "LSL" — full "LSL" only readable at 48x48+.
+  Sizes required in production:
+    - favicon-16x16.png       (browser tab, simplified glyph)
+    - favicon-32x32.png       (browser tab retina, simplified L)
+    - favicon-48x48.png       (legacy ICO)
+    - apple-touch-icon.png    180x180 (iOS home screen — uses full LSL monogram + corner square)
+    - android-chrome.png      192x192 (Android — uses full LSL monogram + corner square)
+    - icon-512x512.png        (PWA / manifest — full app-icon master)
+    - favicon.ico             multi-resolution (16,32,48)
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 360" role="img" aria-label="LSL Calculator favicon set preview">
+  <defs>
+    <style><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Montserrat:wght@700&display=swap');
+      .label   { font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; fill: #48608a; font-size: 13px; }
+      .caption { font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif; font-weight: 400; fill: #808897; font-size: 11px; }
+      .title   { font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; fill: #48608a; font-size: 18px; }
+      .mono-l  { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; fill: #ffffff; }
+    ]]></style>
+  </defs>
+
+  <rect width="880" height="360" fill="#fafbfc"/>
+
+  <!-- Title -->
+  <text x="40" y="36" class="title">Favicon set preview — simplified glyph for small sizes</text>
+  <text x="40" y="56" class="caption">16x16 and 32x32 cannot legibly fit "LSL"; favicon drops the monogram and keeps the geometry: navy square + gold corner.</text>
+
+  <!-- 16x16 actual size -->
+  <g transform="translate(60,110)">
+    <rect x="0" y="0" width="16" height="16" rx="3" fill="#48608a"/>
+    <rect x="11" y="11" width="4" height="4" rx="0.5" fill="#d9a428"/>
+  </g>
+  <text x="68" y="160" text-anchor="middle" class="label">16x16</text>
+  <text x="68" y="176" text-anchor="middle" class="caption">actual</text>
+
+  <!-- 16x16 magnified 8x -->
+  <g transform="translate(120,90)">
+    <rect x="0" y="0" width="128" height="128" rx="24" fill="#48608a"/>
+    <rect x="88" y="88" width="32" height="32" rx="4" fill="#d9a428"/>
+  </g>
+  <text x="184" y="240" text-anchor="middle" class="label">16x16 @ 8x</text>
+  <text x="184" y="256" text-anchor="middle" class="caption">magnified — simplified glyph</text>
+
+  <!-- 32x32 actual size -->
+  <g transform="translate(310,102)">
+    <rect x="0" y="0" width="32" height="32" rx="6" fill="#48608a"/>
+    <text x="14" y="24" class="mono-l" font-size="22" letter-spacing="-1">L</text>
+    <rect x="24" y="24" width="6" height="6" rx="1" fill="#d9a428"/>
+  </g>
+  <text x="326" y="160" text-anchor="middle" class="label">32x32</text>
+  <text x="326" y="176" text-anchor="middle" class="caption">actual</text>
+
+  <!-- 32x32 magnified 4x -->
+  <g transform="translate(390,90)">
+    <rect x="0" y="0" width="128" height="128" rx="24" fill="#48608a"/>
+    <text x="58" y="96" class="mono-l" font-size="88" letter-spacing="-3">L</text>
+    <rect x="96" y="96" width="24" height="24" rx="4" fill="#d9a428"/>
+  </g>
+  <text x="454" y="240" text-anchor="middle" class="label">32x32 @ 4x</text>
+  <text x="454" y="256" text-anchor="middle" class="caption">magnified — single L + corner</text>
+
+  <!-- apple-touch-icon 180x180 preview at 1x -->
+  <g transform="translate(580,90)">
+    <rect x="0" y="0" width="180" height="180" rx="34" fill="#48608a"/>
+    <text x="92" y="118" text-anchor="middle" class="mono-l" font-size="64" letter-spacing="-2">LSL</text>
+    <rect x="146" y="146" width="20" height="20" rx="3" fill="#d9a428"/>
+  </g>
+  <text x="670" y="290" text-anchor="middle" class="label">180x180 apple-touch-icon</text>
+  <text x="670" y="306" text-anchor="middle" class="caption">full LSL monogram restored at this size</text>
+
+</svg>
