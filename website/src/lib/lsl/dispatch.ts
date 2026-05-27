@@ -73,6 +73,7 @@ export const UI_SHIPPED_STATES: ReadonlyArray<State> = [
   'SA',
   'ACT',
   'TAS',
+  'NT',
 ];
 
 /** Check whether a state's UI is fully shipped today. */
