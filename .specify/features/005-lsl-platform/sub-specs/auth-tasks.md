@@ -123,30 +123,30 @@ These three spikes resolve the only known technical unknowns. They must complete
 
 ## Phase 4: Schema, RLS, signup trigger
 
-### Task 4.1: Migration — `organisations` table + RLS ✅ DONE (code) 2026-05-27 / ⏳ APPLY PENDING
+### Task 4.1: Migration — `organisations` table + RLS ✅ DONE 2026-05-27
 
 **Description**: Create `public.organisations` per plan §2.2 with `id`, `name`, `created_at`, `updated_at`, `deleted_at`, `delete_scheduled_at`. Add `tg_set_updated_at()` helper and trigger. Enable RLS with the two read/update policies from plan §2.2.
 
-**Status:** SQL written at `website/supabase/migrations/20260527000001_create_organisations.sql`. RLS clauses use `(select auth.uid())` (performance-advisor-friendly form — see Decisions Log entry from 2026-05-27). **Not yet applied to the remote project** — pending the Supabase MCP rebind or manual dashboard apply (see HANDOFF-resume-phase-4-apply.md).
+**Status:** SQL at `website/supabase/migrations/20260527042608_create_organisations.sql`. Applied to `lsl-platform` via Supabase MCP (version 20260527042608). The two `organisations` policies (`members read own org`, `admin update own org`) were moved to migration 4.2 because they reference `public.org_members` — the apply order requires the policies follow the table they join against. Behaviour-equivalent split. `tg_set_updated_at` was further hardened in migration 5 (`set search_path = ''`) to clear the `function_search_path_mutable` advisor WARN.
 
 **Acceptance Criteria**:
 - [x] Migration file in `website/supabase/migrations/` follows Supabase naming convention (`YYYYMMDDHHMMSS_<snake_case>.sql`).
 - [x] Table created with all six columns and constraints from plan §2.2.1.
 - [x] `tg_set_updated_at()` helper exists and trigger keeps `updated_at` current on row change.
 - [x] RLS enabled.
-- [x] Policies "members read own org" (SELECT) and "admin update own org" (UPDATE) installed.
+- [x] Policies "members read own org" (SELECT) and "admin update own org" (UPDATE) installed. — *Created in migration 4.2 due to apply-order; both policies live on `public.organisations` as required.*
 - [x] No client-side INSERT or DELETE policy exists.
-- [ ] **Applied to remote `lsl-platform` project** (verify via `mcp__supabase__list_tables(schemas=['public'])` after MCP rebind, or check dashboard). — pending next session
+- [x] **Applied to remote `lsl-platform` project** — verified via `list_tables` + `list_migrations`; security advisor clean (zero P0/P1 after migration 5 hardening).
 
 **Effort**: S
 **Dependencies**: Task 3.1
 **Assignee**: Developer (uses Supabase MCP)
 
-### Task 4.2: Migration — `org_members` table + RLS [P] ✅ DONE (code) 2026-05-27 / ⏳ APPLY PENDING
+### Task 4.2: Migration — `org_members` table + RLS [P] ✅ DONE 2026-05-27
 
 **Description**: Create `public.org_members` per plan §2.2.2 with UNIQUE constraint on `user_id` (enforces one-org-per-user per spec OQ-4 / AC-AUTH-14). Enable RLS with the "members read own membership" policy.
 
-**Status:** SQL written at `website/supabase/migrations/20260527000002_create_org_members.sql`. Includes a supporting `org_members_org_id_idx` index on `org_id` (the FK on `user_id` is already covered by the UNIQUE constraint, so no separate index needed). RLS uses `(select auth.uid())`. **Not yet applied** — see HANDOFF-resume-phase-4-apply.md.
+**Status:** SQL at `website/supabase/migrations/20260527042620_create_org_members.sql`. Applied to `lsl-platform` (version 20260527042620). Also creates the two `organisations` policies (`members read own org`, `admin update own org`) here — they were deferred from migration 4.1 because they reference `public.org_members`. Includes a supporting `org_members_org_id_idx` index on `org_id`.
 
 **Acceptance Criteria**:
 - [x] Table created with all seven columns and constraints from plan §2.2.2.
@@ -157,23 +157,23 @@ These three spikes resolve the only known technical unknowns. They must complete
 - [x] RLS enabled.
 - [x] SELECT policy "members read own membership" installed.
 - [x] No client-side INSERT/UPDATE/DELETE policy.
-- [ ] **Applied to remote `lsl-platform` project** — pending next session
+- [x] **Applied to remote `lsl-platform` project** — verified via `list_tables` (UNIQUE constraint on `user_id` visible in column options).
 
 **Effort**: S
 **Dependencies**: Task 4.1
 **Assignee**: Developer
 
-### Task 4.3: Migration — `auth_audit_log` table [P] ✅ DONE (code) 2026-05-27 / ⏳ APPLY PENDING
+### Task 4.3: Migration — `auth_audit_log` table [P] ✅ DONE 2026-05-27
 
 **Description**: Create `public.auth_audit_log` per plan §2.2.3 with no public RLS policies (service-role-only).
 
-**Status:** SQL written at `website/supabase/migrations/20260527000003_create_auth_audit_log.sql`. Adds two helpful indexes (`auth_audit_log_user_id_idx`, `auth_audit_log_created_at_idx DESC`) for incident-response queries. **Not yet applied** — see HANDOFF-resume-phase-4-apply.md.
+**Status:** SQL at `website/supabase/migrations/20260527042635_create_auth_audit_log.sql`. Applied to `lsl-platform` (version 20260527042635). Adds two indexes (`auth_audit_log_user_id_idx`, `auth_audit_log_created_at_idx DESC`) for incident-response queries — currently flagged as INFO/unused by the advisor because the table is empty; will be used once events log.
 
 **Acceptance Criteria**:
 - [x] Table created with all seven columns from plan §2.2.3.
 - [x] FK to `auth.users(id) ON DELETE SET NULL` (audit row survives user delete).
 - [x] RLS enabled with no policies for `anon` or `authenticated` (only service-role can read/write).
-- [ ] **Applied to remote `lsl-platform` project** — pending next session
+- [x] **Applied to remote `lsl-platform` project** — verified via `list_tables`. The advisor's `rls_enabled_no_policy` INFO finding on this table is intentional (spec §9.4 — service-role-only) and is the only remaining advisor finding for the Phase 4 schema.
 
 **Effort**: S
 **Dependencies**: Task 4.1
