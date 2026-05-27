@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OG card — 1200×630 standard.
+  Per icon-direction.md §8: white background, navy wordmark, optional small
+  app-icon glyph at upper-right (~96×96, 48px inset).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="LSL Calculator OG card">
+  <defs>
+    <style><![CDATA[
+      .primary  { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; fill: #48608a; }
+      .secondary{ font-family: 'Source Sans 3', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; font-weight: 400; fill: #48608a; letter-spacing: 1.8px; }
+      .monogram { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; fill: #ffffff; letter-spacing: -0.4px; }
+    ]]></style>
+  </defs>
+  <!-- White background -->
+  <rect x="0" y="0" width="1200" height="630" fill="#ffffff"/>
+
+  <!-- Small app-icon glyph upper-right, 96×96, 48px inset from each edge -->
+  <g transform="translate(1056, 48)">
+    <rect x="0" y="0" width="96" height="96" rx="18" fill="#48608a"/>
+    <text x="48" y="64" text-anchor="middle" class="monogram" font-size="34">LSL</text>
+    <rect x="77" y="77" width="10" height="10" rx="1.5" fill="#d9a428"/>
+  </g>
+
+  <!-- Wordmark centred — primary at ~60% card width.
+       Primary font-size 120, gold rule 5px, secondary 32 — proportionally
+       upscaled from the 1000×360 master at 1.25× to fill the OG real estate. -->
+  <text x="600" y="350" text-anchor="middle" class="primary" font-size="120" letter-spacing="-1.8">LSL Calculator</text>
+  <line x1="450" y1="394" x2="750" y2="394" stroke="#d9a428" stroke-width="5"/>
+  <text x="600" y="460" text-anchor="middle" class="secondary" font-size="32">by Australian Payroll Association</text>
+</svg>

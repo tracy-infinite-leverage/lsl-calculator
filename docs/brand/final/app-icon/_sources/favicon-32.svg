@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  App icon — 32×32 simplified glyph (favicon).
+  Per icon-direction.md §7: at 32×32 a single "L" replaces the LSL monogram.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="LSL favicon 32">
+  <defs>
+    <style><![CDATA[
+      .monogram { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; fill: #ffffff; }
+    ]]></style>
+  </defs>
+  <rect x="0" y="0" width="32" height="32" rx="6" fill="#48608a"/>
+  <text x="16" y="22" text-anchor="middle" class="monogram" font-size="20">L</text>
+  <rect x="22" y="22" width="6" height="6" rx="1" fill="#d9a428"/>
+</svg>

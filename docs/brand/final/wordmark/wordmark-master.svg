@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate B — Stacked wordmark with gold rule accent
+  Primary:   "LSL Calculator"                       — Montserrat Semibold, navy #48608a
+  Accent:    Gold rule under primary, 4px           — gold #d9a428 (echoes the "golden square head" of parent mark, p.4)
+  Secondary: "by Australian Payroll Association"   — Source Sans Pro Regular, navy #48608a
+  Posture:   Vertical stack, formal masthead feel. Authoritative — fits a calculator that produces a printable report.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 360" role="img" aria-label="LSL Calculator by Australian Payroll Association — Candidate B">
+  <defs>
+    <style><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Source+Sans+3:wght@400&display=swap');
+      .primary  { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; fill: #48608a; }
+      .secondary{ font-family: 'Source Sans 3', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; font-weight: 400; fill: #48608a; letter-spacing: 1.5px; }
+    ]]></style>
+  </defs>
+  <rect width="1000" height="360" fill="#ffffff"/>
+
+  <!-- Primary mark, centered -->
+  <text x="500" y="170" text-anchor="middle" class="primary" font-size="96" letter-spacing="-1.5">LSL Calculator</text>
+
+  <!-- Gold accent rule, ~40% of wordmark width, signals connection to APA gold-square brand element -->
+  <line x1="380" y1="205" x2="620" y2="205" stroke="#d9a428" stroke-width="4"/>
+
+  <!-- Secondary mark, centered, with extra tracking for confident sub-brand voice -->
+  <text x="500" y="265" text-anchor="middle" class="secondary" font-size="26">by Australian Payroll Association</text>
+</svg>

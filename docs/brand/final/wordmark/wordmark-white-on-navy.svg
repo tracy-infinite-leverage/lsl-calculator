@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Wordmark — white-on-navy inverse variant.
+  Navy field, white type, gold rule preserved. For dark contexts.
+  Source: candidate-b.svg master, colours inverted; gold rule preserved.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 360" role="img" aria-label="LSL Calculator by Australian Payroll Association — inverse">
+  <defs>
+    <style><![CDATA[
+      .primary  { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 600; fill: #ffffff; }
+      .secondary{ font-family: 'Source Sans 3', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; font-weight: 400; fill: #ffffff; letter-spacing: 1.5px; }
+    ]]></style>
+  </defs>
+  <rect width="1000" height="360" fill="#48608a"/>
+  <text x="500" y="170" text-anchor="middle" class="primary" font-size="96" letter-spacing="-1.5">LSL Calculator</text>
+  <line x1="380" y1="205" x2="620" y2="205" stroke="#d9a428" stroke-width="4"/>
+  <text x="500" y="265" text-anchor="middle" class="secondary" font-size="26">by Australian Payroll Association</text>
+</svg>

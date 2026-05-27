@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Safari pinned-tab monochrome SVG.
+  Per icon-direction.md §7: monochrome navy mask, no gold.
+  Safari recolours this to user preference; only the alpha shape matters.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LSL Safari pinned tab">
+  <defs>
+    <style><![CDATA[
+      .monogram { font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; fill: #48608a; letter-spacing: -2px; }
+    ]]></style>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" rx="96" fill="#48608a"/>
+  <text x="256" y="296" text-anchor="middle" class="monogram" font-size="180">LSL</text>
+</svg>
