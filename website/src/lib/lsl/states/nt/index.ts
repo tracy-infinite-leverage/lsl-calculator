@@ -28,26 +28,19 @@ import {
 export const NT_JURISDICTION = 'NT' as const;
 
 /**
- * NT LSL orchestrator — T9.1 SCAFFOLD.
+ * NT LSL orchestrator — T9.2.
  *
  * Single rule set per the signed test-cases-nt.md v1.0 (PM-SIGNED 2026-05-27).
  * NT has no dated regime cliff (parallel to QLD / SA / ACT / TAS — NOT VIC /
  * WA pre-/post- pattern).
  *
- * T9.1 SCAFFOLD implements: jurisdiction gate, cash-out hard error (s.10(4) /
- * TBD-NT-08), advance-leave $0 + advisory (TBD-NT-08 leave-in-advance branch),
- * wall-clock continuous-service walk, fixed-rate value-of-week path, accrual
- * shell with sub-7/sub-10/10+/misconduct branches, pay-on-termination advisory
- * with `payable_by` OMITTED (TBD-NT-09 Option (b)), and the load-bearing
- * advisory codes (workers comp excluded, PH inclusive, retirement age pension
- * age, bonus inclusion, board/lodging, per-year formula).
- *
- * T9.2 will implement: per-year `RP × HWW × 1.3` formula (s.11(3) — NT
+ * T9.2 implements the full per-year `RP × HWW × 1.3` formula (s.11(3) — NT
  * UNIQUE), Age Pension age lookup against `employee.dob` (Cth SS Act 1991
- * s.23), s.10(1A) complete-blocks-only misconduct truncation, s.11(1)(b)
- * per-year casual averaging, s.11 rate-varies 12-mo commission lookback,
- * service-event handling (WC / maternity / sick / LWP / industrial dispute
- * all excluded), and the full s.7(2) ordinary-pay inclusion/exclusion list.
+ * s.23), s.10(1A) complete-blocks-only misconduct truncation interacting
+ * with the per-year sum, s.11 rate-varies 12-mo commission lookback, full
+ * s.12 service-event walker (WC / unpaid maternity / unpaid sick / LWP /
+ * industrial dispute all excluded), and the full s.7(2) ordinary-pay
+ * inclusion/exclusion advisory set.
  *
  * Sources:
  *   - NT LSL Act 1981 ss.7 (incl. s.7(2), s.7(2)(b), s.7(2)(c)), 8, 9, 10
@@ -176,6 +169,36 @@ export function calculateNT(employee: Employee, trigger: Trigger): Result {
     }
   }
 
+  // ── Casual loading universal-practice advisory (TBD-NT-13).
+  if (employee.employmentType === 'casual') {
+    result.warnings.push({
+      code: 'nt_casual_loading_assumed_included_in_hourly_rate',
+      message:
+        'Casual loading is assumed INCLUDED in `currentHourlyRate` / `currentWeeklyGross` per universal cross-state practice (NT LSL Act 1981 is silent on the question; APA Masterclass confirms inclusion). Operator pre-loads the inclusive rate.',
+    });
+  }
+
+  // ── s.7(2) ordinary-pay exclusion advisories — fired whenever a NT
+  // calculation runs to document the engine's inclusion/exclusion stance.
+  result.warnings.push({
+    code: 'nt_industry_leading_hand_skill_qualification_allowance_included',
+    message:
+      'Industry / leading hand / skill / qualification / service grant allowances are INCLUDED in ordinary pay per NT LSL Act 1981 s.7(2). Operator should pre-load these into `currentWeeklyGross`.',
+  });
+  result.warnings.push({
+    code: 'nt_overtime_excluded',
+    message: 'Overtime payments are EXCLUDED from ordinary pay per NT LSL Act 1981 s.7(2).',
+  });
+  result.warnings.push({
+    code: 'nt_penalty_rates_excluded',
+    message: 'Penalty rates are EXCLUDED from ordinary pay per NT LSL Act 1981 s.7(2).',
+  });
+  result.warnings.push({
+    code: 'nt_district_site_climatic_allowance_excluded',
+    message:
+      'District / site / climatic allowances are EXCLUDED from ordinary pay per NT LSL Act 1981 s.7(2).',
+  });
+
   // T9.1 NOTE: cash_out already returned above; psd derivation is therefore
   // a no-cash_out path here. The branch is kept simple deliberately.
   const psd: ISODate = prescribedDate(trigger);
@@ -200,11 +223,11 @@ export function calculateNT(employee: Employee, trigger: Trigger): Result {
   );
   result.warnings.push(...service.warnings);
 
-  // ── Advance-leave refusal at sub-10-yr per TBD-NT-08 leave-in-advance branch.
-  // Uses WALL-CLOCK elapsed years from `effectiveServiceStart` to the prescribed
-  // date (parallel to TAS T8.3 reconciliation fix Item 6 sub-bug 2026-05-26 —
-  // LWP-excluded years would incorrectly trip the gate for a worker with
-  // wall-clock tenure ≥10 yrs).
+  // ── Advance-leave refusal at sub-10-yr per TBD-NT-08 leave-in-advance
+  // branch. Uses WALL-CLOCK elapsed years from `effectiveServiceStart` to the
+  // prescribed date (parallel to TAS T8.3 reconciliation fix Item 6 sub-bug
+  // 2026-05-26 — LWP-excluded years would incorrectly trip the gate for a
+  // worker with wall-clock tenure ≥10 yrs).
   const elapsedDaysFromStart = inclusiveDays(
     service.effectiveServiceStart,
     psd
@@ -265,14 +288,55 @@ export function calculateNT(employee: Employee, trigger: Trigger): Result {
     return result;
   }
 
-  const vow = valueOfWeekNT(employee, trigger, psd, service.effectiveServiceStart);
+  // ── Accrual gate first, so we have `effectiveYearsForPayout` for the
+  // per-year formula (the s.10(1A) misconduct branch truncates).
+  const priorTaken = employee.priorLeaveTakenWeeks
+    ? d(employee.priorLeaveTakenWeeks)
+    : new Decimal(0);
+  const accrual = accrualNT(
+    service.yearsOfContinuousService,
+    employee,
+    trigger,
+    priorTaken
+  );
 
-  // ── TBD-NT-01: emit applied / fallback advisory for per-year hours history.
-  if (vow.perYearHistoryMissing) {
+  // ── value-of-week — pass the accrual's `effectiveYearsForPayout` so the
+  // per-year sum covers the locked tenure (matters for misconduct truncation).
+  const vow = valueOfWeekNT(
+    employee,
+    trigger,
+    psd,
+    service.effectiveServiceStart,
+    { effectiveYearsForPayout: accrual.effectiveYearsForPayout }
+  );
+
+  // ── TBD-NT-01: per-year formula advisories.
+  if (vow.path === 'per-year-formula') {
+    result.warnings.push({
+      code: 'nt_per_year_formula_applied',
+      message:
+        'Per-year `RP × HWW × 1.3` formula applied per NT LSL Act 1981 s.11(3) — NT UNIQUE. Engine summed each completed year of service separately using the rate at cessation and the per-year hours-per-week.',
+    });
+  }
+  if (vow.perYearHistoryMissing && vow.path === 'per-year-formula') {
     result.warnings.push({
       code: 'nt_per_year_hours_history_missing',
       message:
         'Operator did not supply `extraInputs.nt_hours_per_week_by_year`. Engine fell back to single-year flat path using `currentWeeklyGross` per NT LSL Act 1981 s.11. The per-year `RP × HWW × 1.3` formula (s.11(3) — NT UNIQUE) may produce a different total if hours varied across years of service. Supply per-year hours history for the locked s.11(3) computation.',
+    });
+  } else if (vow.perYearHistoryMissing) {
+    // Fixed-rate fallback path — same advisory, separate context.
+    result.warnings.push({
+      code: 'nt_per_year_hours_history_missing',
+      message:
+        'Operator did not supply `extraInputs.nt_hours_per_week_by_year`. Engine fell back to single-year flat path using `currentWeeklyGross` per NT LSL Act 1981 s.11. The per-year `RP × HWW × 1.3` formula (s.11(3) — NT UNIQUE) may produce a different total if hours varied across years of service. Supply per-year hours history for the locked s.11(3) computation.',
+    });
+  }
+  if (vow.perYearHistoryPartial) {
+    result.warnings.push({
+      code: 'nt_per_year_hours_history_partial',
+      message:
+        'Operator supplied `extraInputs.nt_hours_per_week_by_year` but it does not cover every year of continuous service. Engine filled the missing years from `currentWeeklyGross`. Supply complete per-year hours history for an exact s.11(3) computation.',
     });
   }
 
@@ -297,22 +361,13 @@ export function calculateNT(employee: Employee, trigger: Trigger): Result {
     });
   }
 
-  const priorTaken = employee.priorLeaveTakenWeeks
-    ? d(employee.priorLeaveTakenWeeks)
-    : new Decimal(0);
-  const accrual = accrualNT(
-    service.yearsOfContinuousService,
-    employee,
-    trigger,
-    priorTaken
-  );
-
   // ── TBD-NT-02: retirement Age Pension age advisories.
   if (accrual.retirementAgePensionAgeApplied) {
     result.warnings.push({
       code: 'nt_retirement_qualifying_age_pension_age',
-      message:
-        'NT LSL Act 1981 s.10(2) retirement gate applied using Age Pension age (currently 67 for both genders per Cth Social Security Act 1991 s.23). Engine confirmed qualifying age was reached at termination.',
+      message: accrual.retirementGateBypassedByOverride
+        ? 'NT LSL Act 1981 s.10(2) retirement gate satisfied via operator override `extraInputs.nt_age_pension_age_at_termination_reached: true`. Engine bypassed the dob-based Age Pension age lookup.'
+        : 'NT LSL Act 1981 s.10(2) retirement gate applied using Age Pension age per Cth Social Security Act 1991 s.23 (currently 67 for births 1 Jan 1957+; earlier cohorts use the year-of-birth lookup table). Engine confirmed qualifying age was reached at termination.',
     });
   }
 
@@ -341,8 +396,7 @@ export function calculateNT(employee: Employee, trigger: Trigger): Result {
   if (accrual.tenYrPlusMisconductCompleteBlocksOnly) {
     result.warnings.push({
       code: 'nt_10yr_plus_misconduct_complete_blocks_only',
-      message:
-        'Dismissal for serious & wilful misconduct at 10+ yrs — ONLY complete 10y/15y blocks payable per NT LSL Act 1981 s.10(1A). NT UNIQUE: different from NSW/VIC/QLD/SA/ACT/TAS (full payout) and from WA (5-yr block partial-forfeiture).',
+      message: `Dismissal for serious & wilful misconduct at 10+ yrs — ONLY complete 10y/15y blocks payable per NT LSL Act 1981 s.10(1A). Engine truncated ${service.yearsOfContinuousService.toFixed(4)} yrs of service to ${accrual.effectiveYearsForPayout.toFixed(0)} yrs (nearest completed 10y/15y/20y/25y/30y multiple). NT UNIQUE: different from NSW/VIC/QLD/SA/ACT/TAS (full payout) and from WA (5-yr block partial-forfeiture).`,
     });
   }
 
@@ -378,7 +432,14 @@ export function calculateNT(employee: Employee, trigger: Trigger): Result {
   const triggerCits = triggerCitationsNT(trigger);
 
   const valueOfDay = valueOfDayNT(vow.value);
-  const totalDollars = mul(vow.value, accrual.payableWeeks);
+
+  // Total dollars: when the per-year formula fires, use the locked per-year
+  // sum directly (preserves exact arithmetic). Otherwise use the standard
+  // value-of-week × payable-weeks product.
+  const totalDollars =
+    vow.path === 'per-year-formula' && vow.totalDollarsFromPerYear !== undefined
+      ? vow.totalDollarsFromPerYear
+      : mul(vow.value, accrual.payableWeeks);
 
   const vowCitations: Citation[] = [...vow.citations, ...service.citations];
   const vodCitations: Citation[] = [...vow.citations, ...service.citations];
@@ -442,7 +503,7 @@ export function calculateNT(employee: Employee, trigger: Trigger): Result {
     daysOfContinuousService: service.daysOfContinuousService,
     daysNotCountedInService: service.daysNotCountedInService,
     daysNotCountedInLookback: { window12mo: 0, window5yr: 0 },
-    weeklyAvg12mo: new Decimal(0),
+    weeklyAvg12mo: vow.weeklyCommission12mo ?? new Decimal(0),
     weeklyAvg5yr: new Decimal(0),
     payableIndicator: accrual.payableIndicator,
     serviceStartUsed: service.effectiveServiceStart,

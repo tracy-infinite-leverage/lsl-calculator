@@ -2,9 +2,10 @@ import { Decimal, mul, sub } from '@/lib/lsl/engine/decimal';
 import { citation } from '@/lib/lsl/engine/citation';
 import type { Citation, Employee, Trigger } from '@/lib/lsl/engine/types';
 import type { NTExtraInputs } from '../extra-inputs';
+import { hasReachedAgePensionAge } from './age-pension-age';
 
 /**
- * NT LSL Act 1981 s.8 accrual — T9.1 SCAFFOLD.
+ * NT LSL Act 1981 s.8 accrual — T9.2.
  *
  * Numerical accrual: **13 weeks at 10 years** of continuous service per s.8.
  * Continuous at **1.3 wks/yr** thereafter (= `Years × 13/10`) — TIES WITH SA
@@ -13,12 +14,14 @@ import type { NTExtraInputs } from '../extra-inputs';
  * continuous 1.3 wks/yr applied past year 10.
  *
  * Pro-rata at termination (s.10(2) — 7–10 yr band, NT closed list):
- *   - Qualifying reasons: retirement (Age Pension age — TBD-NT-02),
+ *   - Qualifying reasons: retirement (Age Pension age — TBD-NT-02 RESOLVED;
+ *     dob lookup against Cth SS Act 1991 s.23 + operator override flag),
  *     employer-not-misconduct dismissal (TBD-NT-04), illness/incapacity/
  *     domestic-pressing-necessity.
  *   - Death 7–10 yrs: NOT NAMED in s.10(2) — covered separately under s.10(3)
- *     (TBD-NT-06: s.10(3) "this section" cross-references both s.10(1) AND
- *     s.10(2); death at 7–10 yrs → pro-rata to personal representative).
+ *     (TBD-NT-06 RESOLVED: s.10(3) "this section" cross-references both
+ *     s.10(1) AND s.10(2); death at 7–10 yrs → pro-rata to personal
+ *     representative).
  *   - voluntary_resignation 7–10 yrs: NOT qualifying — binary 10-yr cliff per
  *     TBD-NT-04 RESOLVED Option (a). Parallel to TAS TBD-TAS-07 and ACT
  *     closed-list.
@@ -28,28 +31,33 @@ import type { NTExtraInputs } from '../extra-inputs';
  * 10+ yr full payout (s.10(1)):
  *   - ANY reason qualifies EXCEPT s.10(1A) serious & wilful misconduct, which
  *     restricts payment to complete 10y/15y blocks only (NT UNIQUE — TBD-NT-05).
+ *     Engine truncates years to the nearest completed 10y or 15y multiple,
+ *     NOT to nearest whole year. e.g. 12.5y → 10y block; 16y → 15y block;
+ *     21y → 20y block (the "10y/15y multiples" reading per s.10(1A) is
+ *     "completed 5-yr blocks starting at 10" — so 20y, 25y, 30y all count).
  *     Different from NSW/VIC/QLD/SA/ACT/TAS (full payout) and from WA (5-yr
  *     block partial-forfeiture).
  *   - Death 10+ yrs: payable to personal representative per s.10(3).
  *
  * NT per-year `RP × HWW × 1.3` formula (s.11(3)):
- *   - Engine MUST sum per-year `(rate × hours_per_week × 1.3)` across each
+ *   - Engine sums per-year `(rate × hours_per_week × 1.3)` across each
  *     completed year of service when `extraInputs.nt_hours_per_week_by_year`
- *     is supplied. T9.1 SCAFFOLD: this is implemented in `value-of-week.ts`
- *     as a STUB. Full implementation lands in T9.2.
+ *     is supplied. Lives in `value-of-week.ts`. Accrual-table surfaces
+ *     `effectiveYearsForPayout` (the locked tenure used by the per-year sum)
+ *     so the misconduct truncation interacts cleanly with the formula.
  *
- * Advance leave (taking_leave sub-10-yr):
- *   - NOT PERMITTED — the NT Act contains no advance-leave clause. Engine
- *     returns $0 with `nt_advance_leave_not_permitted` advisory (parallel to
- *     TAS TBD-TAS-08 and ACT TBD-ACT-14 RESOLVED `status: computed` semantics,
- *     not a hard error). Orchestrator handles the refusal; this module emits
- *     zero payable weeks. (Implementation completes in T9.2.)
+ * Advance leave (taking_leave sub-10-yr): refused upstream in orchestrator
+ * (returns $0 + `nt_advance_leave_not_permitted` advisory; parallel to TAS
+ * TBD-TAS-08 and ACT TBD-ACT-14 RESOLVED — `status: computed` semantics, not
+ * a hard error).
  *
  * As-at trigger bypasses qualifying-reason gates per E1 spec D20.
  *
  * Sources:
  *   - NT LSL Act 1981 s.8, s.10(1), s.10(1A), s.10(2), s.10(3), s.10(4),
  *     s.11(3)
+ *   - Cth Social Security Act 1991 s.23 (Age Pension age table — see
+ *     `./age-pension-age.ts`)
  *   - APA LSL Masterclass — NT section
  *   - docs/qa/test-cases-nt.md v1.0 PM-signed 2026-05-27
  */
@@ -91,19 +99,49 @@ export interface NTAccrualResult {
   priorLeaveTakenWeeks: Decimal;
   citations: Citation[];
   payableIndicator: 'payable' | 'accrued_not_currently_payable';
+  /**
+   * Years of service used when computing the dollar payout (== `yearsOfService`
+   * for the normal full/pro-rata paths; truncated to the nearest completed
+   * 10y/15y/20y/25y/30y block for the s.10(1A) misconduct path). Exposed so
+   * the per-year `RP × HWW × 1.3` formula in `value-of-week.ts` can sum the
+   * correct year-bucket subset.
+   */
+  effectiveYearsForPayout: Decimal;
   sub7YrNoEntitlement?: boolean;
   sub10YrNoQualifyingReason?: boolean;
   sub10YrMisconductExcluded?: boolean;
   tenYrPlusMisconductCompleteBlocksOnly?: boolean;
   retirementAgePensionAgeApplied?: boolean;
+  /**
+   * True when the operator supplied `nt_age_pension_age_at_termination_reached: true`
+   * to bypass the dob lookup. Surfaced as a separate advisory.
+   */
+  retirementGateBypassedByOverride?: boolean;
 }
 
 /**
- * T9.1 SCAFFOLD: minimal-correct gates so the smoke fixture (TC-NT-001) can
- * reach a computed result through the orchestrator. The full per-year
- * formula, retirement-age lookup, casual continuity evaluator, and the
- * complete s.10(1A) complete-blocks-only logic land in T9.2.
+ * Truncate years-of-service to the nearest completed 10y/15y/20y/25y/30y…
+ * multiple per s.10(1A) misconduct treatment.
+ *
+ * The Act's "10 or 15 years" phrasing locks the minimum (10) and the second
+ * cliff (15); thereafter the natural reading is "completed 5-yr blocks
+ * starting at 10". Worked examples in the signed test-cases-nt.md line 591:
+ *   - 10.0 yrs misconduct → 10 yrs payable
+ *   - 14.999 yrs misconduct → 10 yrs payable
+ *   - 15.000 yrs misconduct → 15 yrs payable
+ *   - 21 yrs misconduct → 20 yrs payable
+ *   - 29.99 yrs misconduct → 25 yrs payable
+ * (sub-10y misconduct is forfeit — not reached by this function.)
  */
+function truncateToCompleted10Or15YrBlock(years: Decimal): Decimal {
+  const ten = new Decimal(10);
+  const five = new Decimal(5);
+  if (years.lt(ten)) return new Decimal(0);
+  const above10 = years.minus(ten);
+  const completedFiveYrBlocks = above10.dividedBy(five).floor();
+  return ten.plus(completedFiveYrBlocks.times(five));
+}
+
 export function accrualNT(
   yearsOfService: Decimal,
   employee: Employee,
@@ -112,9 +150,7 @@ export function accrualNT(
 ): NTAccrualResult {
   const citations: Citation[] = [];
   const grossWeeks = mul(yearsOfService, NT_ACCRUAL_PER_YEAR);
-  // T9.1: extras read deferred to T9.2 for the per-year formula, age-pension
-  // lookup, and casual continuity. The retirement branch below reads extras
-  // directly via `employee.extraInputs as NTExtraInputs`.
+  const extras = (employee.extraInputs ?? {}) as NTExtraInputs;
 
   // ── as_at snapshot — E1 spec D20 bypass.
   if (trigger.kind === 'as_at') {
@@ -138,6 +174,7 @@ export function accrualNT(
       priorLeaveTakenWeeks,
       citations,
       payableIndicator,
+      effectiveYearsForPayout: yearsOfService,
     };
   }
 
@@ -157,6 +194,7 @@ export function accrualNT(
       citations,
       payableIndicator: 'accrued_not_currently_payable',
       sub7YrNoEntitlement: true,
+      effectiveYearsForPayout: new Decimal(0),
     };
   }
 
@@ -178,12 +216,9 @@ export function accrualNT(
       )
     );
 
-    let tenYrPlusMisconductCompleteBlocksOnly = false;
-
     // ── s.10(1A) — serious & wilful misconduct at 10+ yrs truncates to
     // complete 10y/15y blocks. NT UNIQUE — TBD-NT-05 RESOLVED Option (a)
-    // strict literal reading. T9.1 SCAFFOLD: detect and flag; the truncation
-    // arithmetic is finalised in T9.2.
+    // strict literal reading.
     if (
       trigger.kind === 'termination' &&
       trigger.reason === 'serious_misconduct'
@@ -195,13 +230,8 @@ export function accrualNT(
           NT_ACT_PAGE
         )
       );
-      tenYrPlusMisconductCompleteBlocksOnly = true;
-      // T9.1 stub truncation: use the nearest completed 10y/15y block.
-      // T9.2 will replace this with the locked s.10(1A) reading.
-      const completedBlock = yearsOfService.gte(NT_15YR_BLOCK_YEARS)
-        ? NT_15YR_BLOCK_YEARS
-        : NT_FULL_QUALIFYING_YEARS;
-      const blockWeeks = mul(completedBlock, NT_ACCRUAL_PER_YEAR);
+      const effectiveYears = truncateToCompleted10Or15YrBlock(yearsOfService);
+      const blockWeeks = mul(effectiveYears, NT_ACCRUAL_PER_YEAR);
       let payable = sub(blockWeeks, priorLeaveTakenWeeks);
       if (payable.lt(0)) payable = new Decimal(0);
       return {
@@ -210,7 +240,8 @@ export function accrualNT(
         priorLeaveTakenWeeks,
         citations,
         payableIndicator: 'payable',
-        tenYrPlusMisconductCompleteBlocksOnly,
+        tenYrPlusMisconductCompleteBlocksOnly: true,
+        effectiveYearsForPayout: effectiveYears,
       };
     }
 
@@ -232,6 +263,7 @@ export function accrualNT(
       priorLeaveTakenWeeks,
       citations,
       payableIndicator: 'payable',
+      effectiveYearsForPayout: yearsOfService,
     };
   }
 
@@ -254,6 +286,7 @@ export function accrualNT(
       priorLeaveTakenWeeks,
       citations,
       payableIndicator: 'payable',
+      effectiveYearsForPayout: yearsOfService,
     };
   }
 
@@ -275,16 +308,21 @@ export function accrualNT(
         citations,
         payableIndicator: 'accrued_not_currently_payable',
         sub10YrMisconductExcluded: true,
+        effectiveYearsForPayout: new Decimal(0),
       };
     }
 
-    // T9.1 SCAFFOLD: retirement qualifies via either operator override
-    // (`nt_age_pension_age_at_termination_reached`) or the strict closed-list
-    // reading per TBD-NT-04 — full Age Pension age lookup against
-    // `employee.dob` lands in T9.2.
+    // ── Retirement: TBD-NT-02 RESOLVED Option (b) primary + Option (c)
+    // override layered. Operator override bypasses the dob lookup.
     if (reason === 'retirement') {
-      const extras = (employee.extraInputs ?? {}) as NTExtraInputs;
-      if (extras.nt_age_pension_age_at_termination_reached === true) {
+      const overrideTriggered =
+        extras.nt_age_pension_age_at_termination_reached === true;
+      const reachedByDob = hasReachedAgePensionAge(
+        employee.dob,
+        trigger.terminationDate
+      );
+
+      if (overrideTriggered || reachedByDob) {
         citations.push(
           citation(
             'NT LSL Act 1981 s.10(2)',
@@ -301,11 +339,13 @@ export function accrualNT(
           citations,
           payableIndicator: 'payable',
           retirementAgePensionAgeApplied: true,
+          retirementGateBypassedByOverride: overrideTriggered && !reachedByDob,
+          effectiveYearsForPayout: yearsOfService,
         };
       }
-      // T9.1 stub: without operator override and without the T9.2 dob lookup
-      // implementation, the retirement gate falls through to "no qualifying
-      // signal". T9.2 will add the s.23 Cth SS Act 1991 lookup.
+
+      // Retirement reason but age-pension-age gate not satisfied → no
+      // qualifying signal. Per TBD-NT-04 strict closed-list reading.
       citations.push(
         citation(
           'NT LSL Act 1981 s.10(2)',
@@ -320,6 +360,7 @@ export function accrualNT(
         citations,
         payableIndicator: 'accrued_not_currently_payable',
         sub10YrNoQualifyingReason: true,
+        effectiveYearsForPayout: new Decimal(0),
       };
     }
 
@@ -344,6 +385,7 @@ export function accrualNT(
         priorLeaveTakenWeeks,
         citations,
         payableIndicator: 'payable',
+        effectiveYearsForPayout: yearsOfService,
       };
     }
 
@@ -363,6 +405,7 @@ export function accrualNT(
       citations,
       payableIndicator: 'accrued_not_currently_payable',
       sub10YrNoQualifyingReason: true,
+      effectiveYearsForPayout: new Decimal(0),
     };
   }
 
@@ -372,6 +415,7 @@ export function accrualNT(
     priorLeaveTakenWeeks,
     citations,
     payableIndicator: 'accrued_not_currently_payable',
+    effectiveYearsForPayout: new Decimal(0),
   };
 }
 
@@ -380,4 +424,8 @@ export const ntAccrualConstants = {
   fullQualifyingYears: NT_FULL_QUALIFYING_YEARS,
   prorataQualifyingYears: NT_PRORATA_QUALIFYING_YEARS,
   fifteenYrBlockYears: NT_15YR_BLOCK_YEARS,
+};
+
+export const __INTERNAL = {
+  truncateToCompleted10Or15YrBlock,
 };
