@@ -59,8 +59,15 @@
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  /* Brand typography (E6.2 Task 2.2 — OQ-3). Heading family + type-scale
+   * tokens land in Task 2.3; Task 2.2 only wires the two self-hosted faces
+   * so the page no longer requests Google Fonts. Body text uses Source Sans
+   * 3 per spec §5.1; the brand heading family is exposed under
+   * `--font-heading` for Task 2.3's type-scale to consume.
+   */
+  --font-sans: var(--font-source-sans), system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-montserrat), system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 
   --radius-sm: calc(var(--radius) - 0.25rem);
   --radius-md: var(--radius);
