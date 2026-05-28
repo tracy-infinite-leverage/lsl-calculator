@@ -41,6 +41,8 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
+    "@fontsource/montserrat": "^5.2.8",
+    "@fontsource/source-sans-3": "^5.2.9",
     "@playwright/test": "^1.60.0",
     "@storybook/addon-a11y": "^9.1.20",
     "@storybook/addon-docs": "^9.1.20",
