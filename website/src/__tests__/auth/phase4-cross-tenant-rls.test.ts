@@ -10,7 +10,7 @@
 //
 // Tests run against the remote `lsl-platform` Supabase project (DEV-AUTH-4).
 
-import { describe, it, expect, beforeAll, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import {
   adminClient,
   anonClient,
@@ -61,6 +61,13 @@ async function signInAsUser(
 }
 
 describe.skipIf(!supabaseEnvConfigured())('Phase 4 / Task 4.6 — cross-tenant RLS denial (AC-AUTH-13)', () => {
+  // Each test in this describe creates 1-2 test users via Supabase Auth
+  // (network round-trip) plus runs RLS queries. The default 5s vitest
+  // timeout is too tight for the slow tail of Supabase response times on
+  // CI runners and produced consistent flakes on PRs #55 and #56.
+  // 10s gives comfortable headroom for the 95th-percentile setup.
+  vi.setConfig({ testTimeout: 10_000 });
+
   it('user A cannot read user B\'s org or membership rows', async () => {
     const userA = await createTestUser(admin);
     const userB = await createTestUser(admin);
