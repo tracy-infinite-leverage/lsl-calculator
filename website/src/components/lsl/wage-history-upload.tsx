@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Upload, FileText, X } from 'lucide-react';
+import { Upload, FileText, X } from '@/components/brand/Icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

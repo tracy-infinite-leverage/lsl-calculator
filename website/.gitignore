@@ -19,6 +19,19 @@
 # pdf.js worker — copied from node_modules by scripts/copy-pdfjs-worker.cjs on postinstall
 /public/pdf.worker.min.mjs
 
+# Brand assets — derived from docs/brand/final/ via scripts/sync-brand-assets.mjs
+# (E6.1 Task 1.4 AC). Do NOT commit; the prebuild step regenerates them.
+/public/brand/
+/public/og/
+/public/favicon-16x16.png
+/public/favicon-32x32.png
+/public/apple-touch-icon.png
+/public/android-chrome-192x192.png
+/public/android-chrome-512x512.png
+/public/icon-512x512.png
+/public/favicon.ico
+/public/safari-pinned-tab.svg
+
 # next.js
 /.next/
 /out/

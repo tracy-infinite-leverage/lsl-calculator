@@ -4,13 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/sync-brand-assets.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "sync-brand-assets": "node scripts/sync-brand-assets.mjs",
+    "prestorybook": "node scripts/sync-brand-assets.mjs",
     "storybook": "storybook dev -p 6006",
+    "prebuild-storybook": "node scripts/sync-brand-assets.mjs",
     "build-storybook": "storybook build"
   },
   "dependencies": {
