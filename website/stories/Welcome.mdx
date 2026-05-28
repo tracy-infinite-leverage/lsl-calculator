@@ -1,0 +1,31 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Welcome" />
+
+# LSL Calculator — Design System Workbench
+
+This is the Storybook workbench for the LSL Calculator sub-brand UI system
+(spec `006-ui-design-system`, sub-epic E6.2).
+
+## What lives here
+
+- **Tokens** — Tailwind v4 theme + brand palette (added in Task 2.3).
+- **Brand components** — `Wordmark`, `Lockup`, and the Lucide `Icon` barrel
+  (Task 2.5).
+- **shadcn variant overrides** — Button, Input, Card, Table, and the other 12
+  components listed in Task 2.6.
+- **PDF primitives** — Letterhead, MethodologyFooter, PageNumber (Phase 4).
+
+## Accessibility
+
+Every story is scanned by axe-core via the `@storybook/addon-a11y` addon. Open
+the **A11y** tab in the addons panel below to see WCAG 2.2 AA violations per
+component. From Task 2.6 onward each variant flips `parameters.a11y.test` to
+`'error'` so serious/critical hits fail the story.
+
+## Status
+
+Task 2.1 (this scaffold) installs Storybook 9.1.20 + the axe-core addon — no
+component stories yet. Subsequent E6.2 tasks fill in the catalogue.
+
+— developer agent, 2026-05-28
