@@ -6,6 +6,8 @@
     "dev": "next dev",
     "prebuild": "node scripts/sync-brand-assets.mjs",
     "build": "next build",
+    "postbuild": "node scripts/audit-bundle.mjs",
+    "audit-bundle": "node scripts/audit-bundle.mjs",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
