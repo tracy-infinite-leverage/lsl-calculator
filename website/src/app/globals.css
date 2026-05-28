@@ -1,9 +1,27 @@
 @import "tailwindcss";
 
-/* LSL Calculator design tokens — APA-blue palette, Tailwind v4 @theme inline */
+/* LSL Calculator design tokens — APA sub-brand palette + type scale, Tailwind v4 @theme inline.
+ *
+ * Sources of truth:
+ *   - spec §5.1 — palette, typography pairing, type-scale ranges, gradient utilities
+ *   - spec §7.1 — token-first principle (no hard-coded brand values in components)
+ *   - spec §7.3 — "structure of Xero, polish of Linear" — generous whitespace, soft shadows
+ *   - docs/brand/icon-direction.md §3, §4 — palette consumption rules (navy default, gold
+ *     as signal not decoration, grey-blue for disabled / secondary structural)
+ *
+ * Tailwind v4 architecture note (E6.2 Task 2.3 scope-call):
+ *   Spec §8.2 AC reads "Tailwind theme extension committed under `website/tailwind.config.{js,ts}`".
+ *   That AC was authored before Tailwind v4 migration. The project now uses Tailwind v4's
+ *   CSS-first config — tokens live in this `@theme` block, not in a `tailwind.config.ts`
+ *   file. The intent of the AC ("brand tokens extend the theme; no hard-coded values in
+ *   components") is fully satisfied here. The HANDOFF for this task documents the
+ *   substitution in detail.
+ */
 
 :root {
-  /* Base */
+  /* ---------------------------------------------------------------------- */
+  /* Base / shadcn semantic tokens (existing — unchanged)                    */
+  /* ---------------------------------------------------------------------- */
   --background: oklch(1 0 0);
   --foreground: oklch(0.15 0.02 250);
 
@@ -36,6 +54,58 @@
 
   /* Typography */
   --radius: 0.5rem;
+
+  /* ---------------------------------------------------------------------- */
+  /* APA sub-brand palette (E6.2 Task 2.3 — spec §5.1, OQ-2-aligned)         */
+  /* ---------------------------------------------------------------------- */
+  /* Exact hex values from spec §5.1 — no rounding, no derived shade scales.
+   * The spec does NOT specify a 50..900 shade ramp; icon-direction.md §3
+   * consumes only these named hexes plus white. We mirror that restraint —
+   * no invented intermediate shades. If a future component needs an unnamed
+   * tone (e.g. a hover state at 92% opacity), it composes via
+   * `color-mix(in srgb, var(--brand-navy) 92%, white)` at the call site, not
+   * a new token. */
+  --brand-navy: #48608a;            /* Pantone 2154 U — primary */
+  --brand-gold: #d9a428;            /* Pantone 110 U — accent / signal */
+  --brand-white: #ffffff;           /* primary surface */
+  --brand-light-blue: #a0aec1;      /* secondary / disabled / structural */
+  --brand-yellow: #eebd3c;          /* yellow accent (distinct from gold) */
+  --brand-dark-blue: #324d61;       /* deep navy for high-contrast headings */
+  --brand-charcoal: #333232;        /* body-text on light surfaces */
+  --brand-grey: #808897;            /* tertiary / metadata */
+  --brand-advisory: #6ec8c0;        /* advisory-context surfaces only */
+
+  /* ---------------------------------------------------------------------- */
+  /* APA sub-brand gradients (spec §5.1 — backgrounds only, never under text) */
+  /* ---------------------------------------------------------------------- */
+  --gradient-brand-navy-gold: linear-gradient(135deg, #48608a 0%, #d9a428 100%);
+  --gradient-brand-navy-light-blue: linear-gradient(135deg, #48608a 0%, #a0aec1 100%);
+
+  /* ---------------------------------------------------------------------- */
+  /* Soft-shadow scale — "Linear polish" per spec §7.3                       */
+  /* ---------------------------------------------------------------------- */
+  /* Three-tier soft-shadow scale tuned for the navy-on-white base palette.
+   * Uses brand-navy at low alpha so shadows tint correctly under brand
+   * surfaces (a pure-black shadow under a navy hero card reads muddy). */
+  --shadow-brand-sm: 0 1px 2px 0 rgba(72, 96, 138, 0.06),
+                     0 1px 2px 0 rgba(72, 96, 138, 0.04);
+  --shadow-brand-md: 0 4px 6px -1px rgba(72, 96, 138, 0.08),
+                     0 2px 4px -2px rgba(72, 96, 138, 0.06);
+  --shadow-brand-lg: 0 10px 24px -6px rgba(72, 96, 138, 0.10),
+                     0 4px 10px -4px rgba(72, 96, 138, 0.06);
+
+  /* ---------------------------------------------------------------------- */
+  /* Radius scale — "generous rounded geometry" (spec §5.1 + icon-direction)  */
+  /* ---------------------------------------------------------------------- */
+  /* `--radius` (existing, 0.5rem) is the shadcn semantic baseline. Brand
+   * tokens extend with explicit sm/md/lg/xl/2xl steps so app-icon-grade
+   * rounded squares (per icon-direction §4.3, ~18.75% of side) compose from
+   * the same scale. */
+  --radius-brand-sm: 0.25rem;       /* 4px  — chip, badge */
+  --radius-brand-md: 0.5rem;        /* 8px  — input, small card */
+  --radius-brand-lg: 0.75rem;       /* 12px — card, modal panel */
+  --radius-brand-xl: 1rem;          /* 16px — section panel */
+  --radius-brand-2xl: 1.5rem;       /* 24px — hero surface, app-icon-grade */
 }
 
 @theme inline {
@@ -59,19 +129,121 @@
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
 
-  /* Brand typography (E6.2 Task 2.2 — OQ-3). Heading family + type-scale
-   * tokens land in Task 2.3; Task 2.2 only wires the two self-hosted faces
-   * so the page no longer requests Google Fonts. Body text uses Source Sans
-   * 3 per spec §5.1; the brand heading family is exposed under
-   * `--font-heading` for Task 2.3's type-scale to consume.
+  /* APA sub-brand palette → Tailwind utilities.
+   * Each token below registers a Tailwind utility class:
+   *   --color-brand-navy        → `bg-brand-navy`, `text-brand-navy`, `border-brand-navy`, ...
+   *   --color-brand-gold        → `bg-brand-gold`, ...
+   *   --color-brand-light-blue  → `bg-brand-light-blue`, ...
+   *   --color-brand-yellow      → `bg-brand-yellow`, ...
+   *   --color-brand-dark-blue   → `bg-brand-dark-blue`, ...
+   *   --color-brand-charcoal    → `bg-brand-charcoal`, ...
+   *   --color-brand-grey        → `bg-brand-grey`, ...
+   *   --color-brand-advisory    → `bg-brand-advisory`, ...
+   *   --color-brand-white       → `bg-brand-white`, ...
+   * Per spec §7.1 (token-first): every component reads from these. No
+   * component CSS hard-codes the underlying hex. Renaming or re-tinting a
+   * token cascades automatically.
+   */
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-white: var(--brand-white);
+  --color-brand-light-blue: var(--brand-light-blue);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-dark-blue: var(--brand-dark-blue);
+  --color-brand-charcoal: var(--brand-charcoal);
+  --color-brand-grey: var(--brand-grey);
+  --color-brand-advisory: var(--brand-advisory);
+
+  /* Brand typography (E6.2 Task 2.2 wired the two self-hosted faces; Task 2.3
+   * consumes them here and adds the type-scale tokens below).
+   *
+   * Family pairing per spec §5.1:
+   *   --font-heading → Montserrat (Light 300 / Regular 400 / Semibold 600)
+   *                    for Title + H1
+   *   --font-sans    → Source Sans 3 (Light 300 / Regular 400 / Semibold 600)
+   *                    for body, H2, H3, captions
+   *
+   * The `--font-montserrat` and `--font-source-sans` CSS variables are
+   * injected by `next/font/local` in `src/app/layout.tsx` — Task 2.3 does NOT
+   * redeclare them.
    */
   --font-sans: var(--font-source-sans), system-ui, -apple-system, sans-serif;
   --font-heading: var(--font-montserrat), system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 
+  /* APA type scale (spec §5.1 — APA Brand Guidelines p.18).
+   * pt → rem via the spec-mandated conversion: 1pt ≈ 0.0833rem at 16px base.
+   * Each role gets two tokens — `-min` (bottom of pt range) and `-max` (top)
+   * — so components select the right step per surface (e.g. `text-h1-min`
+   * for a card header, `text-h1-max` for a hero). Title is a 32–72pt range
+   * (poster-scale); we expose `-min`, `-mid` (52pt), `-max` so PDF letterhead
+   * and web hero have separate-but-token-driven options.
+   *
+   * Source values (pt → rem):
+   *   Title     32pt → 2.667rem
+   *             52pt → 4.333rem
+   *             72pt → 6rem
+   *   H1        22pt → 1.833rem
+   *             28pt → 2.333rem
+   *   H2        18pt → 1.5rem
+   *             20pt → 1.667rem
+   *   H3        14pt → 1.167rem
+   *             16pt → 1.333rem
+   *   Body      10pt → 0.833rem
+   *             12pt → 1rem
+   *   Caption    8pt → 0.667rem
+   *
+   * Tailwind v4 utility names follow the `--text-*` convention:
+   *   `text-title-max`, `text-h1-min`, `text-body-min`, `text-caption`, ...
+   */
+  --text-title-min: 2.667rem;       /* Title 32pt (Montserrat Semibold) */
+  --text-title-mid: 4.333rem;       /* Title 52pt */
+  --text-title-max: 6rem;           /* Title 72pt */
+  --text-h1-min: 1.833rem;          /* H1 22pt (Source Sans 3 Semibold) */
+  --text-h1-max: 2.333rem;          /* H1 28pt */
+  --text-h2-min: 1.5rem;            /* H2 18pt (Source Sans 3 Regular) */
+  --text-h2-max: 1.667rem;          /* H2 20pt */
+  --text-h3-min: 1.167rem;          /* H3 14pt (Source Sans 3 Semibold) */
+  --text-h3-max: 1.333rem;          /* H3 16pt */
+  --text-body-min: 0.833rem;        /* Body 10pt (Source Sans 3 Regular) */
+  --text-body-max: 1rem;            /* Body 12pt */
+  --text-caption: 0.667rem;         /* Caption 8pt */
+
+  /* Soft-shadow scale → Tailwind utilities `shadow-brand-{sm,md,lg}`.
+   * Linear-style polish per spec §7.3. Tinted with the brand-navy hue so
+   * shadows under brand surfaces read true, not muddy. */
+  --shadow-brand-sm: var(--shadow-brand-sm);
+  --shadow-brand-md: var(--shadow-brand-md);
+  --shadow-brand-lg: var(--shadow-brand-lg);
+
+  /* Radius scale → Tailwind utilities `rounded-brand-{sm,md,lg,xl,2xl}`.
+   * Existing shadcn `--radius` and its sm/md/lg derivatives remain unchanged
+   * so default shadcn components keep their current radii; brand variants
+   * opt in to the `rounded-brand-*` tokens explicitly. */
   --radius-sm: calc(var(--radius) - 0.25rem);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 0.25rem);
+  --radius-brand-sm: var(--radius-brand-sm);
+  --radius-brand-md: var(--radius-brand-md);
+  --radius-brand-lg: var(--radius-brand-lg);
+  --radius-brand-xl: var(--radius-brand-xl);
+  --radius-brand-2xl: var(--radius-brand-2xl);
+}
+
+/* APA gradient utilities (spec §5.1 — backgrounds only, never under text).
+ *
+ * Tailwind v4 doesn't generate utilities from gradient CSS vars automatically
+ * (it specialises in colour / spacing / radius / shadow scales). We expose two
+ * named utility classes here that components consume as
+ * `class="bg-gradient-brand-navy-gold"`. Both gradients are pre-validated as
+ * background-only — they fail WCAG 2.2 AA contrast under text and must not be
+ * placed beneath body copy.
+ */
+@utility bg-gradient-brand-navy-gold {
+  background-image: var(--gradient-brand-navy-gold);
+}
+@utility bg-gradient-brand-navy-light-blue {
+  background-image: var(--gradient-brand-navy-light-blue);
 }
 
 @media (prefers-color-scheme: dark) {
