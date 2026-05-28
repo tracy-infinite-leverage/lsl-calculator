@@ -18,7 +18,7 @@
  *
  *   3. Default state IS brand-styled (re-skin enumeration). The cva default
  *      resolves to a class string containing `border-brand-light-blue` +
- *      `focus-visible:ring-brand-navy` + `placeholder:text-brand-grey`. This
+ *      `focus-visible:ring-brand-navy` + `placeholder:text-brand-charcoal/70`. This
  *      assertion is the runtime backstop for the HANDOFF's documented
  *      re-skin — if someone accidentally reverts the default state to
  *      shadcn-neutral border-input, this test fails loudly.
@@ -148,9 +148,14 @@ describe('inputVariants — default state is brand-styled (RE-SKIN guard)', () =
     expect(cls).toContain('focus-visible:ring-brand-navy');
   });
 
-  it('default state references placeholder:text-brand-grey', () => {
+  it('default state references placeholder:text-brand-charcoal/70 (WCAG 1.4.3 AA fix — Playwright a11y PR #64)', () => {
+    // Previously asserted `placeholder:text-brand-grey` (#808897), which fails
+    // WCAG SC 1.4.3 against white (3.57:1 — below the 4.5:1 normal-text floor).
+    // Switched to brand-charcoal at 70% alpha (effective ~#707070, 4.95:1).
+    // See HANDOFF.md §"Placeholder contrast fix" for math + audit trail.
     const cls = inputVariants({ state: 'default' as unknown as never });
-    expect(cls).toContain('placeholder:text-brand-grey');
+    expect(cls).toContain('placeholder:text-brand-charcoal/70');
+    expect(cls).not.toContain('placeholder:text-brand-grey');
   });
 
   it('default state references text-brand-charcoal (body text colour)', () => {

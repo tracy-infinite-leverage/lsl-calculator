@@ -130,14 +130,18 @@ describe('selectTriggerVariants — default state is brand-styled (RE-SKIN guard
     expect(cls).toContain('focus-visible:ring-brand-navy');
   });
 
-  it('default state references data-[placeholder]:text-brand-grey', () => {
+  it('default state references data-[placeholder]:text-brand-charcoal/70 (WCAG 1.4.3 AA fix — Playwright a11y PR #64)', () => {
     // Radix uses `data-placeholder` (not `placeholder:` pseudo) on the
-    // SelectValue when no option is picked. The brand-grey tint applies via
-    // that attribute selector.
+    // SelectValue when no option is picked. Previously asserted
+    // `data-[placeholder]:text-brand-grey` (#808897), which fails WCAG SC 1.4.3
+    // against white (3.57:1 — below the 4.5:1 normal-text floor). Switched to
+    // brand-charcoal at 70% alpha (effective ~#707070, 4.95:1).
+    // See HANDOFF.md §"Placeholder contrast fix" for math + audit trail.
     const cls = selectTriggerVariants({
       state: 'default' as unknown as never,
     });
-    expect(cls).toContain('data-[placeholder]:text-brand-grey');
+    expect(cls).toContain('data-[placeholder]:text-brand-charcoal/70');
+    expect(cls).not.toContain('data-[placeholder]:text-brand-grey');
   });
 
   it('default state references text-brand-charcoal (body text colour)', () => {

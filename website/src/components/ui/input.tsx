@@ -35,7 +35,7 @@
  *      HANDOFF). Adding `state="default"` as the cva default does change the
  *      base class string from main's shadcn baseline to a brand-token chain
  *      (`border-brand-light-blue`, `focus-visible:ring-brand-navy`,
- *      `placeholder:text-brand-grey`). **This RE-SKINS all 38 existing
+ *      `placeholder:text-brand-charcoal/70`). **This RE-SKINS all 38 existing
  *      consumers** — they will visibly change from shadcn neutral grey to
  *      brand grey-blue with a navy focus ring. This is intentional brand
  *      application (the whole point of Phase 2) but is enumerated explicitly
@@ -53,7 +53,7 @@
  *      per-state disabled override.
  *
  * Token consumption (zero hex literals — spec §7.1):
- *   - default state: border-brand-light-blue, placeholder:text-brand-grey,
+ *   - default state: border-brand-light-blue, placeholder:text-brand-charcoal/70,
  *                    text-brand-charcoal, focus-visible:ring-brand-navy
  *   - error state:   border-destructive, text-destructive,
  *                    focus-visible:ring-destructive (mirrors Button destructive)
@@ -96,7 +96,7 @@ const inputVariants = cva(
     variants: {
       /**
        * Visual state. Defaults to `default` — brand-styled (light-blue border,
-       * navy focus ring, brand-grey placeholder, charcoal text). `error` swaps
+       * navy focus ring, charcoal/70 placeholder, charcoal text). `error` swaps
        * to the destructive token family (mirrors Button destructive — single
        * red across the system, no parallel "input-error-red").
        *
@@ -107,7 +107,7 @@ const inputVariants = cva(
        */
       state: {
         default:
-          'border-brand-light-blue text-brand-charcoal placeholder:text-brand-grey focus-visible:ring-brand-navy',
+          'border-brand-light-blue text-brand-charcoal placeholder:text-brand-charcoal/70 focus-visible:ring-brand-navy',
 
         /**
          * error — paired with `aria-invalid="true"` at the call site. Spec

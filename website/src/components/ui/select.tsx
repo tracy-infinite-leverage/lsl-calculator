@@ -57,7 +57,7 @@
  *
  * Token consumption (zero hex literals — spec §7.1):
  *   - Trigger default: border-brand-light-blue, text-brand-charcoal,
- *                      placeholder:text-brand-grey, focus-visible:ring-brand-navy
+ *                      data-[placeholder]:text-brand-charcoal/70, focus-visible:ring-brand-navy
  *   - Trigger error:   border-destructive, text-destructive,
  *                      focus-visible:ring-destructive (mirrors Input)
  *   - Content:         bg-brand-white, border-brand-light-blue, shadow-brand-md
@@ -104,7 +104,7 @@ const selectTriggerVariants = cva(
     variants: {
       /**
        * Visual state. Defaults to `default` — brand-styled (light-blue border,
-       * navy focus ring, brand-grey placeholder, charcoal text). `error` swaps
+       * navy focus ring, charcoal/70 placeholder, charcoal text). `error` swaps
        * to the destructive token family (mirrors Input + Button destructive).
        *
        * Re-skin note: 9 existing SelectTrigger consumers across 6 files. All
@@ -113,7 +113,7 @@ const selectTriggerVariants = cva(
        */
       state: {
         default:
-          'border-brand-light-blue text-brand-charcoal data-[placeholder]:text-brand-grey focus-visible:ring-brand-navy',
+          'border-brand-light-blue text-brand-charcoal data-[placeholder]:text-brand-charcoal/70 focus-visible:ring-brand-navy',
 
         /**
          * error — paired with `aria-invalid="true"` at the call site. WCAG SC

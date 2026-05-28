@@ -41,7 +41,7 @@
  *   - `state`: `default | error`                    — for aria-invalid surfacing
  *
  * Token consumption (zero hex literals — spec §7.1):
- *   - default state: border-brand-light-blue, placeholder:text-brand-grey,
+ *   - default state: border-brand-light-blue, placeholder:text-brand-charcoal/70,
  *                    text-brand-charcoal, focus-visible:ring-brand-navy
  *   - error state:   border-destructive, text-destructive,
  *                    focus-visible:ring-destructive (mirrors Input + Button destructive)
@@ -74,7 +74,7 @@ const textareaVariants = cva(
     variants: {
       /**
        * Visual state. Defaults to `default` — brand-styled (light-blue border,
-       * navy focus ring, brand-grey placeholder, charcoal text). `error` swaps
+       * navy focus ring, charcoal/70 placeholder, charcoal text). `error` swaps
        * to the destructive token family (mirrors Input + Button destructive).
        *
        * Re-skin note: 0 existing `<Textarea>` consumers on main. No re-skin
@@ -82,7 +82,7 @@ const textareaVariants = cva(
        */
       state: {
         default:
-          'border-brand-light-blue text-brand-charcoal placeholder:text-brand-grey focus-visible:ring-brand-navy',
+          'border-brand-light-blue text-brand-charcoal placeholder:text-brand-charcoal/70 focus-visible:ring-brand-navy',
 
         /**
          * error — paired with `aria-invalid="true"` at the call site. Spec
