@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from '@/components/brand/Icon';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { scrubPII } from '@/lib/observability/scrub-pii';

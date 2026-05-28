@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { AlertTriangle, Download, FileWarning, Info, TrendingDown, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Download, FileWarning, Info, TrendingDown, TrendingUp } from '@/components/brand/Icon';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';

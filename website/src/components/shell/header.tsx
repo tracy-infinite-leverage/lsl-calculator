@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Scale } from 'lucide-react';
+import { Scale } from '@/components/brand/Icon';
 
 export function Header() {
   return (

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, FileText, Users } from 'lucide-react';
+import { ArrowRight, FileText, Users } from '@/components/brand/Icon';
 import { Header } from '@/components/shell/header';
 import { Footer } from '@/components/shell/footer';
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '@/components/ui/card';

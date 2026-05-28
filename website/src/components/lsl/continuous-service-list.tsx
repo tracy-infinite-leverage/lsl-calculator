@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X } from '@/components/brand/Icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';

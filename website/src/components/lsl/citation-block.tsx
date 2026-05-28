@@ -1,4 +1,4 @@
-import { BookOpen } from 'lucide-react';
+import { BookOpen } from '@/components/brand/Icon';
 import type { Citation } from '@/lib/lsl/engine/types';
 import { cn } from '@/lib/utils';
 

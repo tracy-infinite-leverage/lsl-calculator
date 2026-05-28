@@ -11,7 +11,7 @@ import {
   type SortingState,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ArrowUpDown, ChevronDown, ChevronRight, Lock, Unlock } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ChevronRight, Lock, Unlock } from '@/components/brand/Icon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Lock } from 'lucide-react';
+import { Lock } from '@/components/brand/Icon';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
