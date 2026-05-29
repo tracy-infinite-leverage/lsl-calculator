@@ -442,6 +442,27 @@ These do **not** block Task 6.4 — defaults are fine — but flagging for trans
 
 ---
 
+## 6. Operator decisions (2026-05-29)
+
+Resolutions to §5 questions, captured by the operator before dashboard work began:
+
+1. **Subject lines — Option A across all three templates.** Confirmed: the formal/descriptive framing is the right read for transactional auth email.
+   - Confirm signup: `Confirm your APA Long Service Leave Calculator account`
+   - Reset password: `Reset your APA Long Service Leave Calculator password`
+   - Magic link: `Your sign-in link for the APA LSL Calculator` (template scoped but not shipped — see #3 below)
+
+2. **Reset-password expiry copy — "1 hour" stands.** Confirmed against the Supabase Auth default recovery-token TTL (3600s). No project-level override in place.
+
+3. **Magic link — NOT enabled in v1.** Operator decision: ship Confirm signup + Reset password templates only. The magic-link template from §2.3 stays in the doc as scoped-but-not-shipped — re-evaluate when magic-link enters product scope (likely E5.2 or later). Practical consequences:
+   - **Do not toggle** "Enable Email OTP" in Supabase dashboard.
+   - **Skip** the magic-link entries from §3.4 (test send) and §3.5 (screenshots) — the matrix shrinks from 9 screenshots to 6 (2 templates × 3 clients).
+   - **Skip** the magic-link entries from §4 (QA checklist) — only Confirm signup + Reset password need cross-client verification.
+
+4. **Wordmark choice — Candidate B confirmed.** No change to design.
+5. **Hosted wordmark URL — production website URL confirmed.** Pre-flight check (§3.1) passes — image loads at https://www.lslcalculator.com.au/brand/wordmark-1x.png. Operator accepts the long-tail domain-rot risk for v1; a Supabase Storage migration can happen later without re-issuing past emails (the URL stays stable).
+
+---
+
 ## 6. References
 
 - Brand source of truth: `docs/brand/final/README.md`
