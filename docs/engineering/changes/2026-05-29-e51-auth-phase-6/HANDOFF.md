@@ -162,6 +162,37 @@ adds a Server Component which touches Supabase, or stamp the page with
 
 ## Context for Next Session
 
+### Follow-up refactor (2026-05-29, post-commit 252441d)
+
+The per-page `export const dynamic = 'force-dynamic'` directives that landed in commit 252441d on `verify-email/page.tsx`, `forgot-password/page.tsx`, and `reset-password/page.tsx` were consolidated into a single declaration on a new layout at `website/src/app/app/layout.tsx`. The layout is a transparent pass-through (the root layout still owns `<html>`/`<body>`/fonts/Analytics) — its only job is to opt the entire `/app/*` subtree out of static prerender.
+
+**Why moved to the layout:**
+- Eliminates the entire class of "future page added under `/app/*` calls Supabase at render time → CI prerender throws" bug.
+- Every `/app/*` page is gated by the proxy (`src/proxy.ts`) reading session cookies on each request, so they are effectively dynamic in practice — the prior static prerender was a polite fiction.
+- Public marketing/calculator routes live outside `/app/*` and are unaffected — `/`, `/calculator/single`, `/calculator/bulk`, `/privacy` continue to be statically rendered.
+
+**Build-output deltas (verified by `mv .env.local .env.local.bak && npm run build`):**
+
+| Route | Before | After |
+|---|---|---|
+| `/app` | ○ Static | ƒ Dynamic |
+| `/app/login` | ○ Static | ƒ Dynamic |
+| `/app/signup` | ○ Static | ƒ Dynamic |
+| `/app/forgot-password` | ƒ Dynamic (per-page) | ƒ Dynamic (layout) |
+| `/app/reset-password` | ƒ Dynamic (per-page) | ƒ Dynamic (layout) |
+| `/app/verify-email` | ƒ Dynamic (per-page) | ƒ Dynamic (layout) |
+| `/app/logout` | ƒ Dynamic (route handler) | ƒ Dynamic (route handler) |
+| `/`, `/calculator/*`, `/privacy` | ○ Static | ○ Static (unchanged) |
+
+The three intentional regressions (`/app`, `/app/login`, `/app/signup`) are correct: each one's response varies per request because the proxy gates the route on session cookies before the page handler ever runs. There is no scenario where a static prerender of those pages would have been served to a real user.
+
+**Gates re-verified after the refactor:**
+- `mv .env.local .env.local.bak && npm run build` → green, all `/app/*` pages ƒ Dynamic, no "Supabase environment variables are missing" error.
+- `npx tsc --noEmit` → clean.
+- `npx vitest run` → 58 files, 2513 tests, all green.
+
+**CI build verification — note for future sessions:** `env -u VAR npm run build` does NOT simulate the CI environment. Next.js reads `.env.local` from disk regardless of process env, so `unset NEXT_PUBLIC_SUPABASE_URL` in the parent shell still gets the var injected. The only reliable local repro is `mv .env.local .env.local.bak && npm run build && mv .env.local.bak .env.local`.
+
 ### What the prior session did well
 
 - **Server-action structure is clean and follows the React 19 + Next.js 16 conventions established by Tasks 5.3 + 5.4** (`useActionState` + `useFormStatus`, server-only files with `'use server'` at top, page/form/action separation).

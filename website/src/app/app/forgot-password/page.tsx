@@ -22,13 +22,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// Opt out of static prerender to stay consistent with the other Phase 6 auth
-// pages (verify-email, reset-password) and future-proof against drift: this
-// page's server action calls Supabase, and if a future edit moves a Supabase
-// call into the page body the CI build would silently regress. The cost is
-// negligible — it's already a tiny shell that wraps a client form.
-export const dynamic = 'force-dynamic';
-
 export default function ForgotPasswordPage() {
   return (
     <AuthLayout
