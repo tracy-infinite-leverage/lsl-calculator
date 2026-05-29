@@ -29,12 +29,13 @@ export const metadata: Metadata = {
 
 interface LoginPageProps {
   // Next.js 16 async search params.
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reset?: string }>;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { error } = await searchParams;
+  const { error, reset } = await searchParams;
   const showServiceUnavailable = error === 'service_unavailable';
+  const showResetSuccess = reset === 'success';
 
   return (
     <AuthLayout
@@ -58,6 +59,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <AlertDescription>
               We couldn&apos;t reach the authentication service. Please try again
               in a moment.
+            </AlertDescription>
+          </Alert>
+        </div>
+      ) : null}
+      {showResetSuccess ? (
+        <div className="mb-4">
+          <Alert>
+            <AlertDescription>
+              Your password has been updated. Log in with your new password to
+              continue.
             </AlertDescription>
           </Alert>
         </div>
