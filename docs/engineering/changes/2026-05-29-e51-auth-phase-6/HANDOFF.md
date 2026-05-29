@@ -125,6 +125,32 @@ npx vitest run
 npm run build
 ```
 
+### CI build verification (catches static-prerender env-var traps)
+
+`npm run build` with a populated `.env.local` is NOT the same as a CI build —
+Vercel injects env vars at runtime on production, but GitHub Actions does NOT
+have those vars at `next build` time. Any Server Component that calls
+`createSupabaseServerClient` at module load will throw "Supabase environment
+variables are missing" during static prerender, even though everything is
+green locally.
+
+To simulate CI exactly, temporarily move `.env.local` aside and rebuild:
+
+```bash
+cd website
+mv .env.local .env.local.bak
+npm run build              # must succeed with all pages either static (○) or dynamic (ƒ)
+mv .env.local.bak .env.local
+```
+
+`env -u NEXT_PUBLIC_SUPABASE_URL ... npm run build` is NOT sufficient —
+`next build` reads `.env.local` from disk regardless of the spawned process
+env, so unsetting variables in the shell has no effect. Moving the file is
+the only reliable simulation. Run this check before opening any PR that
+adds a Server Component which touches Supabase, or stamp the page with
+`export const dynamic = 'force-dynamic'` (see `/app/verify-email`,
+`/app/reset-password` for the precedent).
+
 **Current state (verified at session end, 2026-05-29 09:00 AEST):**
 
 | Gate | Status | Counts |

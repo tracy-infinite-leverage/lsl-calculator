@@ -30,6 +30,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Opt out of static prerender. This page calls `createSupabaseServerClient`
+// at render time, which reads `NEXT_PUBLIC_SUPABASE_*` env vars. Those vars
+// are absent in the CI build environment (Vercel injects them at runtime,
+// not at `next build` time on GitHub Actions), so a static prerender would
+// throw "Supabase environment variables are missing". Forcing dynamic
+// rendering defers the Supabase client construction to request time.
+export const dynamic = 'force-dynamic';
+
 export default async function VerifyEmailPage() {
   const supabase = await createSupabaseServerClient();
   // Canonical user state — must be `getUser()` not `getClaims()` (the JWT
