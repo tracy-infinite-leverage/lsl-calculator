@@ -41,6 +41,7 @@ import {
   createSupabaseAdminClient,
   readClientFingerprint,
 } from '@/lib/supabase/admin';
+import { buildAuthRedirectUrl } from '@/lib/auth/redirect-url';
 import type { ForgotPasswordState } from './state';
 
 /**
@@ -58,21 +59,6 @@ function hashEmailForAudit(email: string): string {
  */
 const ENUMERATION_SAFE_MESSAGE =
   'If that email is registered, we sent a link with instructions to reset your password.';
-
-/**
- * Destination for the link Supabase puts in the reset-password email. Built
- * relative to the request origin so it works on every environment (preview,
- * production, local) without an env var.
- */
-function buildResetRedirectTo(originHeader: string | null): string {
-  // The Supabase Auth dashboard requires the redirectTo origin to be on the
-  // allow-list. We add `https://www.lslcalculator.com.au` (prod),
-  // `https://lsl-calculator-*.vercel.app` (preview wildcard), and
-  // `http://localhost:3000` (local dev) — operator task, recorded in
-  // docs/engineering/vercel-config.md.
-  const base = originHeader ?? 'http://localhost:3000';
-  return `${base}/app/reset-password`;
-}
 
 export async function forgotPasswordAction(
   _prev: ForgotPasswordState,
@@ -102,7 +88,10 @@ export async function forgotPasswordAction(
   // ────────────────────────────────────────────────────────────────────────
   await supabase.auth
     .resetPasswordForEmail(email, {
-      redirectTo: buildResetRedirectTo(requestHeaders.get('origin')),
+      redirectTo: buildAuthRedirectUrl(
+        requestHeaders.get('origin'),
+        '/app/reset-password'
+      ),
     })
     .catch(() => {
       // Swallow — log only. AC-AUTH-8 requires identical response.
