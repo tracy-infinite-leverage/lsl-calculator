@@ -41,6 +41,7 @@ import {
   createSupabaseAdminClient,
   readClientFingerprint,
 } from '@/lib/supabase/admin';
+import type { ForgotPasswordState } from './state';
 
 /**
  * One-way hash of an email for audit-log correlation without storing the
@@ -50,18 +51,6 @@ import {
 function hashEmailForAudit(email: string): string {
   return createHash('sha256').update(email.toLowerCase()).digest('hex');
 }
-
-export type ForgotPasswordState = {
-  /** Renders an Alert when set; `null` on first render. */
-  message: string | null;
-  /** Echoed back so the email field doesn't clear after submission. */
-  email: string;
-};
-
-export const FORGOT_INITIAL_STATE: ForgotPasswordState = {
-  message: null,
-  email: '',
-};
 
 /**
  * Single response shape — never differentiates registered vs. unregistered.

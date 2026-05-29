@@ -46,7 +46,8 @@ vi.mock('next/navigation', () => ({
   },
 }));
 
-const { loginAction, LOGIN_INITIAL_STATE } = await import('./actions');
+const { loginAction } = await import('./actions');
+const { LOGIN_INITIAL_STATE } = await import('./state');
 
 function buildFormData(fields: Record<string, string>): FormData {
   const fd = new FormData();

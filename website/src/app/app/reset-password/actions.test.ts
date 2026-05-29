@@ -61,7 +61,8 @@ vi.mock('next/navigation', () => ({
   },
 }));
 
-const { resetPasswordAction, RESET_INITIAL_STATE } = await import('./actions');
+const { resetPasswordAction } = await import('./actions');
+const { RESET_INITIAL_STATE } = await import('./state');
 
 function buildFormData(fields: Record<string, string>): FormData {
   const fd = new FormData();

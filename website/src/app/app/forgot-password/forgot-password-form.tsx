@@ -17,7 +17,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { forgotPasswordAction, FORGOT_INITIAL_STATE } from './actions';
+import { forgotPasswordAction } from './actions';
+import { FORGOT_INITIAL_STATE } from './state';
 
 function SubmitButton() {
   const { pending } = useFormStatus();

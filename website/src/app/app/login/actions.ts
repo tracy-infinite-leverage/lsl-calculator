@@ -32,21 +32,7 @@
 
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-
-export type LoginActionState = {
-  /** Inline error rendered above the form; `null` while in the empty/success states. */
-  error: string | null;
-  /** Echoed back so the email field doesn't clear on a failed submission. */
-  email: string;
-};
-
-/**
- * Initial state for `useActionState` — the empty branch of the form.
- */
-export const LOGIN_INITIAL_STATE: LoginActionState = {
-  error: null,
-  email: '',
-};
+import type { LoginActionState } from './state';
 
 /**
  * Generic error wording — identical for unknown-email and wrong-password

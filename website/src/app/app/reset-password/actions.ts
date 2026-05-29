@@ -44,15 +44,7 @@ import {
   createSupabaseAdminClient,
   readClientFingerprint,
 } from '@/lib/supabase/admin';
-
-export type ResetPasswordState = {
-  /** Inline error rendered above the form; `null` on first render. */
-  error: string | null;
-};
-
-export const RESET_INITIAL_STATE: ResetPasswordState = {
-  error: null,
-};
+import type { ResetPasswordState } from './state';
 
 const MIN_PASSWORD_LENGTH = 12;
 const GENERIC_ERROR =

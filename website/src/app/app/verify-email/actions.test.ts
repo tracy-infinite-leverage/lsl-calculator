@@ -72,7 +72,8 @@ vi.mock('next/headers', () => ({
   headers: async () => new Headers(),
 }));
 
-const { resendVerificationAction, RESEND_INITIAL_STATE } = await import('./actions');
+const { resendVerificationAction } = await import('./actions');
+const { RESEND_INITIAL_STATE } = await import('./state');
 
 function emptyFormData(): FormData {
   return new FormData();
