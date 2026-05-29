@@ -102,3 +102,79 @@ export async function cleanupUserByEmail(email: string): Promise<void> {
 export function e2eTestPassword(): string {
   return `Apa-E2e-${randomBytes(6).toString('hex')}!`;
 }
+
+/**
+ * Pre-create an UNVERIFIED user via the admin SDK — no verification email is
+ * sent. This is the rate-limit-safe substitute for driving the `/app/signup`
+ * form for every E2E run × every browser project × every retry.
+ *
+ * Supabase Auth's free tier caps SMTP at 3 outbound/hour and Pro at 30/hour.
+ * With 4 browsers × 3 retries × multiple runs/day, exercising the real signup
+ * form is structurally rate-limit-bound (PR #74's first live CI run hit this
+ * cap and timed out on `waitForURL('**\/app/verify-email')`).
+ *
+ * The signup server action itself is covered by:
+ *   - `src/app/app/signup/actions.test.ts`  (Vitest, mocked Supabase)
+ *   - `src/__tests__/auth/phase5-proxy-gating.test.ts` (live Supabase, no SMTP)
+ *
+ * So the E2E does not need to re-exercise it. It only needs to cover the part
+ * a browser can: cookie/session round-trip and the post-login redirect.
+ *
+ * Returns `null` if env is missing (caller should `test.skip`).
+ *
+ * The `email_confirm: false` flag is critical — passing `true` here would
+ * skip Phase 5's unverified-gate path. The test-helper route flips the bit
+ * to `true` later, simulating the email-click moment.
+ */
+export async function createUnverifiedE2eUser(
+  email: string,
+  password: string
+): Promise<{ userId: string } | null> {
+  const admin = createAdminClient();
+  if (!admin) return null;
+
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: false,
+  });
+
+  if (error) {
+    throw new Error(
+      `createUnverifiedE2eUser failed for ${email}: ${error.message}`
+    );
+  }
+  if (!data.user) {
+    throw new Error(`createUnverifiedE2eUser returned no user for ${email}`);
+  }
+
+  return { userId: data.user.id };
+}
+
+/**
+ * Delete a test user by id. Best-effort — logs and continues on any failure.
+ * Preferred over {@link cleanupUserByEmail} when the caller already has the
+ * user id (avoids the `listUsers` round-trip + pagination edge cases).
+ */
+export async function deleteE2eUserById(userId: string): Promise<void> {
+  const admin = createAdminClient();
+  if (!admin) {
+    console.warn(
+      `[e2e cleanup] no Supabase admin env — skipping cleanup of ${userId}`
+    );
+    return;
+  }
+  try {
+    const { error } = await admin.auth.admin.deleteUser(userId);
+    if (error) {
+      console.warn(
+        `[e2e cleanup] deleteUser failed for ${userId}: ${error.message}`
+      );
+    }
+  } catch (err) {
+    console.warn(
+      `[e2e cleanup] threw cleaning up ${userId}:`,
+      err instanceof Error ? err.message : String(err)
+    );
+  }
+}
