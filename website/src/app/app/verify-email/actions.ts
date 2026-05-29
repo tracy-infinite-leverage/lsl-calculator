@@ -36,6 +36,7 @@ import {
   formatRetryAfter,
   recordVerificationResend,
 } from '@/lib/auth/rate-limit';
+import { buildAuthRedirectUrl } from '@/lib/auth/redirect-url';
 import type { ResendVerificationState } from './state';
 
 const GENERIC_ERROR =
@@ -94,18 +95,19 @@ export async function resendVerificationAction(
 
   // 2. Hand off to Supabase Auth's resend endpoint.
   //
-  //    Like the signup action, we set `emailRedirectTo` explicitly from the
-  //    request origin so the verification link never falls back to the
-  //    Supabase dashboard's Site URL (which can silently point to localhost).
-  //    The URL must be on the dashboard's Redirect URLs allow-list — see
-  //    docs/engineering/vercel-config.md.
+  //    `emailRedirectTo` is built by `buildAuthRedirectUrl` — Origin first,
+  //    `NEXT_PUBLIC_SITE_URL` second, localhost only as a local-dev fallback.
+  //    Localhost in a production email is structurally impossible when the
+  //    env var is set in Vercel Prod. See docs/engineering/vercel-config.md.
   const requestHeaders = await headers();
-  const origin = requestHeaders.get('origin') ?? 'http://localhost:3000';
   const { error: resendError } = await supabase.auth.resend({
     type: 'signup',
     email: user.email,
     options: {
-      emailRedirectTo: `${origin}/app/`,
+      emailRedirectTo: buildAuthRedirectUrl(
+        requestHeaders.get('origin'),
+        '/app/'
+      ),
     },
   });
 

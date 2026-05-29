@@ -38,35 +38,11 @@
 
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { buildAuthRedirectUrl } from '@/lib/auth/redirect-url';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { SignupActionState } from './state';
 
 const MIN_PASSWORD_LENGTH = 12;
-
-/**
- * Build the URL Supabase will redirect the user to after they click the
- * verification link in their inbox.
- *
- * Derived from the request's `Origin` header so it works in every
- * environment (prod, Vercel preview, local dev) without depending on the
- * Supabase dashboard's "Site URL" setting. The dashboard Site URL is a
- * silent foot-gun: if it's set to localhost (the default for a new
- * project), every confirmation email permanently points to localhost and
- * the user can never verify. Setting `emailRedirectTo` explicitly closes
- * that hole — the URL is reproducible from code.
- *
- * The redirect target is `/app/` — the proxy admits the now-verified
- * session to the post-login home. AC-AUTH-3 / OQ-AUTH-4.
- *
- * Note: any URL we pass here must be on the Supabase dashboard's
- * "Redirect URLs" allow-list (Authentication → URL Configuration).
- * Production + preview + localhost are documented in
- * docs/engineering/vercel-config.md.
- */
-function buildSignupRedirectTo(originHeader: string | null): string {
-  const base = originHeader ?? 'http://localhost:3000';
-  return `${base}/app/`;
-}
 
 export async function signupAction(
   _prev: SignupActionState,
@@ -122,7 +98,7 @@ export async function signupAction(
     email,
     password,
     options: {
-      emailRedirectTo: buildSignupRedirectTo(requestHeaders.get('origin')),
+      emailRedirectTo: buildAuthRedirectUrl(requestHeaders.get('origin'), '/app/'),
     },
   });
 
