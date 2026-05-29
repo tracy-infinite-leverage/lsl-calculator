@@ -27,11 +27,13 @@
  * @param opts.cents - when `false`, drops the cents portion (e.g.
  *   `formatAUD(9880, { cents: false })` → `"$9,880"`). Default `true`.
  *
- * Rounding: defers to `Intl.NumberFormat`, which is half-to-even (banker's
- * rounding) per the ECMAScript spec. The LSL engine handles all
- * money-arithmetic rounding upstream with `Decimal.ROUND_HALF_UP`; by the
- * time a value reaches this formatter it should already be quantised to
- * cents, so the rounding-mode mismatch is academic.
+ * Rounding: defers to `Intl.NumberFormat`. Observed quirks like
+ * `formatAUD(1.005) === "$1.01"` are driven by IEEE-754 representation
+ * (`1.005` is stored as `1.00499…` and so isn't actually a tie), not by a
+ * half-to-even tie-break. The LSL engine handles all money-arithmetic
+ * rounding upstream with `Decimal.ROUND_HALF_UP`; by the time a value
+ * reaches this formatter it should already be quantised to cents, so the
+ * exact rounding behaviour here is academic.
  *
  * Edge cases covered by `format.test.ts`:
  *   - 0 → `"$0.00"`
