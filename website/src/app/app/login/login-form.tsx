@@ -18,7 +18,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { loginAction, LOGIN_INITIAL_STATE } from './actions';
+import { loginAction } from './actions';
+import { LOGIN_INITIAL_STATE } from './state';
 
 function SubmitButton() {
   const { pending } = useFormStatus();

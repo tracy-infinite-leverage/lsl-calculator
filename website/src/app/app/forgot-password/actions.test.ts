@@ -50,7 +50,8 @@ vi.mock('next/headers', () => ({
     }),
 }));
 
-const { forgotPasswordAction, FORGOT_INITIAL_STATE } = await import('./actions');
+const { forgotPasswordAction } = await import('./actions');
+const { FORGOT_INITIAL_STATE } = await import('./state');
 
 function buildFormData(fields: Record<string, string>): FormData {
   const fd = new FormData();

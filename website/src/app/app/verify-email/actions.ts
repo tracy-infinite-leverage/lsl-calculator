@@ -36,18 +36,7 @@ import {
   formatRetryAfter,
   recordVerificationResend,
 } from '@/lib/auth/rate-limit';
-
-export type ResendVerificationState = {
-  /** Inline status rendered above the resend button; `null` on first render. */
-  status:
-    | { kind: 'success'; message: string }
-    | { kind: 'error'; message: string }
-    | null;
-};
-
-export const RESEND_INITIAL_STATE: ResendVerificationState = {
-  status: null,
-};
+import type { ResendVerificationState } from './state';
 
 const GENERIC_ERROR =
   'We could not send the email right now. Please try again in a moment.';

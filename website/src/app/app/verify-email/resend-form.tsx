@@ -14,7 +14,8 @@ import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { resendVerificationAction, RESEND_INITIAL_STATE } from './actions';
+import { resendVerificationAction } from './actions';
+import { RESEND_INITIAL_STATE } from './state';
 
 function SubmitButton() {
   const { pending } = useFormStatus();

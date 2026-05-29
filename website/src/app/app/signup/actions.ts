@@ -38,18 +38,7 @@
 
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-
-export type SignupActionState = {
-  /** Inline error rendered above the form; `null` while in the empty/success states. */
-  error: string | null;
-  /** Echoed back so the email field survives a server-side validation rejection. */
-  email: string;
-};
-
-export const SIGNUP_INITIAL_STATE: SignupActionState = {
-  error: null,
-  email: '',
-};
+import type { SignupActionState } from './state';
 
 const MIN_PASSWORD_LENGTH = 12;
 
