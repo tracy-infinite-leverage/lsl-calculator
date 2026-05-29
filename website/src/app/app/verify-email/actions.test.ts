@@ -36,7 +36,11 @@ vi.mock('@/lib/supabase/server', () => ({
         data: { user: mockUser },
         error: mockGetUserError,
       }),
-      resend: (args: { type: string; email: string }) => {
+      resend: (args: {
+        type: string;
+        email: string;
+        options?: { emailRedirectTo?: string };
+      }) => {
         resendMock(args);
         return Promise.resolve({ data: {}, error: mockResendError });
       },
@@ -68,8 +72,12 @@ vi.mock('@/lib/auth/rate-limit', () => ({
   VERIFICATION_RESEND_EVENT: 'verification_resend',
 }));
 
+// The resend action reads `headers().get('origin')` to build the
+// `emailRedirectTo` URL. Provide a stable origin in tests so the assertion
+// on the resend call args is deterministic.
+const TEST_ORIGIN = 'https://test.lslcalculator.com.au';
 vi.mock('next/headers', () => ({
-  headers: async () => new Headers(),
+  headers: async () => new Headers({ origin: TEST_ORIGIN }),
 }));
 
 const { resendVerificationAction } = await import('./actions');
@@ -102,6 +110,7 @@ describe('resendVerificationAction — Task 6.1 (AC-AUTH-3a)', () => {
     expect(resendMock).toHaveBeenCalledWith({
       type: 'signup',
       email: 'alice@example.com',
+      options: { emailRedirectTo: `${TEST_ORIGIN}/app/` },
     });
   });
 

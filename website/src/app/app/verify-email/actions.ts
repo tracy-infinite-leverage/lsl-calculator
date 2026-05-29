@@ -93,9 +93,20 @@ export async function resendVerificationAction(
   }
 
   // 2. Hand off to Supabase Auth's resend endpoint.
+  //
+  //    Like the signup action, we set `emailRedirectTo` explicitly from the
+  //    request origin so the verification link never falls back to the
+  //    Supabase dashboard's Site URL (which can silently point to localhost).
+  //    The URL must be on the dashboard's Redirect URLs allow-list — see
+  //    docs/engineering/vercel-config.md.
+  const requestHeaders = await headers();
+  const origin = requestHeaders.get('origin') ?? 'http://localhost:3000';
   const { error: resendError } = await supabase.auth.resend({
     type: 'signup',
     email: user.email,
+    options: {
+      emailRedirectTo: `${origin}/app/`,
+    },
   });
 
   if (resendError) {
@@ -119,7 +130,7 @@ export async function resendVerificationAction(
   // 3. Record the resend so the next check sees the bumped count. Fire-and-
   //    forget — failure here doesn't roll back the user-visible success.
   if (admin) {
-    const fingerprint = readClientFingerprint(await headers());
+    const fingerprint = readClientFingerprint(requestHeaders);
     await recordVerificationResend(admin, user.id, fingerprint);
   }
 

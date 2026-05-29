@@ -18,7 +18,11 @@ const signUpMock = vi.fn();
 vi.mock('@/lib/supabase/server', () => ({
   createSupabaseServerClient: vi.fn(async () => ({
     auth: {
-      signUp: (args: { email: string; password: string }) => {
+      signUp: (args: {
+        email: string;
+        password: string;
+        options?: { emailRedirectTo?: string };
+      }) => {
         signUpMock(args);
         return Promise.resolve({
           data: { user: null, session: null },
@@ -38,6 +42,14 @@ vi.mock('next/navigation', () => ({
   redirect: (destination: string) => {
     throw new RedirectError(destination);
   },
+}));
+
+// `next/headers` is mocked so `headers().get('origin')` resolves in the
+// test runtime. The action uses the origin to build `emailRedirectTo` —
+// see the `buildSignupRedirectTo` helper.
+const TEST_ORIGIN = 'https://test.lslcalculator.com.au';
+vi.mock('next/headers', () => ({
+  headers: async () => new Headers({ origin: TEST_ORIGIN }),
 }));
 
 const { signupAction } = await import('./actions');
@@ -69,6 +81,7 @@ describe('signupAction — Task 5.3 (AC-AUTH-1, AC-AUTH-2)', () => {
     expect(signUpMock).toHaveBeenCalledWith({
       email: 'alice@example.com',
       password: 'super-secret-12',
+      options: { emailRedirectTo: `${TEST_ORIGIN}/app/` },
     });
   });
 
@@ -183,6 +196,7 @@ describe('signupAction — Task 5.3 (AC-AUTH-1, AC-AUTH-2)', () => {
     expect(signUpMock).toHaveBeenCalledWith({
       email: 'alice@example.com',
       password: 'correct horse battery staple',
+      options: { emailRedirectTo: `${TEST_ORIGIN}/app/` },
     });
   });
 });
