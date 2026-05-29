@@ -205,8 +205,18 @@ jobs:
 
       - name: Run Playwright matrix
         # The CI env var triggers the full browser matrix in playwright.config.ts.
+        # The Supabase env vars are required for the auth E2E (Task 5.8) to hit
+        # the live lsl-platform project. CI_TEST_HELPER_TOKEN is the gate flag
+        # for the /api/test-helpers/confirm-user route used by the E2E to
+        # simulate the email-verification click without real SMTP. The token
+        # is a CI-only secret — it MUST NOT be added to any Vercel environment.
+        # See docs/engineering/changes/2026-05-29-e51-auth-phase-6/HANDOFF-task-5.8-devops.md.
         env:
           CI: true
+          NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CI_TEST_HELPER_TOKEN:          ${{ secrets.CI_TEST_HELPER_TOKEN }}
         run: npx playwright test
 
       - name: Upload Playwright report on failure
