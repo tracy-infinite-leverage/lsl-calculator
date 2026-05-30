@@ -265,6 +265,8 @@ Distinct visual lockup: "LSL Calculator" as the primary mark in Montserrat Semib
 - [ ] Component library audited against WCAG 2.2 AA via axe-core: zero "serious" or "critical" violations.
 - [ ] 2214/2214 LSL test suite and 92 Playwright tests remain green.
 
+**Implementation note — Tailwind v4 CSS-first substitution (recorded 2026-05-30):** the AC above references `website/tailwind.config.{js,ts}` because the spec was authored against Tailwind v3 conventions. The project shipped Task 2.3 on **Tailwind v4 CSS-first** instead — tokens live in `website/src/app/globals.css` inside an `@theme inline { … }` block (see PR #58, merged 2026-05-28; HANDOFF at `docs/engineering/changes/2026-05-28-E6.2-task-2.3-tokens/HANDOFF.md`). This is the v4-canonical home for design tokens; a parallel `tailwind.config.ts` is no longer required. Treat any AC bullet that names `tailwind.config.{js,ts}` as satisfied when the equivalent tokens are present in `globals.css`. This is a config-surface substitution only; no token semantics, palette values, or contract surfaces change.
+
 ### 8.3 E6.3 — `/app` workspace shell
 - [ ] Top nav with sub-brand wordmark + user menu + notifications affordance live on every `/app/*` route.
 - [ ] Sidebar with placeholder entries for E5.2+ surfaces; sections show / hide as features land.
