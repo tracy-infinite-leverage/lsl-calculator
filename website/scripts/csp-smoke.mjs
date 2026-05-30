@@ -255,6 +255,13 @@ async function main() {
       }
     }
   } finally {
+    // Remove stdio listeners before killing — lingering `data` listeners on the
+    // child's piped stderr/stdout keep libuv stream handles open, which can
+    // prevent this Node process from exiting promptly after the child dies.
+    // Observed on Linux CI runners as a workflow timeout cancellation despite
+    // assertions passing.
+    child.stdout.removeAllListeners();
+    child.stderr.removeAllListeners();
     child.kill('SIGTERM');
     // Give it a moment to clean up, but don't hang CI.
     await sleep(500);
@@ -266,6 +273,11 @@ async function main() {
   } else {
     console.log('[csp-smoke] PASS — all CSP assertions satisfied.');
   }
+
+  // Belt-and-braces: force-exit on the success path. Even with stdio listeners
+  // removed above, residual handles can occasionally keep the loop alive on
+  // CI. Honour any exitCode already set by `fail()`.
+  process.exit(process.exitCode ?? 0);
 }
 
 main().catch((err) => {
