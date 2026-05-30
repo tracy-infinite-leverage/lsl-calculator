@@ -8,11 +8,12 @@
 </head>
 <body>
   <h1>LSL Calculator</h1>
-  <p>Updated: YYYY-MM-DD HH:MM</p>
+  <p>Updated: 2026-05-30</p>
   <section><h2>Stat tiles</h2>
-    <div class="tile">Epics shipped: 0</div>
-    <div class="tile">In build: 0</div>
-    <div class="tile">Open bugs: 0</div>
+    <div class="tile">Epics shipped: 2 (E1 NSW · E2 All-State 8/8)</div>
+    <div class="tile">In build: 2 (E5 platform · E6 sub-brand UI)</div>
+    <div class="tile">Open PRs: 4 (#83 · #85 · #86 · #87)</div>
+    <div class="tile">Open bugs: 4 (incl. #5 stale post-PDF-removal)</div>
   </section>
   <section><h2>Claude usage — all time (team)</h2>
     <!--
@@ -45,13 +46,33 @@
 }
 <!-- /contributor-data -->
   </section>
-  <section><h2>Epic pipeline</h2><p>(5-point pipeline per epic — generated)</p></section>
-  <section><h2>Build log</h2><ul><li>YYYY-MM-DD — PH entry</li></ul></section>
+  <section><h2>Epic pipeline</h2>
+    <p>Stage 1 specified &middot; 2 in flight &middot; 3 feature-complete &middot; 4 tested &middot; 5 shipped</p>
+    <ul>
+      <li><strong>E1 NSW Calculator</strong> &middot; &#9679;&#9679;&#9679;&#9679;&#9679; &middot; shipped 2026-05-24 (live at <a href="https://www.lslcalculator.com.au">lslcalculator.com.au</a>)</li>
+      <li><strong>E2 All-State Coverage</strong> &middot; &#9679;&#9679;&#9679;&#9679;&#9679; &middot; complete 2026-05-27 (NSW + VIC + QLD + WA + SA + ACT + TAS + NT — 8/8)</li>
+      <li><strong>E3 Audit Upload / Variance Report</strong> &middot; retired 2026-05-26 (absorbed into E5.6)</li>
+      <li><strong>E4 Payroll System Integrations</strong> &middot; &#9675;&#9675;&#9675;&#9675;&#9675; &middot; planned (depends on E5.4)</li>
+      <li><strong>E5 LSL Platform</strong> &middot; &#9679;&#9679;&#9679;&#9675;&#9675; &middot; in flight (~25%) — E5.0 PDF removal ✅ + E5.1 auth slice ✅ shipped; E5.2/3/4 scoped; E5.5/6 not yet scoped</li>
+      <li><strong>E6 Sub-Brand UI System</strong> &middot; &#9679;&#9679;&#9679;&#9675;&#9675; &middot; in flight (~25%) — E6.1 Phase 1 brand identity ✅ shipped; E6.2 Phase 2 ~95% (12/13 tasks shipped; Task 2.10b PR #83 parked; Task 2.9 acceptance gate pending)</li>
+    </ul>
+  </section>
+  <section><h2>Build log</h2>
+    <ul>
+      <li><strong>2026-05-30</strong> — E6.2 Phase 2 wave 2 shipped: 6 PRs landed (#78 test-folder diff guard; #79/#80/#81/#82/#84 final 9 Task 2.6 shadcn variants incl. Sonner Toast wrapper). 12 of 13 E6.2 tasks complete; Task 2.10b CSP-header smoke test parked at PR #83 pending operator review; Task 2.9 formal acceptance gate not yet run.</li>
+      <li><strong>2026-05-29</strong> — <strong>E5.1 Auth + Tenancy + DB Scaffold ✅ SHIPPED</strong> via PR #67 cumulative 28/47 tasks + PR #68/#69/#70 P0/P1 hotfixes + PR #71 Task 5.8 Playwright E2E + PR #72 Task 6.4 ops decisions + PR #73 Phase 6 learnings + PR #74/#75 CI wiring &amp; admin-SDK fix. Critical-finding spec §2 (Supabase scaffold) closed. E6.2 Task 2.7 formatAUD shipped via PR #76.</li>
+      <li><strong>2026-05-28</strong> — <strong>E6.1 Phase 1 brand identity ✅ SHIPPED</strong> via PR #54 (spec v0.4 + impl-plan + wordmark + favicons + sync-brand-assets script). E6.2 Phase 2 kickoff: 11 PRs (#55 Storybook+axe; #56 self-host fonts; #58 Tailwind v4 tokens; #59 typed tokens mirror; #60+#62 brand barrel + wordmark outline fix; #61/#63/#64/#66 first 7 Task 2.6 shadcn variants; #65 Task 2.10 CSP/bundle audit).</li>
+      <li><strong>2026-05-27</strong> — <strong>E5.0 PDF Removal companion ✅ SHIPPED</strong> via PR #50/#52/#53 — LAUNCH-GUARD `ANTHROPIC_API_KEY` gate closed by elimination. <strong>E2 epic COMPLETE</strong> — NT Phase 9 shipped via PR #40/#43/#46 (8 of 8 Australian jurisdictions live). E5 sub-spec lock-in (OQ-EMP-1/2 + OQ-MAP-1 locked). E6 spec v0.4 approved (13 OQs resolved).</li>
+      <li><strong>2026-05-26</strong> — E5 LSL Platform umbrella spec v1.0 approved. E1 Phase 7 (opt-in logins) cancelled — superseded by E5. E3 (NSW audit-replay CSV) retired — absorbed into E5.6. E2 Phase 8 (TAS) shipped via PR #29/#30/#31/#33/#34/#35.</li>
+      <li><strong>2026-05-24</strong> — <strong>E1 NSW Calculator ✅ SHIPPED</strong> via PR #3 squash-merge at `50061f5`. Live at <a href="https://www.lslcalculator.com.au">www.lslcalculator.com.au</a>.</li>
+    </ul>
+  </section>
   <section><h2>Companion docs</h2>
     <ul>
       <li><a href="product/product.md">product.md</a></li>
       <li><a href="product/epics.md">epics.md</a></li>
-      <li><a href="product/epic-status.md">epic-status.md</a></li>
+      <li><a href="product/epic-status.md">epic-status.md</a> — drilldown per epic, updated 2026-05-30</li>
+      <li><a href="launch/LAUNCH-GUARD.md">launch/LAUNCH-GUARD.md</a></li>
     </ul>
   </section>
 </body>
