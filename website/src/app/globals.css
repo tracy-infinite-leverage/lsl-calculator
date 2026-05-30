@@ -228,6 +228,32 @@
   --radius-brand-lg: var(--radius-brand-lg);
   --radius-brand-xl: var(--radius-brand-xl);
   --radius-brand-2xl: var(--radius-brand-2xl);
+
+  /* Accordion animation utilities — `animate-accordion-down` and
+   * `animate-accordion-up`. Driven by Radix Accordion's
+   * `--radix-accordion-content-height` runtime CSS variable. See module-scope
+   * `@keyframes` declarations below. */
+  --animate-accordion-down: accordion-down 200ms ease-out;
+  --animate-accordion-up: accordion-up 200ms ease-out;
+}
+
+/* Accordion expand/collapse keyframes — drive the height transition on
+ * `<AccordionContent>` using Radix's `--radix-accordion-content-height` CSS
+ * variable. Registered as Tailwind v4 utilities `animate-accordion-down` and
+ * `animate-accordion-up`. Stripped under `prefers-reduced-motion` at the
+ * component layer via `motion-reduce:animate-none` (spec §5.5).
+ *
+ * Tailwind v4 surfaces these via `@theme inline { --animate-* }` below; the
+ * keyframes themselves must live at module scope (Tailwind v4 doesn't accept
+ * `@keyframes` inside `@theme`).
+ */
+@keyframes accordion-down {
+  from { height: 0; }
+  to   { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to   { height: 0; }
 }
 
 /* APA gradient utilities (spec §5.1 — backgrounds only, never under text).
