@@ -61,6 +61,45 @@ jobs:
       - name: Build
         run: npm run build
 
+  # CSP header smoke test — Task 2.10b.
+  #
+  # Boots `next start` against a fresh production build, fetches `/` and
+  # `/privacy`, and asserts the response carries a CSP header consistent with
+  # the LAUNCH-GUARD posture: present, no unsafe-inline / unsafe-eval in
+  # script-src or style-src, no wildcard third-party origins. See
+  # docs/qa/e6-csp-audit.md "CSP header smoke test" section.
+  #
+  # Lives in its own job (not as a step inside `test`) so the `next start`
+  # boot + HTTP round-trips don't compound onto the build-job runtime —
+  # the `test` job was hitting its 30-min ceiling when this ran as a tail
+  # step on the same runner. Two clean jobs are cheaper than one long one,
+  # and they parallelise on GitHub-hosted runners.
+  csp-smoke:
+    name: CSP header smoke test (Task 2.10b)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: CSP header smoke test
+        run: npm run csp-smoke
+
   # E2 per-state matrix — runs each state's suite in its own shard.
   # New states append a value to the matrix as they ship.
   # See E2 impl-plan §P0.3 and tasks.md §T1.9.

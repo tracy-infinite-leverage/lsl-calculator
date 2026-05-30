@@ -174,7 +174,91 @@ npm run audit-bundle
 ## Links
 
 - Audit script: `website/scripts/audit-bundle.mjs`
+- CSP smoke test: `website/scripts/csp-smoke.mjs` (Task 2.10b)
 - Sibling discipline doc: `docs/qa/a11y-guard-discipline.md`
 - Spec: `.specify/features/006-ui-design-system/spec.md` §5.1 + §5.7
-- Tasks: `.specify/features/006-ui-design-system/tasks.md` §2.10
+- Tasks: `.specify/features/006-ui-design-system/tasks.md` §2.10 + §2.10b
 - Wordmark @import bug fix (the SVG leak class): commit `0ddc968` (PR #62)
+
+---
+
+## CSP header smoke test (Task 2.10b)
+
+**Owner:** developer agent
+**Added:** 2026-05-30 (E6.2 Task 2.10b)
+**Closes:** PR #65 deferred AC #5 (production CSP header smoke test)
+
+### TL;DR
+
+The build now emits a strict **`Content-Security-Policy-Report-Only`** header on every route via `next.config.ts headers()`. `scripts/csp-smoke.mjs` boots `next start` against the production build, fetches `/` and `/privacy`, and asserts four things on the response header:
+
+1. CSP header is present (either enforcing or report-only).
+2. `script-src` contains no `'unsafe-inline'` / `'unsafe-eval'`.
+3. `style-src` contains no `'unsafe-inline'` / `'unsafe-eval'`.
+4. No wildcard third-party origins anywhere — wildcards are permitted only for the documented first-party Vercel-analytics + Supabase hosts.
+
+The smoke test runs in CI on every PR (`.github/workflows/ci.yml` → `test` job → `CSP header smoke test` step, immediately after `Build`).
+
+### Why report-only, not enforcing
+
+The audit doc §96–111 (above) documents the rationale at length. Short version: Next.js's static prerender inlines a hydration `<script>` block. An enforcing CSP without `'unsafe-inline'` in `script-src` would break the app, and one with `'unsafe-inline'` would weaken the guarantee the smoke test exists to enforce. Report-only mode lets us ship the policy as the **observable intended posture** today without breaking the app — and the moment a future task adds nonces and flips the header to `Content-Security-Policy`, this smoke test catches any regression for free.
+
+### Today's policy (source of truth: `next.config.ts`)
+
+```
+default-src 'self';
+script-src 'self';
+style-src 'self';
+img-src 'self' data: blob:;
+font-src 'self';
+connect-src 'self' https://vitals.vercel-insights.com https://*.vercel-analytics.com https://*.supabase.co wss://*.supabase.co;
+frame-ancestors 'none';
+base-uri 'self';
+form-action 'self';
+object-src 'none'
+```
+
+Wildcards permitted (first-party per spec §5.7 / audit doc):
+- `*.vercel-analytics.com` — Vercel Analytics beacons
+- `*.supabase.co` — Supabase API + Realtime (HTTPS + WSS)
+
+### Negative tests (canaries — re-run as part of any change to the script)
+
+Two canaries were planted on the development branch and confirmed to flip the smoke test red:
+
+| Canary | Result |
+|---|---|
+| `script-src 'self'` → `script-src 'self' 'unsafe-inline'` | EXIT 1 ✓ |
+| `img-src 'self' data: blob:` → `img-src 'self' data: blob: https://*.evil.example` | EXIT 1 ✓ |
+
+A bare-wildcard canary (`*` in `default-src`) is also covered by the assertion code (`token === '*'` branch).
+
+### Running locally
+
+```bash
+cd website
+npm run build              # populates .next/static
+npm run csp-smoke          # boots next start on :3210, asserts, exits
+```
+
+`CSP_SMOKE_PORT=NNNN` overrides the port (default 3210). `CSP_SMOKE_VERBOSE=1` streams the `next start` stdout.
+
+Exit codes:
+- `0` — all assertions pass
+- `1` — assertion failed (CSP missing, weak directive, or unauthorised wildcard)
+- `2` — pre-flight failure (`.next/` missing, server didn't start within 30s)
+
+### Why a Node script and not Playwright / Vitest
+
+Discussed in the script's file header. The assertion surface is tiny (one HTTP request, four substring checks per directive). A Playwright e2e would add a 30-second browser-launch tax for zero additional signal, and place the test under `website/e2e/` — a path protected by Task 2.11's diff guard. Vitest + supertest would need a Next-server adapter we don't have. Plain Node fetch + `child_process` keeps the smoke test in the same family as `scripts/audit-bundle.mjs` and stays out of every protected path (engine, states, e2e, src/__tests__).
+
+### Future enforcement path
+
+When a future security-hardening epic adds nonces (touches `app/layout.tsx`, every server layout, and `proxy.ts` for `X-Nonce` propagation), the upgrade is one line:
+
+```ts
+// next.config.ts — flip header name when nonces ship
+{ key: 'Content-Security-Policy', value: CSP_REPORT_ONLY }
+```
+
+The smoke test's assertions are unchanged — it already accepts either header name. The day enforcement lands, the test simply guards the enforcing version of the same policy.

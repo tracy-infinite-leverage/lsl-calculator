@@ -248,6 +248,21 @@
 **Dependencies**: Tasks 2.1, 2.2, 2.3, 2.6, 2.8 (i.e. all dependency-introducing tasks complete)
 **Assignee**: developer
 
+### Task 2.10b: Production CSP-header smoke test
+
+**Description**: AC #5 of Task 2.10 (production CSP header smoke test) was explicitly deferred in PR #65 because shipping a first-time strict enforcing CSP touches `proxy.ts`, Vercel headers config, every server layout (for nonces), and the analytics origins — far beyond S effort. This sibling task closes the loop with a smaller, safer scope: emit a strict `Content-Security-Policy-Report-Only` header via `next.config.ts headers()` and add a smoke test that boots `next start` against the production build, fetches `/` and `/privacy`, and asserts the header is present, has no `unsafe-inline` / `unsafe-eval` in `script-src` / `style-src`, and contains no wildcard third-party origins. Report-only mode keeps the app functional today; the day a future security-hardening epic adds nonces and flips the header to enforcing, this smoke test guards the policy unchanged.
+
+**Source: Spec §5.7 + PR #65 [SCOPE-NOTE] · Closes AC #5 of canonical Task 2.10**
+
+**Acceptance Criteria** (Spec §5.7):
+- [x] Smoke test asserts production CSP header is present and lacks `unsafe-inline`, `unsafe-eval`, and any wildcard third-party origin in `script-src` / `style-src`
+- [x] Smoke test runs in CI on every E6 PR
+- [x] Documented in `docs/qa/e6-csp-audit.md` (append section "CSP header smoke test")
+
+**Effort**: S
+**Dependencies**: Task 2.10 (CSP + bundle audit guard) — landed via PR #65
+**Assignee**: developer
+
 ### Task 2.11: Test-folder diff guard (engine + Playwright sanctity)
 
 **Description**: Spec SC-7 and spec §5.3 mandate that the 2214/2214 LSL suite and 92 Playwright tests are **off-limits for modification** in any E6 PR. This task adds a CI rule that fails any E6 PR if `git diff main -- tests/` is non-empty. Makes the test-sanctity contract enforceable rather than honour-based. Tiny rule, lands with Phase 2.

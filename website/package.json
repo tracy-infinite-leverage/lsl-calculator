@@ -8,6 +8,7 @@
     "build": "next build",
     "postbuild": "node scripts/audit-bundle.mjs",
     "audit-bundle": "node scripts/audit-bundle.mjs",
+    "csp-smoke": "node scripts/csp-smoke.mjs",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
