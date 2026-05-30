@@ -10,18 +10,17 @@
  * Brand variants (spec §5.1):
  *   - brand-info        → navy-tinted surface, navy type. Brand-aligned
  *                         info / neutral notice.
- *   - brand-success     → existing semantic success token preserved + soft
- *                         brand-tinted border. Success isn't a brand-palette
- *                         token (green is universal), so we adopt the
- *                         shadcn semantic token (same call as Button's
- *                         `destructive` — see button.tsx §5).
  *   - brand-warning     → gold-tinted surface, dark-blue type. Gold reads
  *                         as the brand's "signal / caution" token per
  *                         icon-direction.md §3.
- *   - brand-destructive → existing semantic destructive token preserved +
- *                         soft brand-tinted border. Same restraint as Button.
  *   - brand-advisory    → advisory teal-tinted surface, dark-blue type.
  *                         Mirrors Button + Badge `advisory` variant.
+ *
+ * Success / destructive intentionally fall back to the preserved legacy
+ * semantic variants (`destructive` above; success isn't an Alert variant
+ * today). If a brand-tinted success or destructive Alert is needed later,
+ * add it via the same pattern as Button (PR #61) — out of scope for this
+ * wave.
  *
  * Cascade decisions from Button (PR #61) → Badge (this PR) honoured:
  *   1. File location stays `components/ui/alert.tsx`.
