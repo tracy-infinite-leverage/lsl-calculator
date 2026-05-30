@@ -226,3 +226,83 @@ jobs:
           name: playwright-report
           path: website/playwright-report/
           retention-days: 7
+
+  # Test-sanctity guard — E6.2 Task 2.11 (spec §5.3 + SC-7).
+  #
+  # Spec §5.3 mandates that E6 PRs MUST NOT modify the 2214/2214 LSL test suite
+  # or the 92 Playwright tests. SC-7 makes that an explicit success criterion.
+  # This job makes the rule machine-enforceable rather than honour-based: it
+  # diffs the protected test surfaces against origin/main and fails the build
+  # if anything has changed.
+  #
+  # Protected paths (the "tests/" surface in this project — there is no
+  # top-level tests/ folder, so the canonical interpretation is the actual
+  # test files):
+  #   - website/e2e/                          — Playwright matrix (92 tests)
+  #   - website/src/lib/lsl/engine/           — 2214 LSL gold-standard engine tests
+  #   - website/src/lib/lsl/states/           — per-state vitest suites
+  #   - website/src/__tests__/                — auth integration tests
+  #
+  # Operator-override mechanism: include the literal token `[skip-test-guard]`
+  # in the PR title. We do NOT honour --no-verify (it bypasses ALL hooks, not
+  # just this one) and we do NOT honour an env-var bypass (would defeat the
+  # purpose). The PR-title token is reviewable in GitHub and leaves a paper
+  # trail in the merge commit history.
+  #
+  # See docs/qa/e6-test-sanctity.md for the contributor-facing rule.
+  test-sanctity:
+    name: Test-sanctity guard (spec §5.3 + SC-7)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need full history so `git diff origin/main` can resolve the merge-base.
+          fetch-depth: 0
+
+      - name: Check for [skip-test-guard] in PR title
+        id: skip
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if echo "$PR_TITLE" | grep -qF '[skip-test-guard]'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Test-sanctity guard SKIPPED via [skip-test-guard] in PR title."
+            echo "::warning::PR title: $PR_TITLE"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Diff protected test surfaces against origin/main
+        if: steps.skip.outputs.skip != 'true'
+        run: |
+          set -e
+          # Resolve the merge-base so a stale branch doesn't false-positive on
+          # tests that landed on main after the branch was cut.
+          BASE_SHA=$(git merge-base origin/main HEAD)
+          echo "Comparing HEAD against merge-base $BASE_SHA"
+
+          PROTECTED_PATHS=(
+            "website/e2e"
+            "website/src/lib/lsl/engine"
+            "website/src/lib/lsl/states"
+            "website/src/__tests__"
+          )
+
+          DIFF=$(git diff --name-status "$BASE_SHA" HEAD -- "${PROTECTED_PATHS[@]}" || true)
+
+          if [ -n "$DIFF" ]; then
+            echo "::error::E6 test-sanctity guard FAILED — protected test paths were modified."
+            echo "::error::Spec §5.3 + SC-7: the 2214 LSL suite and 92 Playwright tests are off-limits in E6 PRs."
+            echo ""
+            echo "Changed files under protected paths:"
+            echo "$DIFF"
+            echo ""
+            echo "If this change is intentional and reviewed by the operator, add"
+            echo "the literal token [skip-test-guard] to the PR title to override."
+            echo "See docs/qa/e6-test-sanctity.md for the full rule."
+            exit 1
+          fi
+
+          echo "Test-sanctity guard passed — no protected test files modified."
