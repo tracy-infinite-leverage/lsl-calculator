@@ -139,6 +139,7 @@ describe('Icon barrel', () => {
     // the upgrade-path rationale.
     const allowed = [
       'src/components/brand/Icon.tsx',
+      'src/components/ui/accordion.tsx',
       'src/components/ui/button.tsx',
       'src/components/ui/checkbox.tsx',
       'src/components/ui/dialog.tsx',
