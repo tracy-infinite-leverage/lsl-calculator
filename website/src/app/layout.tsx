@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ENCODED_STATES } from '@/lib/lsl/dispatch';
+import { Toaster } from '@/components/ui/toast';
 import './globals.css';
 
 // Self-hosted brand fonts (E6.2 Task 2.2 — resolves OQ-3).
@@ -101,6 +102,14 @@ export default function RootLayout({
          */}
         <Analytics />
         <SpeedInsights />
+        {/*
+         * Sonner brand Toaster — mount once in the app shell per the wrapper's
+         * contract (src/components/ui/toast.tsx). Without this mount, every
+         * `toast()` call elsewhere in the app would silently no-op (flagged in
+         * PR #84 QA report 2026-05-30). Mounted at the root so auth screens,
+         * calculator, and dashboard routes all share the same toast region.
+         */}
+        <Toaster />
       </body>
     </html>
   );

@@ -176,12 +176,13 @@
 
 ### Task 2.6: shadcn variant overrides — 16 components [P]
 
-**Description**: Build brand-styled variants for Button (primary / secondary / ghost / destructive / advisory), Input, Textarea, Select, Checkbox, Radio, Switch, Table, Card, Tabs, Accordion, Modal/Dialog, Toast, Tooltip, Badge, Alert. Implement via `cva` (class-variance-authority) — extend shadcn defaults, do not fork. Each component is a separate sub-task — parallel-able across multiple developer sessions.
+**Description**: Build brand-styled variants for Button (primary / secondary / ghost / destructive / advisory), Input, Textarea, Select, Checkbox, Radio, Switch, Table, Card, Tabs, Accordion, Modal/Dialog, Toast (Sonner — adopted 2026-05-30 per operator decision; shadcn deprecated original Toast in favour of `sonner` library), Tooltip, Badge, Alert. Implement via `cva` (class-variance-authority) — extend shadcn defaults, do not fork. Each component is a separate sub-task — parallel-able across multiple developer sessions. *Sonner substitution decision: 2026-05-30 (forensic audit Round 2).*
 
 **Acceptance Criteria** (AC §8.2):
 - [ ] All 16 components have at least one brand-styled variant referencing tokens (no hard-coded colours)
 - [ ] Each component has at least one Storybook story per variant
 - [ ] Each variant passes Storybook axe-core add-on with zero serious/critical violations
+- [ ] Toast variant wraps `sonner` library; brand wrapper at `components/ui/Toast.tsx` (or equivalent) with at least one Storybook story
 
 **Effort**: L
 **Dependencies**: Task 2.3, Task 2.5
@@ -202,7 +203,7 @@
 
 ### Task 2.8: Wire axe-core into existing Playwright suite
 
-**Description**: Add `@axe-core/playwright` to `website/e2e/`. Add a new spec file `website/e2e/a11y.spec.ts` that visits `/` and asserts zero serious/critical violations. This is the **hard CI merge gate** from E6.2 onward (PD-2). Lighthouse stays as a separate observability check (Task 4.7).
+**Description**: Add `@axe-core/playwright` to `website/e2e/`. Add a new spec file `website/e2e/a11y.spec.ts` that visits `/` and asserts zero serious/critical violations. This is the **hard CI merge gate** from E6.2 onward (PD-2). Lighthouse stays as a separate observability check (Task 4.7). *Sequencing: this task formally closes when Task 2.6 closes (so all 16 components are covered by the axe E2E sweep). Infra ships with PR #65 (2026-05-28); status stays ⚠️ partial / 🔄 in flight until 2.6 ✅.*
 
 **Acceptance Criteria** (AC §8.2 + PD-2):
 - [ ] `@axe-core/playwright` installed

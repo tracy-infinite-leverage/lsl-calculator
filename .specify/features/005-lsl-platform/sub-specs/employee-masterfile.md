@@ -3,7 +3,7 @@
 **Slug:** `lsl-platform-employee-masterfile`
 **Parent feature:** `005-lsl-platform` (umbrella platform spec v1.0 APPROVED 2026-05-26)
 **Sub-epic:** **E5.2 · Employee Masterfile** (with customer-setup scope folded in)
-**Status:** **Scoped — APPROVED 2026-05-27** (operator decisions captured 2026-05-27; refined 2026-05-27 with locked decisions on OQ-EMP-1 + OQ-EMP-2)
+**Status:** **Scoped — APPROVED 2026-05-27 · Scope-amendment 2026-05-29** (operator decisions captured 2026-05-27; refined 2026-05-27 with locked decisions on OQ-EMP-1 + OQ-EMP-2; **scope amended 2026-05-29 to ship `tags` in v1 per E5.5 OQ-LIA-1 resolution — see §3 in-scope + §4.2 `tags` column + §6 AC-EMP-14 + §7 OQ-LIA-1 reference**)
 **Author:** Product Manager (drafted 2026-05-27 from operator scoping brief 2026-05-27; locked-decisions update 2026-05-27)
 **Owner:** Tracy Angwin (austpayroll.com.au)
 **Depends on:** **E5.1 Auth + Tenancy + DB Scaffold** (must merge first — `organisations`, `org_members`, RLS primitives must be in place). E2 all-state engines are already live (8 of 8 — shipped 2026-05-27).
@@ -87,6 +87,14 @@ The masterfile is **per-employer**: one row in `organisations` maps to one ABN a
   - Implementation surface: a `retention_expires_at` timestamptz column on `employees`, populated by trigger when `end_date` is set (= `end_date + 7 years`). Cleared if `end_date` is cleared (e.g. re-activation). A scheduled deletion mechanism (cron job or Postgres pg_cron job — impl-plan choice) reads `retention_expires_at <= now()` and hard-deletes the row + its `pay_periods` rows + its `employee_history` rows. `import_audit_log` is retained indefinitely per OQ-EMP-3.
   - The 7-year clock aligns with the **Fair Work Act 2009 record-keeping minimum**.
   - Privacy notice updated to state: "Terminated employee records are retained for 7 years from the termination date and then permanently destroyed (Australian Privacy Principle 11.2 — destruction when no longer needed). The 7-year clock starts from the termination date, not the import date."
+- **Employee `tags` column for grouping + scope filtering** (scope amendment 2026-05-29 — promoted from MAY → v1 per E5.5 OQ-LIA-1 resolution):
+  - `tags` column on `employees` of type `text[]` — zero or more tags per employee. Stored as a Postgres array, indexed via GIN for fast `&&` (any-overlap) and `@>` (contains) queries.
+  - Org-scoped **tag dictionary** — a `tags` table per org (`id`, `org_id`, `name`, `created_at`, `created_by`) enforcing `UNIQUE (org_id, name)`. Employee `tags` values MUST appear in the dictionary; rows referencing an unknown tag are rejected at insert / update time.
+  - **CSV import path:** a `tags` column on the masterfile CSV accepts a pipe-delimited list (e.g. `finance|leadership|sydney_office`). Unknown tags auto-create dictionary entries during the same import transaction (so customers don't have to pre-seed). PII-strip header patterns do not match `tags`.
+  - **Manual edit path:** the employee add / edit UI exposes a tag picker (multi-select with type-ahead from the dictionary + free-text to create new tag).
+  - **Tag-edit UI:** a lightweight org-settings page lists every tag in the dictionary with its usage count, allows rename (cascades to all employees), and allows hard-delete with a confirmation that lists affected employees.
+  - Tags are NOT effective-dated in v1 — they reflect the **current** logical grouping of the employee. Historical "what tags did this employee have on date X" is deferred to v1.1 (low-value vs cost).
+  - **Why this is in v1:** E5.5 liability report scope picker uses tags as a v1 affordance (OQ-LIA-1 RESOLVED 2026-05-29 — Tracy chose to ship tags in both E5.2 and E5.5 v1 rather than defer to v1.1). Without this column landing in E5.2, E5.5 cannot ship its tag-based scope.
 - Validation rules listed in §5.
 
 ### Out of scope for v1 (deferred)
@@ -141,6 +149,7 @@ E5.1 ships `organisations` with `id`, `name`, `created_at`, `updated_at` and an 
 | `opening_balance_taken_weeks` | numeric(8,4) | no | Locked decision 2026-05-27. Captures LSL weeks already taken against the opening balance at go-live. Same dual-path capture as `opening_balance_weeks`. |
 | `opening_balance_as_at_date` | date | no | Locked decision 2026-05-27. The as-at date for the two opening-balance fields above. Same dual-path capture. |
 | `retention_expires_at` | timestamptz | no | Locked decision 2026-05-27. Set by trigger when `end_date` is populated (= `end_date + 7 years`). Cleared when `end_date` is cleared (re-activation). Drives the scheduled hard-delete of the employee row + their `pay_periods` rows + their `employee_history` rows per APP 11.2 destruction-when-no-longer-needed. Aligns with the Fair Work Act 2009 7-year record-keeping minimum. |
+| `tags` | text[] | no | Scope amendment 2026-05-29. Zero or more tag names referencing the org's `tags` dictionary (see new §4.4). GIN-indexed for fast `&&` / `@>` queries. Used by E5.5 liability report scope picker (OQ-LIA-1 RESOLVED 2026-05-29 — tags ship in v1). Not effective-dated in v1. Validation: every value MUST exist in `tags` for the same `org_id`. |
 | `created_at` | timestamptz | yes | Insert timestamp. |
 | `updated_at` | timestamptz | yes | Trigger-maintained. |
 | `created_by` | uuid (FK → `auth.users.id`) | yes | The user who created the record. |
@@ -172,6 +181,27 @@ Captures historical values for fields where the *value as at a past date* matter
 
 **Note:** `start_date`, `dob`, `sex`, `full_name`, `employee_external_id` are NOT effective-dated. Sex / dob are biological constants. Start date is the continuous-service anchor (changing it after-the-fact is a data-quality issue, not an effective-dated event). Name + external ID changes are operational, not engine-load-bearing.
 
+### 4.4 `tags` table — org-scoped tag dictionary (scope amendment 2026-05-29)
+
+Added by the 2026-05-29 scope amendment per E5.5 OQ-LIA-1 resolution. Provides the org-scoped dictionary that `employees.tags` values reference.
+
+| Column | Type | Required | Notes |
+|---|---|---|---|
+| `id` | uuid (PK) | yes | |
+| `org_id` | uuid (FK → `organisations.id`) | yes | RLS pivot. Indexed. |
+| `name` | text | yes | Tag display name. Validation: 1–50 chars, no leading/trailing whitespace, lowercased on insert for predictable matching. **`UNIQUE (org_id, name)`** enforces no duplicates per org. |
+| `created_at` | timestamptz | yes | |
+| `created_by` | uuid (FK → `auth.users.id`) | yes | |
+| `usage_count_cached` | integer | no | Optional denormalised counter, maintained by trigger on `employees.tags` writes. Powers the org-settings tag-edit page without scanning `employees` per render. |
+
+**RLS:** rows visible iff `org_id` matches an `org_members.org_id` row whose `user_id = auth.uid()`. Mutations gated by role.
+
+**Rename behaviour:** updating `tags.name` cascades — Postgres trigger walks every `employees.tags` array where the old name appears and rewrites it. Single transaction.
+
+**Hard-delete behaviour:** deleting a `tags` row cascades — every `employees.tags` array containing the deleted name is updated to remove it. Confirmation dialog in the UI lists the affected employees before commit.
+
+**Not effective-dated in v1.** "Which tags did employee X have on date Y" is deferred to v1.1.
+
 ---
 
 ## 5. Validation rules
@@ -187,13 +217,14 @@ Captures historical values for fields where the *value as at a past date* matter
 - **SHOULD** warn if `dob` is missing for an NT employee or `sex` is missing for a TAS employee — the engine will block valuation later anyway, but flagging at import time is friendlier.
 - **MUST** preserve the original CSV file (encrypted at rest is fine; Supabase Storage with RLS) for audit purposes. The import-audit hash points to this stored file. (Storage detail is an impl-plan concern; the requirement here is that the source file is recoverable.)
 - **MUST** validate that any provided `scheme` value is `state_lsl` in v1. Other values are rejected (reserved for v1.1).
+- **MUST** parse the CSV `tags` column as a pipe-delimited list (scope amendment 2026-05-29). Each tag is 1–50 chars, lowercased, no leading / trailing whitespace. Unknown tags auto-create dictionary entries in the same import transaction. Empty / NULL `tags` value is valid (employee has no tags).
 
 ---
 
 ## 6. Acceptance criteria
 
 - **AC-EMP-1** Onboarding wizard captures `employer_legal_name`, `abn`, `default_work_jurisdiction` and persists them on the user's org.
-- **AC-EMP-2** CSV upload accepts a documented schema (`employee_external_id`, `full_name`, `start_date`, `end_date`, `default_work_jurisdiction`, `employment_type`, `pay_frequency`, `sex`, `dob`, `classification`, `hours_per_week`), shows a dry-run preview with row count, validation errors, and the count of stripped PII columns, and commits only valid rows on confirm.
+- **AC-EMP-2** CSV upload accepts a documented schema (`employee_external_id`, `full_name`, `start_date`, `end_date`, `default_work_jurisdiction`, `employment_type`, `pay_frequency`, `sex`, `dob`, `classification`, `hours_per_week`, **`tags`** — pipe-delimited list, scope amendment 2026-05-29), shows a dry-run preview with row count, validation errors, and the count of stripped PII columns, and commits only valid rows on confirm.
 - **AC-EMP-3** Manual single-employee add validates the same field set and inserts one row.
 - **AC-EMP-4** Duplicate `(org_id, employee_external_id)` is rejected with a row-level error in the dry-run preview; valid rows in the same batch are still imported.
 - **AC-EMP-5** Editing an effective-dated field on an existing employee (`employment_type`, `pay_frequency`, `classification`, `hours_per_week`, `default_work_jurisdiction`) creates an `employee_history` row capturing the prior value and the effective date of the change. Non-effective-dated fields update in place with `updated_at` and `updated_by` refreshed.
@@ -205,6 +236,7 @@ Captures historical values for fields where the *value as at a past date* matter
 - **AC-EMP-11** The data model permits a future portable-LSL row insert (i.e. `scheme = 'portable_construction'`) without schema migration — only an enum value addition. Verified by reviewing the schema migration plan at impl-plan time.
 - **AC-EMP-12** Opening-balance capture via CSV column AND via setup-wizard fallback both write to the same `employees.opening_balance_weeks` / `opening_balance_taken_weeks` / `opening_balance_as_at_date` fields. If both paths supply a value for the same employee, the wizard value wins. Verified by a paired test: import CSV with opening-balance values, then enter different wizard values for the same employee, then assert the wizard values are persisted.
 - **AC-EMP-13** `retention_expires_at` is auto-populated by trigger when `end_date` is set (= `end_date + 7 years`) and cleared when `end_date` is cleared. A scheduled deletion job hard-deletes employees with `retention_expires_at <= now()` along with their `pay_periods` rows and their `employee_history` rows. `import_audit_log` rows are NOT deleted (per OQ-EMP-3). Verified by a paired test: set `end_date`, fast-forward clock past `retention_expires_at`, run the deletion job, assert the employee + pay-period + employee_history rows are gone, audit-log rows remain.
+- **AC-EMP-14** (scope amendment 2026-05-29 — per E5.5 OQ-LIA-1 resolution). `employees.tags` is a `text[]` column populated via two paths: (a) the masterfile CSV's `tags` column (pipe-delimited; unknown tags auto-create dictionary entries in the same import transaction); (b) the manual employee add / edit UI (multi-select picker with type-ahead from the dictionary, free-text to create new tags). The org-scoped `tags` table enforces `UNIQUE (org_id, name)`. A `tags` rename cascades to every `employees.tags` array; a `tags` hard-delete cascades likewise. Verified by paired tests: (i) import CSV with `tags = "finance|sydney"` against an empty dictionary, assert both dictionary entries exist + the employee row carries both; (ii) rename `sydney` → `sydney_office`, assert the employee row reflects the rename; (iii) delete `finance`, assert the employee row's `tags` array no longer contains it.
 
 ---
 
