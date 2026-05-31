@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { AlertCircle, FileUp, Loader2, Play, Trash2 } from '@/components/brand/Icon';
+import { AlertCircle, Download, FileUp, Loader2, Play, Trash2 } from '@/components/brand/Icon';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { BulkResultsTable } from './bulk-results-table';
 import { UnblockJurisdictionModal } from './unblock-jurisdiction-modal';
 import { saveBulkState, loadBulkState, clearBulkState } from './bulk-storage';
 import { track, bucketElapsed } from '@/lib/observability/track';
+import { isBulkPdfDownloadEnabled } from '@/lib/feature-flags';
 
 type Stage =
   | { kind: 'idle' }
@@ -43,7 +44,48 @@ export function BulkModeForm() {
   const [stage, setStage] = React.useState<Stage>({ kind: 'idle' });
   const [csvText, setCsvText] = React.useState<string>('');
   const [unblockTarget, setUnblockTarget] = React.useState<string | null>(null);
+  const [pdfDownloading, setPdfDownloading] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement | null>(null);
+
+  /**
+   * Bulk-summary PDF download. Gated behind `NEXT_PUBLIC_PDF_DOWNLOAD_ENABLED`
+   * per Task 4.6 G-5 (feature-flag path). When the flag is `false` (default),
+   * the CTA does not render and this function is never called. When Phase 5a
+   * (E6.6 templates) ships `/api/export-bulk-pdf` and flips the flag to
+   * `'true'`, this handler wires the click to that endpoint with no further
+   * client change required.
+   *
+   * Payload mirrors the single-employee shape (see single-mode-form's
+   * `downloadPDF`) but sends the full results array. The Phase 5a endpoint
+   * contract is owned by E6.6; this is the conservative client-side payload.
+   */
+  async function downloadBulkPdf() {
+    if (stage.kind !== 'done') return;
+    setPdfDownloading(true);
+    try {
+      const res = await fetch('/api/export-bulk-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          results: stage.results,
+          parsed: stage.parsed,
+          summary: stage.summary,
+        }),
+      });
+      if (!res.ok) throw new Error(`Bulk PDF export failed (HTTP ${res.status})`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `LSL-bulk-summary-${new Date().toISOString().slice(0, 10)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Bulk PDF export failed');
+    } finally {
+      setPdfDownloading(false);
+    }
+  }
 
   // Restore from localStorage on mount
   React.useEffect(() => {
@@ -412,10 +454,20 @@ export function BulkModeForm() {
             />
 
             <Separator />
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" type="button" onClick={reset}>
                 <Trash2 className="h-4 w-4 mr-1" /> Start over
               </Button>
+              {isBulkPdfDownloadEnabled() && (
+                <Button
+                  type="button"
+                  onClick={downloadBulkPdf}
+                  disabled={pdfDownloading}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  {pdfDownloading ? 'Generating…' : 'Download bulk summary PDF'}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
