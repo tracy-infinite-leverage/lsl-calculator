@@ -32,7 +32,7 @@
 
 ### Task 1.2: Produce sub-brand wordmark candidates
 
-**Description**: Designer agent interprets §7.6 sibling-product posture (Xero Practice Manager precedent) and produces 1–3 wordmark candidates: "LSL Calculator" in Montserrat Semibold with "by Australian Payroll Association" lockup beneath in Source Sans Pro Regular. Inherits APA palette + typography but earns its own visual personality. Wordmark approval cycles with a non-technical operator typically run 5–10 business days (multiple candidates → revisions → operator approval → favicon export); budget accordingly.
+**Description**: Designer agent interprets §7.6 sibling-product posture (Xero Practice Manager precedent) and produces 1–3 wordmark candidates: "LSL Calculator" in Montserrat Semibold with "by Australian Payroll Association" lockup beneath in Source Sans 3 Regular. Inherits APA palette + typography but earns its own visual personality. Wordmark approval cycles with a non-technical operator typically run 5–10 business days (multiple candidates → revisions → operator approval → favicon export); budget accordingly.
 
 **Source: Spec §8.1 · Resolves G-4**
 
@@ -113,9 +113,9 @@
 **Dependencies**: Phase 1 complete (or 14-day fallback active)
 **Assignee**: developer
 
-### Task 2.2: Self-host Montserrat + Source Sans Pro woff2 [P]
+### Task 2.2: Self-host Montserrat + Source Sans 3 woff2 [P]
 
-**Description**: Download Montserrat (Light / Regular / Semibold) and Source Sans Pro (Light / Regular / Semibold) as woff2 subsets (Latin only for v1). Place under `website/public/fonts/`. Register via `next/font/local` with `font-display: swap`. No third-party CDN.
+**Description**: Download Montserrat (Light / Regular / Semibold) and Source Sans 3 (Light / Regular / Semibold — Adobe's current name for Source Sans Pro per spec v0.5) as woff2 subsets (Latin only for v1). Place under `website/public/fonts/`. Register via `next/font/local` with `font-display: swap`. No third-party CDN.
 
 **Precursor (resolves G-10):** Before touching fonts, record current Lighthouse FCP / CLS numbers on `/` and pin them in `docs/qa/e6-baseline-metrics.md`. Post-change numbers must be **within ±5% or strictly better** — otherwise the task is not done.
 
@@ -600,7 +600,7 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 
 ### Task 5.1: react-pdf spike — A4 + Letterhead + MethodologyFooter + PageNumber
 
-**Description**: Throwaway spike per Phase 0 PD-1 validation. Install `@react-pdf/renderer`. Build a 5-page test report rendering: page 1 with letterhead + full methodology footer; pages 2–5 with short methodology footer; Page X of Y on every page. Validate A4 dimensions (210 × 297 mm), font embedding for Montserrat Semibold + Source Sans Pro Regular, footer pagination behaviour.
+**Description**: Throwaway spike per Phase 0 PD-1 validation. Install `@react-pdf/renderer`. Build a 5-page test report rendering: page 1 with letterhead + full methodology footer; pages 2–5 with short methodology footer; Page X of Y on every page. Validate A4 dimensions (210 × 297 mm), font embedding for Montserrat Semibold + Source Sans 3 Regular, footer pagination behaviour.
 
 **Acceptance Criteria** (impl-plan §PD-1):
 - [ ] 5-page test PDF renders correctly on A4

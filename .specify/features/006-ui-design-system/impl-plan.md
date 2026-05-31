@@ -87,14 +87,14 @@ Per spec §5.8:
 | Spike | Phase | Owner | Resolved by |
 |---|---|---|---|
 | react-pdf A4 + letterhead + multi-page footer feasibility | E6.5 Task 5.1 | developer | Single-page test PDF + 5-page test PDF rendering correctly with full / short footer split (OQ-10) |
-| Self-hosted font pipeline (Montserrat + Source Sans Pro woff2 subsets + `font-display: swap`) | E6.2 Task 2.2 | developer | Lighthouse FCP / CLS metrics unchanged or improved vs **recorded baseline pinned in `docs/qa/e6-baseline-metrics.md`** (post-change within ±5% or strictly better) [Resolves G-10] |
+| Self-hosted font pipeline (Montserrat + Source Sans 3 woff2 subsets + `font-display: swap`) | E6.2 Task 2.2 | developer | Lighthouse FCP / CLS metrics unchanged or improved vs **recorded baseline pinned in `docs/qa/e6-baseline-metrics.md`** (post-change within ±5% or strictly better) [Resolves G-10] |
 | Lucide → custom icon swap mechanism | E6.2 Task 2.3 | developer | All `Icon` references go through a single barrel so the v1.1 replacement is a one-file swap |
 
 ### Risks & assumptions
 
 Spec §11 (R-1..R-5) carried in unchanged. One additional dev-layer risk:
 
-- **R-6 (dev-layer):** `@react-pdf/renderer` font embedding may not handle Source Sans Pro Light at large weights without manual font registration. Mitigation: Task 5.1 spike validates font registration with both faces (Montserrat Semibold, Source Sans Pro Regular) before committing to E6.5 design.
+- **R-6 (dev-layer):** `@react-pdf/renderer` font embedding may not handle Source Sans 3 Light at large weights without manual font registration. Mitigation: Task 5.1 spike validates font registration with both faces (Montserrat Semibold, Source Sans 3 Regular) before committing to E6.5 design.
 
 ---
 
@@ -124,7 +124,7 @@ Spec §11 (R-1..R-5) carried in unchanged. One additional dev-layer risk:
                                   │   └── pdf/                    ← E6.5: react-pdf primitives + Letterhead + MethodologyFooter + PageNumber
                                   │       └── templates/          ← E6.6: SingleEmployee, BulkSummary, Liability, Reconciliation
                                   ├── public/
-                                  │   └── fonts/                  ← E6.2: self-hosted Montserrat + Source Sans Pro woff2
+                                  │   └── fonts/                  ← E6.2: self-hosted Montserrat + Source Sans 3 woff2
                                   └── .storybook/                 ← PD-3: Storybook 8 workbench
                                 docs/
                                   └── brand/
@@ -233,7 +233,7 @@ Phases below map to the sub-epics, ordered by spec §3 sequencing constraints. *
 **Why critical-path:** spec §3 — E6.2 must be available before E5.2 implementation kickoff.
 **Deliverables:**
 - Tailwind theme extension (`tailwind.config.ts`) with full APA palette, gradient utilities, type scale, shadow + radius tokens
-- Self-hosted Montserrat + Source Sans Pro woff2 subsets under `public/fonts/` with `font-display: swap`
+- Self-hosted Montserrat + Source Sans 3 woff2 subsets under `public/fonts/` with `font-display: swap`
 - shadcn variant overrides for 16 components (Button, Input, Textarea, Select, Checkbox, Radio, Switch, Table, Card, Tabs, Accordion, Modal/Dialog, Toast, Tooltip, Badge, Alert)
 - Lucide icon barrel (`components/brand/Icon.tsx`) — single import point so v1.1 custom-icon swap is a one-file change
 - Storybook 8 workbench with one story per variant + axe-core add-on
@@ -280,7 +280,7 @@ Phases below map to the sub-epics, ordered by spec §3 sequencing constraints. *
 **Dependency:** Phase 2 (tokens needed for PDF styling).
 **Deliverables:**
 - `@react-pdf/renderer` installed + configured
-- Font registration for Montserrat Semibold + Source Sans Pro Regular
+- Font registration for Montserrat Semibold + Source Sans 3 Regular
 - `lib/pdf/Letterhead.tsx` — sub-brand wordmark + APA lockup + report title + generated-at timestamp + "for: <organisation name>" line
 - `lib/pdf/MethodologyFooter.tsx` — full block (page 1) + short version (pages 2+) per OQ-10
 - `lib/pdf/PageNumber.tsx` — Page X of Y on every page

@@ -1,6 +1,6 @@
 # LSL Calculator · Epic Status · Last updated: 2026-05-31 · E1 NSW SHIPPED · **E2 ALL-STATE COVERAGE COMPLETE — 8 of 8 Australian jurisdictions LIVE (NSW + VIC + QLD + WA + SA + ACT + TAS + NT)** · **NT Phase 9 SHIPPED 2026-05-27 via PR #40 (engine T9.1+T9.2) + PR #43 (T9.3–T9.5 fixtures/UI/docs) + PR #46 (close-out)** · State-engine phase playbook landed 2026-05-27 (PR #36 → `docs/learnings/phase-state-engine-pattern.md`) · **E1 Phase 7 (opt-in logins) CANCELLED 2026-05-26 — superseded by E5** · **E3 (NSW audit-replay CSV) RETIRED 2026-05-26 — absorbed into E5.6** · **E5 · LSL Platform spec v1.0 APPROVED 2026-05-26** · **E5.1 Auth slice in flight on `feat/E5.1-auth-slice` — Phase 5 UI DONE 2026-05-27, awaiting merge** · **E5.2 / E5.3 / E5.4 sub-specs SCOPED 2026-05-27 — awaiting dev** · **E5 sub-spec lock-in 2026-05-27 — OQ-EMP-1 (both paths) / OQ-EMP-2 (7-year retention from termination date) / OQ-MAP-1 (inline-on-first-import) LOCKED · OQ-ING-3 deferred to dev validation before pilot** · **PDF Removal companion APPROVED 2026-05-27 — ready for dev, sequenced first to close LAUNCH-GUARD gate by elimination** · **E6 · LSL Sub-Brand UI System + Report Pipeline spec v0.4 APPROVED 2026-05-27 — operator signed off on all 12 remaining OQs; ready for developer handoff; parallel with E5; E6.2 is the hard gate to E5.2 implementation; feature branch deferred pending clean branch point from `main`**
 
-## 2026-05-31 close-out (header annotation — drilldown sections below predate today)
+## 2026-05-31 close-out (header annotation — E6 drilldown REWRITTEN today; E1/E2/E3/E4/E5 sections still predate today)
 
 **E6.2 (Design System Tokens + Core Components) ✅ 16/16 SHIPPED 2026-05-31.** Final close-out via the cascade-merge of PRs #83 (Task 2.10b CSP-header smoke test), #85 (alert.tsx doc-comment fix), #86 (Sonner Toaster mount), #87 (tasks.md Sonner + Task 2.8 sequencing notes), #90 (Tailwind v4 CSS-first spec note). Companion fix commit `c864e45` baked into PR #83 (csp-smoke.mjs success-path cleanup). All 16 components in spec §8.2 now ship brand-styled variants on Tailwind v4 CSS-first tokens with axe-core gating in CI.
 
@@ -8,7 +8,7 @@
 
 **E5.5 (Valuations + Liability Reports) — sub-spec v0.1 SCOPED 2026-05-31.** PR #92 lands `.specify/features/007-valuations-liability-reports/spec.md` + operator-level scoping brief at `docs/product/scoping/E5.5-valuations-liability.md`. Round-1 OQs (OQ-VAL-1 / OQ-LIA-1 / OQ-LIA-2) locked per operator's 2026-05-30 EOD decisions. OQ-LIA-2a (Round-2 terminated-employee silent-$0 UX safety net) still open, NON-BLOCKING.
 
-**Note:** The drilldown sections below were last updated 2026-05-27. E6.2 and surrounding sub-epic progress (PRs #58, #62, #65, #84, plus today's cascade) is NOT reflected in the at-a-glance table or E6 drilldown. A full audit + rewrite is outstanding and should run before the next major spec/plan event.
+**E6 audit + rewrite COMPLETED 2026-05-31** on branch `docs/E6-completion-audit-2026-05-31` (PR #97 pending merge). The E6 at-a-glance row and E6 drilldown section below now reflect ground truth as of HEAD `7e2b648`. Full audit narrative + PR-by-PR ledger at `docs/engineering/changes/2026-05-31-e6-completion-audit/AUDIT.md`. E1 / E2 / E3 / E4 / E5 drilldowns below remain at their 2026-05-27 / 2026-05-31 last-touched state — re-audit those before the next major spec event.
 
 ## Pipeline stages
 
@@ -30,7 +30,7 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 | E2 · All-State Coverage | ✅ done | 100% | ●●●●● | 0 | 0 | **EPIC COMPLETE 2026-05-27.** All 10 phases shipped; all 8 Australian jurisdictions encoded with PM-signed test cases + end-to-end test coverage + shipped UI. **Phase 9 (NT) SHIPPED 2026-05-27** via PR #40 (`b3a0440` — engine T9.1+T9.2 combined) + PR #43 (`217a04c` — fixtures + UI + doc amendments) + PR #46 (`a1390c9` — HANDOFF.md + QA report close-out). NT engine introduces three Sev-1 architectural divergences: per-year `RP × HWW × 1.3` formula (s.11(3) — first state with per-year hours-per-week history as a primitive); federal Age Pension age retirement gate (s.10(2) — first state using Cth SS Act 1991 s.23 dob lookup); s.10(1A) complete-blocks-only misconduct truncation (NT-unique — only complete 10y/15y/20y/25y blocks payable on 10+ yr misconduct dismissal). 78 fixtures (75 single + 3 bulk), 2214/2214 LSL suite green. **NO DEV-CROSS-3** — operator chose state-localised encoding for TBD-NT-01 per SA precedent. Parallel-thread coordination incident on this phase (two sessions ran the playbook simultaneously) — recovery via fixture-overlay against the shipped engine; lessons captured in `docs/engineering/changes/2026-05-27-e2-phase-9-nt-engine/HANDOFF.md` for the playbook. Prior phases: Phase 8 (TAS) PR #29/#30/#31/#33/#34/#35; Phase 7 (ACT); Phase 6 (SA); Phase 5 (WA, incl. DEV-CROSS-2 PR #18); Phase 4 (QLD, incl. DEV-CROSS-1 PR #14); Phase 3 (VIC); Phase 1 (state-selector scaffold PR #8). Operating reference: `docs/learnings/phase-state-engine-pattern.md` (PR #36). |
 | E3 · Audit Upload and Variance Report | 🗑️ retired | — | — | — | — | **RETIRED 2026-05-26 — absorbed into E5.6.** Reconciliation on a persistent multi-tenant base strictly dominates the one-shot CSV variance report. No value in maintaining E3 as a separate epic. |
 | E4 · Payroll System Integrations | ☐ planned | 0% | ○○○○○ | 0 | 0 | Vendor priority TBD. New insertion point: API integrations replace manual pay-run uploads (E5.4) once the platform ships. Depends on E2 + E5 maturity. |
-| **E6 · LSL Sub-Brand UI System + Report Pipeline** | 📋 approved — v0.4 ready for developer handoff | ~5% | ●●○○○ | 0 | 0 | **Umbrella spec v0.4 APPROVED 2026-05-27** at `.specify/features/006-ui-design-system/spec.md`. Six sub-epics (E6.1 sub-brand identity → E6.2 design system tokens + core components → E6.3 `/app` shell → E6.4 public re-skin → E6.5 PDF report foundation → E6.6 templates per family). **Parallel with E5**; **E6.2 is the hard gate to E5.2 implementation kickoff**. **E5.1 auth is explicitly carved out** — ships with default shadcn styling. APA Brand Guidelines v2.0 is the colour + typography source (navy `#48608a` / gold `#d9a428` primaries; Montserrat + Source Sans Pro **self-hosted**). Sub-brand wordmark "LSL Calculator by APA" is a designer deliverable under E6.1; **fallback clause** in §3 allows E6.2 to proceed with APA primary wordmark placeholder if wordmark approval blocks > 14 days — removes designer-resource bottleneck from E5.2 critical path. Three personas (payroll manager / CFO / APA consultant); WCAG 2.2 AA web surfaces; desktop-first; A4-only PDF reports with branded letterhead + methodology footer (full on p1, short on p2+) + page X of Y; no draft watermarks. **Zero engine regression** — 2214/2214 LSL suite + 92 Playwright tests stay green on every E6 PR (hard merge gate). Clarify pass added OQ-8..OQ-13; analyze pass resolved 1 HIGH (A09 → §3 fallback) + 5 MEDIUM. **All 13 open questions RESOLVED in v0.4 (operator sign-off 2026-05-27).** Locked: Lucide v1 placeholder until E5.6 ships (OQ-2); self-hosted fonts (OQ-3); switcher hidden for single-org users (OQ-4); exec summary on E5.5/E5.6 only (OQ-5); unconditional PDF download on public calc (OQ-6); keyboard shortcuts always-on v1 (OQ-8); active tenant reverts to home org on hard refresh + 30-min idle (OQ-9); methodology footer split full/short (OQ-10); 3-column exec summary for liability + single headline for reconciliation (OQ-11); ship E6.4 ASAP after E6.2 (OQ-12); designer agent for v1 + human designer for v1.1 (OQ-13). Dev findings: 0 HIGH, 1 MEDIUM (PDF lib selection — react-pdf recommended), 2 LOW. **No git feature branch created yet** — current branch `feat/E5.0-pdf-removal` has uncommitted PDF-removal work; speckit-git-feature deferred until operator confirms safe branch point from `main`. **Next:** operator gives go-ahead → speckit-git-feature → `/dev-feature-plan`. |
+| **E6 · LSL Sub-Brand UI System + Report Pipeline** | 🔄 in flight — E6.1 ✅ / E6.2 ✅ / E6.3 + E6.4 active | ~38% | ●●●◐○ | 0 | 0 | **Umbrella spec v0.5 ON MAIN** at `.specify/features/006-ui-design-system/spec.md` (Source Sans 3 substitution recorded via PR #97; v0.4 OQ lock-in still authoritative). Six sub-epics. **E6.1 sub-brand identity ✅ SHIPPED** — Candidate B wordmark approved 2026-05-28; record in `docs/brand/wordmark-candidates/README.md`. **E6.2 design system tokens + core components ✅ SHIPPED 2026-05-31 — 16 of 16 components live on main** (Button #61/#63, Input #61/#63, Textarea/Select/Checkbox #64, Radio/Switch #66, Badge/Alert #79, Card/Tabs #80, Dialog #81, Table/Accordion/Tooltip #82, Sonner+brand Toast #84; supporting CSP/bundle audit #65 + #83 CSP-header smoke, formatAUD helpers #76/#77, test-folder diff guard #78, alert doc-fix #85, Toaster mount #86, tasks.md sequencing #87, Tailwind v4 CSS-first §8.2 #90). Tailwind v4 CSS-first tokens; axe-core gating in CI; zero engine regression invariant holds (2214/2214 LSL + 92 Playwright green every PR). **E6.3 `/app` shell — IN FLIGHT** (10 tasks total): Task 3.3-bis SessionCookieClaims cross-epic contract MERGED in PR #98; PR #100 (Tasks 3.1 TopNav + 3.2 Sidebar) + PR #101 (Task 3.8 Skeleton + Spinner) CI-green, awaiting merge; Tasks 3.3 TenantContext / 3.4 TenantSwitcher+ActingAsBanner / 3.5 ConfirmDestructiveDialog / 3.6 Breadcrumbs / 3.7 six empty states / 3.9 keyboard shortcuts / 3.10 Phase 3a gate not started. **E6.4 public re-skin — IN FLIGHT** (rolling PR #99): Tasks 4.4 citation-block snapshot + 4.5 header/footer Wordmark+Lockup already on the branch; Tasks 4.1 / 4.2 / 4.3 / 4.6 / 4.7 / 4.8 ahead. **E6.5 PDF report foundation — NOT STARTED**, no branch. **E6.6 templates per family — NOT STARTED**, no branch. **E6.2 was the hard gate to E5.2 implementation kickoff — gate is now OPEN.** All v0.4 OQ locks remain authoritative (OQ-2 Lucide v1 placeholder; OQ-3 self-hosted Montserrat + Source Sans 3 substitute; OQ-4 switcher hidden for single-org; OQ-5 exec summary on E5.5/E5.6 only; OQ-6 unconditional PDF download; OQ-8 shortcuts always-on; OQ-9 30-min idle tenant revert; OQ-10 methodology footer split; OQ-11 3-col liability / single-headline reconciliation exec summaries; OQ-12 ship E6.4 ASAP; OQ-13 designer agent v1 + human v1.1). Dev findings: 0 HIGH, 1 MEDIUM (PDF lib — react-pdf recommended, still applies to E6.5), 2 LOW. **Full audit: `docs/engineering/changes/2026-05-31-e6-completion-audit/AUDIT.md`.** |
 | **E5 · LSL Platform (Auth + DB + Mapping + Ingestion + Valuations + Reconciliation)** | 📋 in flight — E5.1 dev / E5.2-4 scoped | ~8% | ●●○○○ | 0 | 0 | **Umbrella spec v1.0 APPROVED 2026-05-26** at `.specify/features/005-lsl-platform/spec.md`. Six sub-epics + one PDF-removal companion. **Sub-spec refresh 2026-05-27**: E5.2 + E5.3 + E5.4 sub-specs **SCOPED** under `sub-specs/` reflecting operator decisions (single-employer customers, generic CSV with column auto-detection + mapping wizard, work-location-per-pay-period jurisdiction, full historical onboarding, versioned re-imports, partial-commit on bad rows, immutable audit log, Supabase `ap-southeast-2` Sydney, PII strip on TFN/bank/super). **Sub-spec lock-in 2026-05-27** (operator resolved four flagged OQs): OQ-EMP-1 opening-balance UX → **both paths** (CSV column + setup wizard; wizard wins on collision); OQ-EMP-2 retention → **7 years from termination date** (Fair Work Act minimum; `retention_expires_at` column + scheduled deletion; APP 11.2 compliant); OQ-MAP-1 wizard timing → **inline on first import** (JSON-import path remains for advanced users); OQ-ING-3 dedup key → **stays flagged, deferred to dev validation before pilot launch** against real-world Xero/MYOB/KeyPay exports. **PDF Removal companion APPROVED 2026-05-27** — sequenced FIRST to close the LAUNCH-GUARD `ANTHROPIC_API_KEY` gate by elimination. **E5.1 Auth slice** in active dev on `feat/E5.1-auth-slice` — Phase 5 UI reported DONE 2026-05-27, not yet on `main`. **Portable LSL deferred to v1.1** (schema reserves `scheme` column on `employees`; v1 writes `state_lsl` only). |
 
 ## Drilldown
@@ -194,39 +194,82 @@ Status glyphs: 🔄 in flight · ✅ done · ⏳ partially done · ☐ planned �
 - **Next action**: dev agent picks up PDF removal companion (`.specify/features/005-lsl-platform/sub-specs/pdf-removal.md`) as the first deliverable while E5.1 auth slice finishes its merge cycle. Then `/dev-feature-plan` against `.specify/features/005-lsl-platform/sub-specs/employee-masterfile.md` for E5.2.
 
 ### E6 · LSL Sub-Brand UI System + Report Pipeline
-- **Status**: 📋 **Spec v0.4 APPROVED 2026-05-27 — operator signed off on all 12 remaining OQs; ready for developer handoff**. Parallel with E5. **E6.2 (design tokens + core components) is the hard gate to E5.2 implementation kickoff** — until E6.2 lands, E5.2 cannot start. Six sub-epics (E6.1 sub-brand identity → E6.2 design system → E6.3 `/app` shell → E6.4 public re-skin → E6.5 PDF report foundation → E6.6 templates per family). **Do NOT invoke dev-planning until operator confirms safe branch point from `main`** — branch creation is the next gating step.
-- **Pipeline**: ●●○○○ (Stage 2 · Approved — awaiting feature branch + dev planning)
-- **Spec**: `.specify/features/006-ui-design-system/spec.md` **v0.4 APPROVED 2026-05-27**. Clarify pass added OQ-8..OQ-13; analyze pass resolved 1 HIGH (A09 → §3 fallback clause) + 5 MEDIUM amendments (OQ-7 closed; WCAG carve-out; destructive-action confirm dialog; AUD currency format; dark mode + PDF/UA explicitly OOS). **All 13 PM-layer Open Questions RESOLVED in v0.4 (operator sign-off pass).** §11 Risks section (R-1 designer bottleneck, R-2 visual-identity split, R-3 brand source single-PoF, R-4 engine regression, R-5 tenant-leakage UX bug).
-- **Dev findings**: `.specify/features/006-ui-design-system/dev-findings.md` (0 HIGH, 1 MEDIUM — PDF library selection, react-pdf recommended — 2 LOW).
-- **Branch**: **NOT YET CREATED**. Current working branch is `006-ui-design-system` (carries the spec + epic-status + epics edits; no implementation work yet). `speckit-git-feature` was deferred — operator confirmation needed on whether to branch from `main` cleanly or work forward from the current branch.
-- **Scope tracks (4)**:
-  1. **Design system foundation** — APA-aligned tokens on Tailwind + shadcn. Palette navy `#48608a` / gold `#d9a428` primaries + extended palette + advisory teal `#6ec8c0`. Typography Montserrat (titles) + Source Sans Pro (body). Iconography light line-weight; v1 placeholder via Lucide/Heroicons may be acceptable pending operator decision on OQ-2.
-  2. **Public calculator re-skin** — `www.lslcalculator.com.au` — state selector, single form, bulk upload, result/breakdown screens. **Zero engine changes; zero test regressions** (2214/2214 LSL + 92 Playwright stay green).
-  3. **`/app` platform UI** — applies E5.2 onward. **E5.1 carved out** (default shadcn). Workspace shell with top nav, sidebar, tenant switcher, persistent "Acting as: <client>" indicator, breadcrumbs, empty/loading states, keyboard-first nav.
-  4. **PDF report pipeline** — four report families (single-employee, bulk-summary, E5.5 liability, E5.6 reconciliation). A4 only. Branded letterhead + methodology footer + Page X of Y on every page. No watermarks.
-- **Personas in scope** (3): payroll manager (power user), CFO (occasional, report-focused), APA consulting team (cross-tenant, white-glove). External auditors NOT a primary persona but methodology disclosure on PDFs still required.
-- **Sequencing constraints**:
-  1. E6.1 wordmark must be approved before E6.2 starts. **Fallback (§3): if blocked > 14 days, E6.2 MAY use APA primary wordmark placeholder; sub-brand wordmark applied retrospectively.**
-  2. E6.2 ready before E5.2 implementation kickoff — **hard cross-epic gate**.
-  3. E6.3 + E6.4 + E6.5 can parallel after E6.2.
-  4. E6.6 single + bulk templates ship anytime after E6.5; liability + reconciliation templates trail E5.5 / E5.6 delivery.
-- **Success criteria** (full list in spec §6): median TTFR ≤ 60 sec on public calc; ≤ 9 page navigations for full reconciliation flow; board-ready CFO PDFs (qualitative interview signal at launch + 60d); zero mis-tenant action incidents in first 90 days of consulting-team usage; zero axe-core serious/critical violations; ≥ 80% brand-credibility recall in n ≥ 5 payroll-manager interviews; 2214/2214 LSL suite + 92 Playwright tests stay green every PR.
-- **Out of scope (explicit)**: APA member SSO, mobile-first, US letter PDFs, re-skinning E5.1, `austpayroll.com.au` updates, calc engine changes, dark mode, PDF/UA full compliance, draft/preview watermarks.
-- **Open questions resolved (v0.4, 2026-05-27 — operator sign-off)**:
-  - **OQ-1** wordmark direction — sibling-product lockup (Xero Practice Manager precedent); designer agent interprets under E6.1
-  - **OQ-2** Lucide ships as v1 placeholder icon set; custom set replaces by E5.6 ships
-  - **OQ-3** Montserrat + Source Sans Pro self-hosted (no third-party CDN)
-  - **OQ-4** tenant switcher hidden for single-org users; shown only for ≥ 2 memberships
-  - **OQ-5** one-page exec summary on E5.5 + E5.6 only (not single-employee / bulk-summary)
-  - **OQ-6** public-calc PDF download unconditional in v1 (no email-capture gate)
-  - **OQ-7** bulk-summary PDF in v1 (resolved in v0.3 analyze pass)
-  - **OQ-8** keyboard shortcuts always-on in v1; settings toggle deferred to follow-up if any pilot user reports screen-reader interference
-  - **OQ-9** active tenant reverts to home org on hard refresh + after 30-min idle (forces deliberate re-entry)
-  - **OQ-10** methodology footer: full block on page 1; short version (state-engine version + "calculated, not advice" + APA URL) on pages 2+
-  - **OQ-11** liability exec summary leads with 3-column (employees / total accrued weeks / total accrued $); reconciliation leads with single headline (total variance $)
-  - **OQ-12** ship E6.4 as soon as E6.2 is ready (visual mismatch with invite-only E5.1 is acceptable; tracked as R-2)
-  - **OQ-13** designer agent for v1 wordmark; human designer for v1.1 polish + custom icon set
-- **Next action**: **operator confirms safe branch point from `main`** → `speckit-git-feature` with slug `006-ui-design-system` → `/dev-feature-plan` against `.specify/features/006-ui-design-system/spec.md`.
+- **Status**: 🔄 **In flight as of 2026-05-31.** E6.1 ✅ SHIPPED. E6.2 ✅ SHIPPED (16/16 components on `main`). E6.3 + E6.4 active. E6.5 + E6.6 not started. **E6.2 was the hard gate to E5.2 implementation kickoff — gate is now OPEN.**
+- **Pipeline**: ●●●◐○ (Stage 3 · Feature-complete for E6.1 + E6.2; Stage 2 · In flight for E6.3 + E6.4; Stage 1 · Specified for E6.5 + E6.6)
+- **Spec**: `.specify/features/006-ui-design-system/spec.md` v0.5 on main (Source Sans 3 substitution for legacy Source Sans Pro recorded via PR #97; v0.4 OQ lock-in 2026-05-27 still authoritative).
+- **Dev findings**: `.specify/features/006-ui-design-system/dev-findings.md` (0 HIGH, 1 MEDIUM — PDF library selection, react-pdf recommended; still applies to E6.5 — 2 LOW).
+- **Active branch**: `docs/E6-completion-audit-2026-05-31` (this audit doc + epic-status rewrite — PR #97). Sub-epic branches in flight: `feat/E6.3-3.1-3.2-topnav-sidebar` (PR #100), `feat/E6.3-3.8-skeleton-spinner` (PR #101), `feat/E6.4-public-reskin` (PR #99 — rolling).
+- **Audit reference**: `docs/engineering/changes/2026-05-31-e6-completion-audit/AUDIT.md` is the canonical PR-by-PR ledger for everything below.
+
+#### E6.1 · Sub-Brand Identity ✅ SHIPPED 2026-05-28
+- Wordmark Candidate B approved by operator 2026-05-28.
+- Record: `docs/brand/wordmark-candidates/README.md` (Candidate-B selection rationale + final asset path).
+- §3 fallback clause (APA primary wordmark placeholder if blocked > 14 days) NOT TRIGGERED — sub-brand wordmark landed inside the 14-day window.
+
+#### E6.2 · Design System Tokens + Core Components ✅ SHIPPED 2026-05-31 (16 of 16)
+- **Components live on main** (mapped to PRs):
+  - Button (#61 / #63), Input (#61 / #63)
+  - Textarea + Select + Checkbox (#64)
+  - Radio + Switch (#66)
+  - Badge + Alert (#79; doc-comment fix #85)
+  - Card + Tabs (#80)
+  - Dialog (#81)
+  - Table + Accordion + Tooltip (#82)
+  - Sonner + brand Toast wrapper (#84; Toaster mount #86)
+- **Supporting infrastructure**: Task 2.10 CSP/bundle audit (#65); Task 2.10b production CSP-header smoke test (#83 + `c864e45` follow-up); Task 2.7 `formatAUD` + sentence-case helpers (#76); `formatAUD` rounding doc fix (#77); Task 2.11 test-folder diff guard (#78); tasks.md Sonner + Task 2.8 sequencing notes (#87); Tailwind v4 CSS-first §8.2 substitution (#90).
+- **Invariants verified on main**: 2214/2214 LSL engine suite green; 92 Playwright tests green; axe-core gating in CI; no engine regression; CSP header smoke-test in production path.
+- **Outcome**: Gate to E5.2 implementation is now open.
+
+#### E6.3 · `/app` Shell — IN FLIGHT (10 tasks; ~30% in flight or merged)
+- **3.3-bis SessionCookieClaims cross-epic contract** — ✅ MERGED in PR #98 (2026-05-31). Type-only contract; unblocks E5.1 ↔ E6 tenancy plumbing without depending on the full TenantContext task.
+- **3.1 TopNav + 3.2 Sidebar** — 🔄 PR #100 `feat/E6.3-3.1-3.2-topnav-sidebar`. CI green, mergeable.
+- **3.8 Skeleton + Spinner** — 🔄 PR #101 `feat/E6.3-3.8-skeleton-spinner`. CI green, mergeable.
+- **3.3 TenantContext** — ☐ not started.
+- **3.4 TenantSwitcher + ActingAsBanner** — ☐ not started.
+- **3.5 ConfirmDestructiveDialog** — ☐ not started.
+- **3.6 Breadcrumbs** — ☐ not started.
+- **3.7 Six empty states** — ☐ not started.
+- **3.9 Keyboard shortcuts** (OQ-8 always-on per v0.4 lock) — ☐ not started.
+- **3.10 Phase 3a gate** — ☐ not started (closes E6.3 sub-epic; depends on 3.1–3.9 + axe-core + Playwright green).
+
+#### E6.4 · Public Re-Skin — IN FLIGHT (8 tasks; ~25% on rolling PR #99)
+- **4.4 Citation-block snapshot** — 🔄 on PR #99 `feat/E6.4-public-reskin`.
+- **4.5 Header + Footer (Wordmark + Lockup)** — 🔄 on PR #99.
+- **4.1, 4.2, 4.3, 4.6, 4.7, 4.8** — ☐ not started (state-selector re-skin, single-form re-skin, bulk-upload re-skin, result/breakdown panels, PDF-download button polish, Phase 3b gate).
+- **Sequencing note**: per OQ-12, E6.4 ships ASAP after E6.2. Visual mismatch with invite-only E5.1 is accepted (tracked as R-2 risk in spec §11).
+
+#### E6.5 · PDF Report Foundation — NOT STARTED
+- No branch, no implementation. Spec scope unchanged: A4-only, branded letterhead + methodology footer (full on p1, short on p2+) + page X of Y; no watermarks.
+- Dev-findings MEDIUM still applies: react-pdf recommended over alternatives at scaffold time.
+- Sequencing: starts any time after E6.2 (parallel with E6.3 + E6.4 allowed per spec). Currently deprioritised behind E6.3 + E6.4 completion.
+
+#### E6.6 · Templates Per Family — NOT STARTED
+- No branch, no implementation. Four templates: single-employee, bulk-summary, E5.5 liability, E5.6 reconciliation.
+- Sequencing: single + bulk-summary may ship anytime after E6.5; liability + reconciliation templates trail E5.5 / E5.6 delivery (cannot precede their parent feature shipping).
+
+#### Locked OQs (v0.4, 2026-05-27 — operator sign-off; still authoritative)
+- **OQ-1** wordmark direction — sibling-product lockup (Xero Practice Manager precedent). ✅ Resolved via E6.1 ship.
+- **OQ-2** Lucide v1 placeholder icon set; custom set replaces by E5.6 ships.
+- **OQ-3** Montserrat + Source Sans 3 self-hosted (v0.5 spec update — Source Sans 3 substituted for legacy Source Sans Pro per PR #97).
+- **OQ-4** tenant switcher hidden for single-org users; shown only for ≥ 2 memberships.
+- **OQ-5** one-page exec summary on E5.5 + E5.6 only (not single-employee / bulk-summary).
+- **OQ-6** public-calc PDF download unconditional in v1 (no email-capture gate).
+- **OQ-7** bulk-summary PDF in v1 (resolved in v0.3 analyze pass).
+- **OQ-8** keyboard shortcuts always-on in v1.
+- **OQ-9** active tenant reverts to home org on hard refresh + after 30-min idle.
+- **OQ-10** methodology footer: full on page 1; short on pages 2+.
+- **OQ-11** liability exec summary 3-column / reconciliation exec summary single headline.
+- **OQ-12** ship E6.4 ASAP after E6.2 (visual mismatch with invite-only E5.1 acceptable; R-2).
+- **OQ-13** designer agent for v1 wordmark; human designer for v1.1 polish + custom icon set.
+
+#### Out of scope (explicit, unchanged from v0.4)
+APA member SSO, mobile-first, US letter PDFs, re-skinning E5.1, `austpayroll.com.au` updates, calc engine changes, dark mode, PDF/UA full compliance, draft/preview watermarks.
+
+#### Next action
+1. Merge PR #100 (E6.3 Tasks 3.1 + 3.2) and PR #101 (E6.3 Task 3.8).
+2. Continue rolling work on PR #99 (E6.4 Tasks 4.1–4.3 + 4.6–4.8).
+3. Open E6.3 Tasks 3.3 / 3.4 / 3.5 / 3.6 / 3.7 / 3.9 / 3.10 in subsequent PRs.
+4. E6.5 + E6.6 stay queued until E6.3 + E6.4 are at or near Phase-gate close.
 
 ## Obsolete / won't fix
 
