@@ -143,6 +143,7 @@ describe('Icon barrel', () => {
       'src/components/ui/button.tsx',
       'src/components/ui/checkbox.tsx',
       'src/components/ui/dialog.tsx',
+      'src/components/ui/dropdown-menu.tsx',
       'src/components/ui/radio-group.tsx',
       'src/components/ui/select.tsx',
     ];
