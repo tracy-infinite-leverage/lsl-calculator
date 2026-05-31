@@ -226,27 +226,57 @@ Each migration is applied via `mcp__2ac7599f-...__apply_migration` (account-scop
 
 ### 1.3 RLS pattern
 
-Identical to E5.1's `organisations` / `org_members` policy. All RLS for `employees` and `employee_history`:
+Identical to E5.1's `organisations` / `org_members` policy. All RLS for `employees` and `employee_history` follows this four-policy pattern (one per action). **Roles match E5.1's `org_members` CHECK**: `admin` / `payroll_user` / `read_only`. There is no `'owner'` role — read-write/destructive actions gate on `admin` and `payroll_user` (write-eligible roles); destructive on `admin` only. **Auth-uid lookups are wrapped in `(select auth.uid())`** per the Supabase RLS performance recommendation — the planner caches the result as an initplan instead of evaluating per row.
 
 ```sql
--- SELECT
+-- SELECT (any role in the org)
 USING (
   org_id IN (
     SELECT org_id FROM public.org_members
-    WHERE user_id = auth.uid()
+    WHERE user_id = (select auth.uid())
   )
 )
 
--- INSERT / UPDATE / DELETE (additionally gated by role)
+-- INSERT (admin or payroll_user)
 WITH CHECK (
   org_id IN (
     SELECT org_id FROM public.org_members
-    WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
+    WHERE user_id = (select auth.uid())
+      AND role IN ('admin', 'payroll_user')
+  )
+)
+
+-- UPDATE (admin or payroll_user — USING and WITH CHECK both gated to prevent
+-- org_id reassignment escaping tenancy)
+USING (
+  org_id IN (
+    SELECT org_id FROM public.org_members
+    WHERE user_id = (select auth.uid())
+      AND role IN ('admin', 'payroll_user')
+  )
+)
+WITH CHECK (
+  org_id IN (
+    SELECT org_id FROM public.org_members
+    WHERE user_id = (select auth.uid())
+      AND role IN ('admin', 'payroll_user')
+  )
+)
+
+-- DELETE (admin only — soft-delete via archived_at is preferred per AC-EMP-6;
+-- the daily purge job (Migration 5) runs as SECURITY DEFINER and bypasses RLS)
+USING (
+  org_id IN (
+    SELECT org_id FROM public.org_members
+    WHERE user_id = (select auth.uid())
+      AND role = 'admin'
   )
 )
 ```
 
 `auth_audit_log` already records role changes; no new audit table needed for masterfile mutations beyond the per-row `created_by` / `updated_by`.
+
+**History note:** an earlier version of this section used `role IN ('owner', 'admin')` for the combined INSERT/UPDATE/DELETE example. There is no `'owner'` role in the schema (E5.1 `org_members` CHECK is `('admin', 'payroll_user', 'read_only')`), and that example also collapsed three different gate profiles into one block. Amended 2026-05-31 per `docs/engineering/changes/2026-05-31-E5.2-phase-1-migrations/FINDING.md` after PR #105's Migration 2 surfaced the drift.
 
 ### 1.4 Effective-dated history pattern
 
