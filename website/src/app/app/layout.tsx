@@ -50,6 +50,9 @@
 import { headers } from 'next/headers';
 import { TopNav } from '@/components/app-shell/TopNav';
 import { Sidebar } from '@/components/app-shell/Sidebar';
+import { TenantSwitcher } from '@/components/app-shell/TenantSwitcher';
+import { ActingAsBanner } from '@/components/app-shell/ActingAsBanner';
+import { fetchMembershipsForActiveUser } from '@/components/app-shell/memberships';
 import { TenantProviderFromCookie } from '@/lib/tenant-context-server';
 
 export const dynamic = 'force-dynamic';
@@ -117,10 +120,30 @@ export default async function AppLayout({
   // tenant-switch writer is responsible for ensuring the cookie reads
   // `activeTenantId === homeTenantId` on a fresh request. (See
   // `src/lib/tenant-context.tsx` for the full rationale.)
+  //
+  // Tenant memberships (E6.3 Task 3.4) — fetched server-side alongside the
+  // cookie read and passed as a prop bag into the TenantSwitcher +
+  // ActingAsBanner. This is option 3 from the dispatch's data-source
+  // discussion: server-rendered prop bag, no client-side fetch, no
+  // SessionCookieClaims shape change. See
+  // `src/components/app-shell/memberships.ts` file header for the full
+  // decision record. Today the helper returns 0–1 rows (per `UNIQUE(user_id)`
+  // on `org_members`); when E5.x adds multi-membership, only that helper
+  // changes — the consumer surface is N-membership-shaped already.
+  const memberships = await fetchMembershipsForActiveUser();
+
   return (
     <TenantProviderFromCookie>
       <div className="flex min-h-screen flex-col bg-brand-white">
-        <TopNav />
+        {/* TopNav with the TenantSwitcher composed into its `rightRailSlot`.
+          * The switcher self-hides when membershipCount < 2 (OQ-4) — so
+          * single-org users see an empty slot, not a hidden control with
+          * extra wrapper markup. Memberships flow from the server-rendered
+          * prop bag (see `memberships.ts` for the data-source decision). */}
+        <TopNav rightRailSlot={<TenantSwitcher memberships={memberships} />} />
+        {/* Acting-as banner sits below TopNav (sticky `top-14` inside the
+          * component). Visible only when active tenant ≠ home (R-5). */}
+        <ActingAsBanner memberships={memberships} />
         <div className="flex flex-1">
           <Sidebar />
           <main
