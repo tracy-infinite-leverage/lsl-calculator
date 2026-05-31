@@ -484,9 +484,9 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Description**: Apply Phase 2 tokens + Button variants to the state selector at `/`. No behavioural change.
 
 **Acceptance Criteria** (AC §8.4):
-- [ ] State selector uses brand tokens
-- [ ] All 8 states selectable; navigation behaviour unchanged
-- [ ] Playwright tests for state selector green
+- [x] State selector uses brand tokens
+- [x] All 8 states selectable; navigation behaviour unchanged
+- [x] Playwright tests for state selector green
 
 **Effort**: S
 **Dependencies**: Phase 2 complete
@@ -497,9 +497,9 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Description**: Apply Input / Select / Button / Card variants to the single-employee calc form.
 
 **Acceptance Criteria** (AC §8.4):
-- [ ] Form renders with brand tokens
-- [ ] Form submission behaviour unchanged
-- [ ] Playwright tests green
+- [x] Form renders with brand tokens
+- [x] Form submission behaviour unchanged
+- [x] Playwright tests green
 
 **Effort**: M
 **Dependencies**: Phase 2 complete
@@ -510,9 +510,9 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Description**: Apply brand tokens to bulk-upload (CSV) entry surface — upload affordance, validation messages, file picker.
 
 **Acceptance Criteria** (AC §8.4):
-- [ ] Upload surface uses brand tokens
-- [ ] CSV validation messaging uses Alert variant
-- [ ] Playwright tests green
+- [x] Upload surface uses brand tokens
+- [x] CSV validation messaging uses Alert variant
+- [x] Playwright tests green
 
 **Effort**: M
 **Dependencies**: Phase 2 complete
@@ -523,11 +523,11 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Description**: Apply brand tokens to single-employee result + bulk-summary result + per-row breakdown. **Critical:** Cat A/B/C result semantics + citation block content must remain byte-for-byte unchanged. Add a snapshot test of the citation block markup to enforce.
 
 **Acceptance Criteria** (AC §8.4):
-- [ ] Result screens use brand tokens (Card, Table, Badge variants)
-- [ ] Cat A/B/C semantics + presentation hierarchy unchanged (number first, citation second)
-- [ ] Citation block snapshot test added and green — byte-for-byte unchanged
-- [ ] 2214/2214 LSL suite green
-- [ ] 92 Playwright tests green
+- [x] Result screens use brand tokens (Card, Table, Badge variants)
+- [x] Cat A/B/C semantics + presentation hierarchy unchanged (number first, citation second)
+- [x] Citation block snapshot test added and green — byte-for-byte unchanged
+- [x] 2214/2214 LSL suite green
+- [x] 92 Playwright tests green
 
 **Effort**: M
 **Dependencies**: Tasks 4.1, 4.2, 4.3
@@ -538,9 +538,9 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Description**: Update `app/(public)/layout.tsx` — Wordmark in header, Lockup in footer. Footer also carries the methodology version + "calculated, not advice" + APA URL (mirrors short footer block from Phase 4 — consistent voice between web + PDF).
 
 **Acceptance Criteria** (AC §8.4 + spec §5.3):
-- [ ] Wordmark visible in page header on `/`
-- [ ] APA lockup visible in page footer on `/`
-- [ ] Footer disclosure line includes "calculated, not advice"
+- [x] Wordmark visible in page header on `/`
+- [x] APA lockup visible in page footer on `/`
+- [x] Footer disclosure line includes "calculated, not advice"
 
 **Effort**: S
 **Dependencies**: Task 2.5
@@ -557,10 +557,10 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Source: Spec §8.4 · OQ-6 · Resolves G-5**
 
 **Acceptance Criteria** (AC §8.4 + OQ-6):
-- [ ] PDF CTA visible on both result screens
-- [ ] No email-capture gate
-- [ ] One of the two sequencing-guard paths chosen and recorded inline at task kickoff
-- [ ] No "visible-but-disabled" or "coming soon" CTA state ships to `main` — either fully functional or fully hidden
+- [x] PDF CTA visible on both result screens
+- [x] No email-capture gate
+- [x] One of the two sequencing-guard paths chosen and recorded inline at task kickoff
+- [x] No "visible-but-disabled" or "coming soon" CTA state ships to `main` — either fully functional or fully hidden
 
 **Effort**: S
 **Dependencies**: Task 4.4 (CTA placement); Phase 5a (functional download)
@@ -571,9 +571,9 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Description**: Add a Lighthouse CI script that runs on PR — accessibility score on `/` target ≥ 95. Non-blocking observability metric per PD-2.
 
 **Acceptance Criteria** (AC §8.4 + PD-2):
-- [ ] Lighthouse CI runs on every PR
-- [ ] Score reported in PR comment
-- [ ] Does NOT block merge (axe-core E2E from Task 2.8 is the hard gate)
+- [x] Lighthouse CI runs on every PR
+- [x] Score reported in PR comment
+- [x] Does NOT block merge (axe-core E2E from Task 2.8 is the hard gate)
 
 **Effort**: S
 **Dependencies**: Task 2.8
@@ -584,11 +584,11 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Description**: Run full test suite. Confirm no regressions.
 
 **Acceptance Criteria** (AC §8.4):
-- [ ] 2214/2214 LSL suite green
-- [ ] 92 Playwright tests across 4 browsers green
-- [ ] axe-core: zero serious/critical violations on `/`
-- [ ] Lighthouse accessibility ≥ 95 on `/`
-- [ ] Citation block snapshot green
+- [x] 2214/2214 LSL suite green
+- [x] 92 Playwright tests across 4 browsers green
+- [x] axe-core: zero serious/critical violations on `/`
+- [x] Lighthouse accessibility ≥ 95 on `/`
+- [x] Citation block snapshot green
 
 **Effort**: S
 **Dependencies**: Tasks 4.1–4.7
