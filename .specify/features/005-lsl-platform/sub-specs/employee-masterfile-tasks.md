@@ -151,13 +151,13 @@ Seven migrations, sequential (revised 2026-05-31 — Migration 7 added for `tags
 
 Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 
-### Task 2.1 [P] · Extract shared CSV parsing primitives into `core.ts`
+### Task 2.1 [P] · Extract shared CSV parsing primitives into `core.ts` ✅ [x]
 
 - **Size:** S
 - **Cites:** DEV-EMP-5
 - **File:** `website/src/lib/lsl/parsers/csv/core.ts` (new) + refactor of `bulk.ts` to use it.
 - **Verify:** Existing `bulk.test.ts` continues to pass with zero changes to assertions.
-- **Acceptance:** No regression in existing tests; `core.ts` exports `parseCsvHeader`, `splitQuotedRow`, `trimNormalise`.
+- **Acceptance:** No regression in existing tests; `core.ts` exports `parseCsvHeader`, `splitQuotedRow`, `trimNormalise`. **[x] Done 2026-05-31. `core.ts` exports `splitQuotedRow`, `trimNormalise`, `parseCsvHeader`, `splitCsvLines`. `bulk.ts` refactored to import from `./core` — local `parseCSVLine` function removed. All 14 existing CSV parser tests (bulk + single) green; `tsc --noEmit` clean.**
 
 ### Task 2.2 [P] · `types.ts` and `ServiceError` enum
 

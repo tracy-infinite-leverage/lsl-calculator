@@ -43,6 +43,7 @@ import {
   type TerminationReason,
   type Trigger,
 } from '@/lib/lsl/engine/types';
+import { splitCsvLines, splitQuotedRow, trimNormalise } from './core';
 
 export interface BulkParsedEmployee {
   employeeId: string;
@@ -131,14 +132,12 @@ export function parseBulkCSV(csv: string): BulkParseResult {
   const errors: BulkParseError[] = [];
   const warnings: BulkParseWarning[] = [];
 
-  const lines = csv.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim().length > 0);
+  const lines = splitCsvLines(csv);
   if (lines.length === 0) {
     return { employees: [], errors: [{ row: 0, message: 'CSV is empty.' }], warnings };
   }
 
-  const header = parseCSVLine(lines[0]).map((h) =>
-    h.trim().toLowerCase().replace(/\s+/g, '_')
-  );
+  const header = splitQuotedRow(lines[0]).map(trimNormalise);
   const idx = (...names: string[]) => {
     for (const n of names) {
       const i = header.indexOf(n);
@@ -189,7 +188,7 @@ export function parseBulkCSV(csv: string): BulkParseResult {
   const groupOrder: string[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const cells = parseCSVLine(lines[i]);
+    const cells = splitQuotedRow(lines[i]);
     const sourceRow = i;
     const employeeId = (cells[iEmpId] ?? '').trim();
     if (!employeeId) {
@@ -370,33 +369,6 @@ export function parseBulkCSV(csv: string): BulkParseResult {
   };
 }
 
-/** Reusable CSV line parser — handles quoted fields and doubled-quote escapes. */
-function parseCSVLine(line: string): string[] {
-  const out: string[] = [];
-  let cur = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (inQuotes) {
-      if (ch === '"' && line[i + 1] === '"') {
-        cur += '"';
-        i++;
-      } else if (ch === '"') {
-        inQuotes = false;
-      } else {
-        cur += ch;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ',') {
-        out.push(cur);
-        cur = '';
-      } else {
-        cur += ch;
-      }
-    }
-  }
-  out.push(cur);
-  return out;
-}
+// Note: CSV line parsing primitives (splitQuotedRow, trimNormalise, splitCsvLines)
+// live in ./core.ts since 2026-05-31 (Task 2.1) so they can be shared with
+// website/src/lib/data/employee/masterfile-csv.ts and the future E5.4 parser.
