@@ -2,7 +2,7 @@
 
 **Slug:** `ui-design-system`
 **Feature number:** 006
-**Status:** v0.4 — 2026-05-27 (operator sign-off pass complete; all open questions resolved; ready for developer handoff)
+**Status:** v0.5 — 2026-05-31 (post-E6.2 audit pass — Source Sans 3 substitution recorded; live MUST clauses re-named from "Source Sans Pro". Historical OQ-3 resolution preserved verbatim.) · v0.4 — 2026-05-27 (operator sign-off pass complete; all open questions resolved; ready for developer handoff)
 **Author:** Product Manager (drafted from operator-confirmed discovery brief 2026-05-27)
 **Owner:** Tracy Angwin (tracy@austpayroll.com.au)
 **Depends on:** E1 (NSW) shipped · E2 (8-of-8 states) shipped · E5.1 auth slice ships unstyled (this epic does NOT re-skin E5.1)
@@ -105,9 +105,9 @@ Three personas are in scope. External auditors are NOT a primary persona but met
 
 - **MUST** apply APA Brand Guidelines v2.0 colour palette as Tailwind theme tokens. Primary: navy `#48608a` (Pantone 2154 U), gold `#d9a428` (Pantone 110 U), white. Extended: light blue `#a0aec1`, yellow accent `#eebd3c`, dark blue `#324d61`, charcoal `#333232`, grey `#808897`. Advisory variant introduces teal `#6ec8c0` for advisory-context surfaces.
 - **MUST** apply approved gradients (navy↔gold, navy↔light blue) as backgrounds only, never under text where legibility would degrade below WCAG 2.2 AA contrast.
-- **MUST** apply APA typography pairing: Montserrat (Light / Regular / Semibold) for titles and H1; Source Sans Pro (Light / Regular / Semibold) for body, H2, H3, captions. Source Sans Pro Light is permitted only above 30pt. System fallback stack: `system-ui, -apple-system, sans-serif` (web context — Calibri / Century Gothic per brand guide are MS-document-only).
-- **MUST** self-host Montserrat + Source Sans Pro (no third-party font CDN). Keeps LAUNCH-GUARD privacy posture clean — no third-party request for typography. (Resolves OQ-3.)
-- **MUST** define type hierarchy mapping per brand guide p18: Title (Montserrat Semibold 32–72pt), H1 (Source Sans Pro Semibold 22–28pt), H2 (Regular 18–20pt), H3 (Semibold 14–16pt), Body (Regular 10–12pt), Caption (Regular 8pt). Web sizing converts pt→rem at the standard 1pt ≈ 0.083rem at 16px base.
+- **MUST** apply APA typography pairing: Montserrat (Light / Regular / Semibold) for titles and H1; Source Sans 3 (Light / Regular / Semibold) for body, H2, H3, captions. Source Sans 3 Light is permitted only above 30pt. System fallback stack: `system-ui, -apple-system, sans-serif` (web context — Calibri / Century Gothic per brand guide are MS-document-only). *(Source Sans 3 is Adobe's 2021 rename of Source Sans Pro — identical family, current upstream name. See v0.5 Clarification Summary.)*
+- **MUST** self-host Montserrat + Source Sans 3 (no third-party font CDN). Keeps LAUNCH-GUARD privacy posture clean — no third-party request for typography. (Resolves OQ-3.)
+- **MUST** define type hierarchy mapping per brand guide p18: Title (Montserrat Semibold 32–72pt), H1 (Source Sans 3 Semibold 22–28pt), H2 (Regular 18–20pt), H3 (Semibold 14–16pt), Body (Regular 10–12pt), Caption (Regular 8pt). Web sizing converts pt→rem at the standard 1pt ≈ 0.083rem at 16px base.
 - **MUST** apply brand voice rules from APA guide: sentence case default for headings and body, left-aligned body, em dashes for breaks, commas in 1000+ numerals (e.g. `9,880.04`).
 - **MUST** ship a sub-brand wordmark ("LSL Calculator by APA") with explicit "by Australian Payroll Association" lockup. Inherits APA palette + typography but has its own visual personality. Positioned as a sibling product, comparable to how Xero brands Practice Manager / Tax / Workpapers as siblings.
 - **MUST** define an iconography direction: light line-weight, optionally with subtle broken-line details, standalone or encircled (circle filled in primary or secondary brand colour).
@@ -170,7 +170,7 @@ Three personas are in scope. External auditors are NOT a primary persona but met
 ### 5.7 Security + non-functional
 
 - **MUST NOT** introduce any dependency that breaks the existing CSP or violates the LAUNCH-GUARD posture.
-- **MUST NOT** ship any new third-party font hosting. Montserrat + Source Sans Pro served **self-hosted** with `font-display: swap` per OQ-3 resolution.
+- **MUST NOT** ship any new third-party font hosting. Montserrat + Source Sans 3 served **self-hosted** with `font-display: swap` per OQ-3 resolution.
 - **MUST** keep PDF generation server-side or fully client-side without leaking any tenant or PII data to an external service. (Specific PDF lib choice deferred to dev-finding for E6.5.)
 - **MUST** render currency as AUD with comma thousands separator and 2-decimal precision (e.g. `$9,880.04`) — matches existing public-calc presentation.
 
@@ -237,7 +237,7 @@ Public calc at `/` and platform at `/app/*` share the sub-brand identity (both a
 Server-side PDF generation preferred (deterministic, no client variance). A4 templates use the design system's print tokens. Letterhead and methodology footer are page-level templates applied via a layout wrapper, not per-report-family.
 
 ### 7.6 Sub-brand wordmark
-Distinct visual lockup: "LSL Calculator" as the primary mark in Montserrat Semibold, with "by Australian Payroll Association" as a secondary line in Source Sans Pro Regular. Sibling-product posture (Xero Practice Manager precedent).
+Distinct visual lockup: "LSL Calculator" as the primary mark in Montserrat Semibold, with "by Australian Payroll Association" as a secondary line in Source Sans 3 Regular. Sibling-product posture (Xero Practice Manager precedent).
 
 ### 7.7 Phased delivery
 1. E6.1 wordmark + icon direction
@@ -260,7 +260,7 @@ Distinct visual lockup: "LSL Calculator" as the primary mark in Montserrat Semib
 
 ### 8.2 E6.2 — Tokens + core component library
 - [ ] Tailwind theme extension committed under `website/tailwind.config.{js,ts}` with all brand colour tokens, gradient utilities, type-scale tokens, shadow tokens, radius tokens.
-- [ ] Sub-brand fonts (Montserrat + Source Sans Pro) **self-hosted** with `font-display: swap` — no third-party font CDN. (OQ-3)
+- [ ] Sub-brand fonts (Montserrat + Source Sans 3) **self-hosted** with `font-display: swap` — no third-party font CDN. (OQ-3)
 - [ ] Each core component variant (Button, Input, Textarea, Select, Checkbox, Radio, Switch, Table, Card, Tabs, Accordion, Modal/Dialog, Toast, Tooltip, Badge, Alert) has at least one brand-styled variant and renders correctly in Storybook or equivalent.
 - [ ] Component library audited against WCAG 2.2 AA via axe-core: zero "serious" or "critical" violations.
 - [ ] 2214/2214 LSL test suite and 92 Playwright tests remain green.
@@ -370,6 +370,27 @@ OQ-13 (E6.1, business / resourcing): **Designer engagement** — the spec acknow
 ---
 
 ## Clarification Summary
+
+### v0.5 — 2026-05-31 (post-E6.2 audit pass — Source Sans 3 substitution)
+
+**Source:** E6 completion audit (`docs/engineering/changes/2026-05-31-e6-completion-audit/AUDIT.md`) surfaced a naming drift between the spec ("Source Sans Pro") and the artefact shipped under Task 2.2 (Source Sans 3, via `@fontsource/source-sans-3`).
+
+**Substitution recorded:** "Source Sans Pro" and "Source Sans 3" are the same family. Adobe rebranded Source Sans Pro → Source Sans 3 in 2021; visible appearance, metrics, glyph coverage, and SIL OFL 1.1 licence are unchanged. The npm package and the woff2 files shipped under `website/public/fonts/` use the current "Source Sans 3" name. Operator-approved 2026-05-31 — the substitution is a cosmetic re-name, no design decision change vs OQ-3.
+
+**Spec amendments:**
+- §5.1 typography MUST: live name changed "Source Sans Pro" → "Source Sans 3" (with one-line inline note pointing to this entry).
+- §5.1 self-host MUST: same.
+- §5.1 type hierarchy mapping: same.
+- §5.7 non-functional MUST NOT: same.
+- §7.6 wordmark lockup: same.
+- §8.2 AC bullet: same.
+
+**Deferred / not amended (intentional):**
+- §9 OQ-3 resolution text — kept verbatim as historical record of what the operator approved on 2026-05-27. The substitution is a naming refresh, not a re-decision; OQ-3's resolution stands.
+- v0.2 / v0.3 / v0.4 Clarification Summary entries above — historical record, not re-written.
+- Wordmark candidate SVGs (`docs/brand/wordmark-candidates/candidate-{a,b,c}.svg`) — already use `font-family: 'Source Sans 3', 'Source Sans Pro', ...` fallback chain; no change needed.
+
+**Status:** v0.5 amendment closed. No new open questions. Ready for Phase 3 implementation against the renamed family.
 
 ### v0.4 — 2026-05-27 (operator sign-off pass)
 
