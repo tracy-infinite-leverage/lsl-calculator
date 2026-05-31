@@ -50,6 +50,7 @@
 import { headers } from 'next/headers';
 import { TopNav } from '@/components/app-shell/TopNav';
 import { Sidebar } from '@/components/app-shell/Sidebar';
+import { TenantProviderFromCookie } from '@/lib/tenant-context-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,20 +108,31 @@ export default async function AppLayout({
 
   // Standard shell: TopNav full-width across the top, Sidebar pinned to
   // the left below it, main column flexes to fill the rest.
+  //
+  // The shell is wrapped in `TenantProviderFromCookie` — a Server Component
+  // wrapper that reads the `lsl_session_claims` cookie via `next/headers`
+  // and forwards the parsed `SessionCookieClaims` to the Client Component
+  // provider. This is where OQ-9's "hard-refresh reverts to home org"
+  // semantics are satisfied — every request reads a fresh cookie, and E5.1's
+  // tenant-switch writer is responsible for ensuring the cookie reads
+  // `activeTenantId === homeTenantId` on a fresh request. (See
+  // `src/lib/tenant-context.tsx` for the full rationale.)
   return (
-    <div className="flex min-h-screen flex-col bg-brand-white">
-      <TopNav />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main
-          className="flex-1 overflow-y-auto bg-brand-white px-4 py-6 sm:px-6 lg:px-8"
-          // Subtle ring so the main column reads as a panel against the
-          // bg without competing with the wordmark for visual weight.
-          data-testid="app-main"
-        >
-          {children}
-        </main>
+    <TenantProviderFromCookie>
+      <div className="flex min-h-screen flex-col bg-brand-white">
+        <TopNav />
+        <div className="flex flex-1">
+          <Sidebar />
+          <main
+            className="flex-1 overflow-y-auto bg-brand-white px-4 py-6 sm:px-6 lg:px-8"
+            // Subtle ring so the main column reads as a panel against the
+            // bg without competing with the wordmark for visual weight.
+            data-testid="app-main"
+          >
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </TenantProviderFromCookie>
   );
 }
