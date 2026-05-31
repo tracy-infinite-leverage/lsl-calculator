@@ -70,13 +70,13 @@ Seven migrations, sequential (revised 2026-05-31 — Migration 7 added for `tags
 - **Includes** seed comment block on each column for self-documentation.
 - **Acceptance:** Migration applied; advisors clean; RLS active; `mcp__supabase__list_tables` confirms; `\d employees` shows `tags` column and GIN index. **[x] Done 2026-05-31 on Supabase branch `e52-phase-1-employees-schema` (`pjjalownnwnikjqtjhgu`); advisors clean (2 accepted INFO-level FK-unindexed lints on `created_by`/`updated_by`, same pattern as E5.1 precedent; zero new security lints); 11-step constraint smoke test passed; full RLS cross-tenant isolation test passed (SELECT/UPDATE/DELETE/INSERT all enforced). Awaiting production apply.**
 
-### Task 1.3 · Write Migration 3 — create `employee_history` table
+### Task 1.3 · Write Migration 3 — create `employee_history` table ✅ [x]
 
 - **Size:** M
 - **Cites:** Spec §4.3; AC-EMP-5
-- **File:** `website/supabase/migrations/{ts}_create_employee_history.sql`
+- **File:** `website/supabase/migrations/20260531171530_create_employee_history.sql`
 - **Implements:** All 13 columns per spec §4.3, EXCLUDE GIST constraint per impl-plan §1.4, `(employee_id, effective_from)` index, FK to `employees` with `ON DELETE CASCADE` (needed by AC-EMP-13), `org_id` denormalised for RLS perf, RLS + 4 policies.
-- **Acceptance:** Migration applied; advisors clean; cascade FK verified by manual SQL probe.
+- **Acceptance:** Migration applied; advisors clean; cascade FK verified by manual SQL probe. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (0 new lints — `btree_gist` installed into `extensions` schema, not public, to avoid `extension_in_public` WARN — see FINDING-2.md); EXCLUDE-constraint smoke test passed (2 non-overlapping segments accepted; overlapping third rejected with `exclusion_violation`). Awaiting production apply.**
 
 ### Task 1.4 · Write Migration 4 — `retention_expires_at` trigger
 
