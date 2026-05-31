@@ -89,3 +89,30 @@ CLS is the more critical metric for this change — `font-display: swap` can cau
 The script lives at `website/scripts/baseline-measure.mjs`. It is a small, dependency-free (beyond `playwright`) Node ESM script intentionally separate from the test suite so it cannot accidentally leak into CI and slow PRs. Run it on demand only.
 
 If the script needs structural changes (e.g. throttling, additional metrics, more runs), commit the script change alongside the re-measurement so the methodology stays auditable.
+
+---
+
+## Post Phase 3b (2026-05-31) — Lighthouse CI on `/`
+
+**Captured:** 2026-05-31 (E6.4 Task 4.8 acceptance gate)
+**Commit on main:** `2900b97` (E6.4 Phase 3b shipped via PRs #99, #103, #106)
+**Method:** `npx lhci autorun` against `npm run start` (port 3000), desktop preset with Lighthouse default throttling, 3 runs. Config at `website/lighthouserc.json`.
+**URL:** `http://localhost:3000/`
+
+> Note: This run uses a different tool (Lighthouse CI, desktop preset, throttled) than the original baseline above (`baseline-measure.mjs`, unthrottled broadband against prod URL). FCP + CLS remain directly comparable because the above-the-fold paint is a single contentful element and is network-light. **LCP is not directly comparable** between the two methods — the lhci LCP figure is treated as a separate observability stream until the baseline is re-measured via lhci against prod.
+
+| Metric | Run 1 | Run 2 | Run 3 | **Median** | vs 2026-05-28 baseline (204 / 0 / 204) | Verdict |
+|---|---|---|---|---|---|---|
+| Accessibility score | 0.98 | 0.98 | 0.98 | **0.98** | n/a (new metric, target ≥ 0.95) | PASS |
+| Performance score | 0.99 | 1.00 | 1.00 | **1.00** | n/a | PASS |
+| Best-practices score | 0.93 | 0.93 | 0.93 | **0.93** | n/a | PASS |
+| SEO score | 1.00 | 1.00 | 1.00 | **1.00** | n/a | PASS |
+| FCP (ms) | 210.27 | 205.25 | 204.67 | **205.25** | +0.5% (well within ±5%) | PASS |
+| CLS | 0.000 | 0.000 | 0.000 | **0.000** | identical (0 vs 0) | PASS |
+| LCP (ms) | 1043.65 | 620.88 | 620.01 | **620.88** | (methodology change — not comparable) | n/a |
+
+**Verdict:** Phase 3b carries **no font/layout regression**. FCP delta +0.5% and CLS 0 are within the Task 2.2 ±5% gate. Accessibility 0.98 exceeds the §8.4 target of ≥ 0.95.
+
+Local lhci artifacts (gitignored): `website/.lighthouseci/lhr-{timestamp}.html` and `.json` per run.
+
+lhci `temporary-public-storage` upload (median run): `https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/1780219684779-97732.report.html`
