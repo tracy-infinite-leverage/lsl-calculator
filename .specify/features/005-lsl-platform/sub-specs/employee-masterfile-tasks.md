@@ -174,7 +174,7 @@ Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 - **Implementation:** `stripPiiHeaders(headers, rows)` + `flagSuspectTfn(values)`.
 - **Acceptance:** All tests green; AC-EMP-7 verified at unit level. (Integration verification via Task 3.2.) **[x] Done 2026-05-31. TDD red → green: 40 unit tests in `__tests__/pii-strip.test.ts` cover both layers (A: column-name allowlist, table-driven across all TFN / bank / super patterns + protected `tags` column + benign-name regression cases; B: per-value 9-digit TFN flag with dedup + whitespace tolerance). `pii-strip.ts` implements `stripPiiHeaders` + `flagSuspectTfn`. `tsc --noEmit` clean.**
 
-### Task 2.4 · Masterfile CSV parser — `masterfile-csv.ts` + tests (TDD)
+### Task 2.4 · Masterfile CSV parser — `masterfile-csv.ts` + tests (TDD) ✅ [x]
 
 - **Size:** L (revised 2026-05-31 — added `tags` column parsing path)
 - **Cites:** AC-EMP-2, AC-EMP-4, AC-EMP-7, AC-EMP-8, AC-EMP-10, **AC-EMP-14** (tags pipe-delimited list); spec §5 validation rules
