@@ -31,6 +31,7 @@
  * ("functional bell logic out of scope here — placeholder badge OK").
  */
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Wordmark } from '@/components/brand/Wordmark';
@@ -49,6 +50,19 @@ export interface TopNavPresentationProps {
    * the safe default — `UserMenu` falls back to the email local-part.
    */
   displayName?: string;
+  /**
+   * Optional slot for an extra right-rail control rendered between the
+   * flex-spacer and the notifications bell. E6.3 Task 3.4 fills this with
+   * `<TenantSwitcher />` from the layout — and TenantSwitcher hides itself
+   * when the user has `< 2` memberships (OQ-4), so the slot is empty for
+   * single-org users with no layout-side conditionals.
+   *
+   * Kept as a generic `ReactNode` slot so the next contributor doesn't have
+   * to extend the prop surface again when a second right-rail control
+   * (e.g. global search trigger) needs to land. TopNav stays a thin shell;
+   * composition stays in the layout.
+   */
+  rightRailSlot?: ReactNode;
 }
 
 /**
@@ -56,7 +70,11 @@ export interface TopNavPresentationProps {
  * server layout or a Storybook story. No data-fetching, no Supabase, no
  * cookies.
  */
-export function TopNavPresentation({ email, displayName = '' }: TopNavPresentationProps) {
+export function TopNavPresentation({
+  email,
+  displayName = '',
+  rightRailSlot,
+}: TopNavPresentationProps) {
   return (
     <header
       // `border-b` separates the bar from the page surface without a
@@ -77,6 +95,11 @@ export function TopNavPresentation({ email, displayName = '' }: TopNavPresentati
 
       {/* Spacer — pushes the right-rail to the far edge. */}
       <div className="flex-1" aria-hidden="true" />
+
+      {/* Optional right-rail slot (E6.3 Task 3.4). The layout fills this
+        * with `<TenantSwitcher />`; the switcher self-hides for single-org
+        * users so the slot is empty by default in the OQ-4 happy path. */}
+      {rightRailSlot}
 
       {/* Notifications bell — placeholder per Task 3.1 spec.
         *
@@ -104,8 +127,15 @@ export function TopNavPresentation({ email, displayName = '' }: TopNavPresentati
  * Server wrapper. Reads the user from the Supabase SSR client and forwards
  * to `TopNavPresentation`. The presentation component owns ALL markup; this
  * wrapper exists only to bind the data.
+ *
+ * Accepts an optional `rightRailSlot` prop (E6.3 Task 3.4). The layout
+ * passes `<TenantSwitcher memberships={…} />` here so the switcher composes
+ * cleanly into the right rail without TopNav needing to know about the
+ * memberships data source.
  */
-export async function TopNav() {
+export async function TopNav({
+  rightRailSlot,
+}: { rightRailSlot?: React.ReactNode } = {}) {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   const user = data.user;
@@ -116,5 +146,11 @@ export async function TopNav() {
       ? (user.user_metadata['display_name'] as string)
       : '';
 
-  return <TopNavPresentation email={email} displayName={displayName} />;
+  return (
+    <TopNavPresentation
+      email={email}
+      displayName={displayName}
+      rightRailSlot={rightRailSlot}
+    />
+  );
 }
