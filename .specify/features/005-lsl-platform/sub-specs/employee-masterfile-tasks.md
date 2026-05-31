@@ -151,28 +151,28 @@ Seven migrations, sequential (revised 2026-05-31 — Migration 7 added for `tags
 
 Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 
-### Task 2.1 [P] · Extract shared CSV parsing primitives into `core.ts`
+### Task 2.1 [P] · Extract shared CSV parsing primitives into `core.ts` ✅ [x]
 
 - **Size:** S
 - **Cites:** DEV-EMP-5
 - **File:** `website/src/lib/lsl/parsers/csv/core.ts` (new) + refactor of `bulk.ts` to use it.
 - **Verify:** Existing `bulk.test.ts` continues to pass with zero changes to assertions.
-- **Acceptance:** No regression in existing tests; `core.ts` exports `parseCsvHeader`, `splitQuotedRow`, `trimNormalise`.
+- **Acceptance:** No regression in existing tests; `core.ts` exports `parseCsvHeader`, `splitQuotedRow`, `trimNormalise`. **[x] Done 2026-05-31. `core.ts` exports `splitQuotedRow`, `trimNormalise`, `parseCsvHeader`, `splitCsvLines`. `bulk.ts` refactored to import from `./core` — local `parseCSVLine` function removed. All 14 existing CSV parser tests (bulk + single) green; `tsc --noEmit` clean.**
 
-### Task 2.2 [P] · `types.ts` and `ServiceError` enum
+### Task 2.2 [P] · `types.ts` and `ServiceError` enum ✅ [x]
 
 - **Size:** S
 - **Cites:** Impl-plan §1.6
 - **File:** `website/src/lib/data/employee/types.ts`
-- **Acceptance:** Discriminated-union `Result<T, ServiceError>` exported; `ServiceError` enum covers all error kinds enumerated in impl-plan §1.6.
+- **Acceptance:** Discriminated-union `Result<T, ServiceError>` exported; `ServiceError` enum covers all error kinds enumerated in impl-plan §1.6. **[x] Done 2026-05-31. `ServiceErrorKind` exports 13 variants in 5 families (validation, duplicates, history, auth/lookup, catch-all). `Result<T,E>` discriminated union + `ok()` / `err()` constructors. Route-handler HTTP mapping documented inline for Phase 3. `tsc --noEmit` clean. See PR body for the enum-shape ratification request.**
 
-### Task 2.3 · PII strip — `pii-strip.ts` + tests (TDD)
+### Task 2.3 · PII strip — `pii-strip.ts` + tests (TDD) ✅ [x]
 
 - **Size:** M
 - **Cites:** AC-EMP-7; spec §5; impl-plan §1.5
 - **Test first** (`pii-strip.test.ts`): table-driven, all header patterns, plus a per-value 9-digit TFN flag. Tests fail.
 - **Implementation:** `stripPiiHeaders(headers, rows)` + `flagSuspectTfn(values)`.
-- **Acceptance:** All tests green; AC-EMP-7 verified at unit level. (Integration verification via Task 3.2.)
+- **Acceptance:** All tests green; AC-EMP-7 verified at unit level. (Integration verification via Task 3.2.) **[x] Done 2026-05-31. TDD red → green: 40 unit tests in `__tests__/pii-strip.test.ts` cover both layers (A: column-name allowlist, table-driven across all TFN / bank / super patterns + protected `tags` column + benign-name regression cases; B: per-value 9-digit TFN flag with dedup + whitespace tolerance). `pii-strip.ts` implements `stripPiiHeaders` + `flagSuspectTfn`. `tsc --noEmit` clean.**
 
 ### Task 2.4 · Masterfile CSV parser — `masterfile-csv.ts` + tests (TDD)
 
