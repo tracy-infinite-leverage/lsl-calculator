@@ -86,14 +86,14 @@ Seven migrations, sequential (revised 2026-05-31 — Migration 7 added for `tags
 - **Implements:** `tg_set_retention_expires_at()` function per impl-plan §3.1, attached BEFORE INSERT OR UPDATE OF `end_date` on `employees`.
 - **Acceptance:** Migration applied; advisors clean. Manual probe: insert employee with `end_date = '2030-01-01'` → `retention_expires_at` is `2037-01-01`. Clear `end_date` → `retention_expires_at` becomes NULL. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (0 new lints); smoke test asserted INSERT case → `2037-01-01 00:00:00+00` and UPDATE → NULL. Awaiting production apply.**
 
-### Task 1.5 · Write Migration 5 — `purge_expired_employees` function + pg_cron schedule
+### Task 1.5 · Write Migration 5 — `purge_expired_employees` function + pg_cron schedule ✅ [x]
 
 - **Size:** M
 - **Cites:** AC-EMP-13
-- **File:** `website/supabase/migrations/{ts}_purge_expired_employees_function.sql`
-- **Implements:** `purge_expired_employees()` `SECURITY DEFINER` function per impl-plan §3.1, `REVOKE EXECUTE` from public, `GRANT EXECUTE` to `postgres`. `cron.schedule(...)` daily at 16:00 UTC (≈ 02:00 Sydney).
-- **Verify pg_cron is enabled** — check `mcp__supabase__list_extensions`; enable if absent.
-- **Acceptance:** Migration applied; advisors clean; `cron.job` table shows the scheduled job.
+- **File:** `website/supabase/migrations/20260531171600_purge_expired_employees_function.sql`
+- **Implements:** `purge_expired_employees()` `SECURITY DEFINER` function per impl-plan §3.1, `REVOKE EXECUTE` from public/anon/authenticated. `cron.schedule(...)` daily at 16:00 UTC (≈ 02:00 AEST / 03:00 AEDT).
+- **Verify pg_cron is enabled** — check `mcp__supabase__list_extensions`; enable if absent. **`pg_cron` was NOT installed on the project at start of Phase 1; migration installs via `create extension if not exists pg_cron;`. Surfaces a doc drift in impl-plan §0 DEV-EMP-3 (claimed pg_cron was already in use for HIBP — it is not).**
+- **Acceptance:** Migration applied; advisors clean; `cron.job` table shows the scheduled job. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (0 new lints — the new SECURITY DEFINER function did NOT trip `anon_security_definer_function_executable` because EXECUTE is revoked from anon/authenticated/public); `cron.job` row confirmed (`jobname=purge-expired-employees-daily`, `schedule=0 16 * * *`, `active=true`); end-to-end smoke test asserted purge returned ≥1, employee row gone, and `employee_history` child row removed via FK CASCADE. Awaiting production apply.**
 
 ### Task 1.6 · Write Migration 6 — Storage bucket + RLS for source CSV uploads
 
