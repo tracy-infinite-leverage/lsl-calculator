@@ -29,13 +29,17 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
-import { parseTenantClaimsCookie, SESSION_CLAIMS_COOKIE_NAME } from './tenant-context';
+import {
+  parseTenantClaimsCookie,
+  SESSION_CLAIMS_COOKIE_NAME,
+} from './tenant-context-parser';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const src = readFileSync(resolve(__dirname, 'tenant-context.tsx'), 'utf-8');
 const serverSrc = readFileSync(resolve(__dirname, 'tenant-context-server.tsx'), 'utf-8');
+const parserSrc = readFileSync(resolve(__dirname, 'tenant-context-parser.ts'), 'utf-8');
 
 // ---------------------------------------------------------------------------
 // Section 1 — Cross-epic contract surface (SessionCookieClaims, cookie name)
@@ -54,20 +58,27 @@ describe('TenantProvider — SessionCookieClaims contract', () => {
 
   it('does NOT inline-duplicate the SessionCookieClaims shape', () => {
     // Guard against the failure mode the AC explicitly warns about — a local
-    // interface that drifts from the cross-epic contract. The reader side
-    // must NOT redeclare claimIssuer / activeTenantId / homeTenantId /
-    // membershipCount as its own interface.
+    // interface that drifts from the cross-epic contract. Neither the client
+    // provider nor the parser may redeclare claimIssuer / activeTenantId /
+    // homeTenantId / membershipCount as their own interface.
     expect(src).not.toMatch(/interface\s+SessionCookieClaims\b/);
+    expect(parserSrc).not.toMatch(/interface\s+SessionCookieClaims\b/);
     // The only allowed reference to the literal claim-issuer string is the
-    // discriminator check in parseTenantClaimsCookie + the matching check in
-    // the provider's `initialClaims === null || claimIssuer !== ...` guard.
-    // We assert it appears, but as a string-equality check, not a redeclaration.
-    expect(src).toContain("claimIssuer === 'supabase-e5.1'");
+    // discriminator check inside the parser + the matching check in the
+    // provider's `initialClaims === null || claimIssuer !== ...` guard. We
+    // assert each appears as a string-equality check, not a redeclaration.
+    expect(src).toContain("claimIssuer !== 'supabase-e5.1'");
+    expect(parserSrc).toContain("claimIssuer'] !== 'supabase-e5.1'");
   });
 
   it('exports the cookie name constant for cross-epic coordination with E5.1', () => {
+    // Canonical export site is the parser module (callable from both Server
+    // and Client). The client module re-exports for backwards compatibility.
     expect(SESSION_CLAIMS_COOKIE_NAME).toBe('lsl_session_claims');
-    expect(src).toMatch(/export\s+const\s+SESSION_CLAIMS_COOKIE_NAME\s*=/);
+    expect(parserSrc).toMatch(/export\s+const\s+SESSION_CLAIMS_COOKIE_NAME\s*=/);
+    expect(src).toMatch(
+      /export\s+\{[^}]*SESSION_CLAIMS_COOKIE_NAME[^}]*\}\s+from\s+['"]\.\/tenant-context-parser['"]/,
+    );
   });
 });
 
@@ -137,14 +148,33 @@ describe('TenantProvider — hard-refresh hydration (spec §8.3 + OQ-9)', () => 
     expect(serverSrc).toContain('cookieStore.get(SESSION_CLAIMS_COOKIE_NAME)');
   });
 
-  it('server wrapper imports the Client provider + cookie name from the client module', () => {
-    // The two-file split must remain a clean handoff: the server wrapper
-    // imports the Client Component + the parser + the cookie name constant
-    // FROM tenant-context.tsx. Asserting the import path keeps the contract
-    // explicit so a refactor can't quietly fold logic into the server file.
+  it('server wrapper imports TenantProvider from the client module', () => {
+    // The Client Component provider is RENDERED by the server wrapper — a
+    // legal Server-to-Client composition. This import must stay against
+    // `./tenant-context` (the 'use client' module).
     expect(serverSrc).toMatch(
-      /import\s+\{[^}]*SESSION_CLAIMS_COOKIE_NAME[^}]*TenantProvider[^}]*parseTenantClaimsCookie[^}]*\}\s+from\s+['"]\.\/tenant-context['"]/,
+      /import\s+\{\s*TenantProvider\s*\}\s+from\s+['"]\.\/tenant-context['"]/,
     );
+  });
+
+  it('server wrapper imports the parser + cookie name from the non-directive parser module', () => {
+    // Load-bearing: the parser CANNOT be imported from `./tenant-context`
+    // (a 'use client' module) — Next.js compiles client exports into opaque
+    // client references when imported from Server Components, raising
+    // "Attempted to call parseTenantClaimsCookie() from the server but
+    // parseTenantClaimsCookie is on the client." This assertion pins the
+    // import path so a refactor cannot quietly reintroduce the boundary
+    // violation that surfaced on Playwright run 26708179452 (PR #108).
+    expect(serverSrc).toMatch(
+      /import\s+\{[^}]*SESSION_CLAIMS_COOKIE_NAME[^}]*parseTenantClaimsCookie[^}]*\}\s+from\s+['"]\.\/tenant-context-parser['"]/,
+    );
+  });
+
+  it('parser module is NOT a "use client" module', () => {
+    // The parser must remain non-directive so Server Components can call it
+    // synchronously without going through a client reference.
+    expect(parserSrc).not.toMatch(/^['"]use client['"]/m);
+    expect(parserSrc).not.toMatch(/^['"]use server['"]/m);
   });
 
   it('server wrapper does NOT declare "use client" (would defeat the cookie read)', () => {

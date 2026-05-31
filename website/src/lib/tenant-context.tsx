@@ -113,21 +113,17 @@ import {
 } from '@/lib/tenant-context-idle';
 
 /**
- * Cookie name shared across E5.1 (writer) and E6.3 (reader).
+ * Cookie name + parser have moved to `tenant-context-parser.ts` so the Server
+ * Component cookie reader (`tenant-context-server.tsx`) can call the parser
+ * without Next.js wrapping it as an opaque client reference. See that file
+ * for the canonical exports.
  *
- * Cross-epic contract: if this name needs to change, the edit MUST land in
- * the same commit as the matching writer-side change in E5.1. Both sides
- * also read from `SessionCookieClaims` in `lib/auth/session-claims.ts` for
- * the payload shape — this constant is the analogous contract for the
- * cookie's *name*.
- *
- * The name uses a lowercased dash-separated scheme to match Vercel /
- * Supabase cookie conventions; the `lsl_` prefix namespaces it away from
- * Supabase's own auth cookies (`sb-*`) so a misconfigured cookie-cleanup
- * sweep can't accidentally nuke the active-tenant claim while leaving the
- * Supabase session intact (or vice versa).
+ * The two symbols below are re-exported from the parser module so existing
+ * consumers (and the source-level tests in `tenant-context.test.ts`) keep
+ * working without an import-path change. New code SHOULD import from
+ * `@/lib/tenant-context-parser` directly.
  */
-export const SESSION_CLAIMS_COOKIE_NAME = 'lsl_session_claims';
+export { SESSION_CLAIMS_COOKIE_NAME, parseTenantClaimsCookie } from './tenant-context-parser';
 
 /**
  * The React-context shape consumed via `useTenantContext()`. Mirrors the
@@ -365,78 +361,28 @@ export function useTenantContext(): TenantContextValue {
 }
 
 /**
- * Parse the raw `lsl_session_claims` cookie value into a `SessionCookieClaims`
- * object, or `null` if the cookie is absent / malformed / from an unexpected
- * issuer.
+ * The parser (`parseTenantClaimsCookie`) and the cookie-name constant
+ * (`SESSION_CLAIMS_COOKIE_NAME`) live in `tenant-context-parser.ts` — a
+ * non-directive module — so the Server Component cookie reader
+ * (`tenant-context-server.tsx`) can call the parser directly. Both are
+ * re-exported above for backwards compatibility with any client consumer
+ * that imports them from this file.
  *
- * Validates the discriminator (`claimIssuer === 'supabase-e5.1'`) and the
- * required fields. Returns `null` on any failure — the provider treats that
- * as "no tenant context" (safe default; banner hidden, switcher hidden).
- *
- * # Why this lives here and not in `session-claims.ts`
- *
- * Per the jsdoc in `session-claims.ts`: "A parser/validator would belong to
- * E5.1 (the writer side has the authoritative parser; the reader side calls
- * it). Mixing runtime code into [session-claims.ts] would create a circular
- * dependency surface."
- *
- * E5.1 hasn't shipped its parser yet, but E6.3 needs to read the cookie now.
- * This local reader is intentionally minimal — when E5.1 ships their
- * authoritative parser, the swap is a one-import change in
- * `TenantProviderFromCookie` below.
- *
- * Exported so the same parser can be reused server-side OR client-side (e.g.
- * a Storybook decorator that fakes a cookie value for previews).
- */
-export function parseTenantClaimsCookie(raw: string | undefined): SessionCookieClaims | null {
-  if (typeof raw !== 'string' || raw.length === 0) {
-    return null;
-  }
-
-  let decoded: unknown;
-  try {
-    // The cookie value is JSON-encoded then URL-encoded (E5.1 contract). Try
-    // both — `decodeURIComponent` is a no-op on already-decoded strings, so
-    // a writer that skips URL encoding still parses cleanly.
-    decoded = JSON.parse(decodeURIComponent(raw));
-  } catch {
-    return null;
-  }
-
-  if (decoded === null || typeof decoded !== 'object') {
-    return null;
-  }
-
-  const obj = decoded as Record<string, unknown>;
-
-  if (
-    typeof obj['activeTenantId'] !== 'string' ||
-    typeof obj['homeTenantId'] !== 'string' ||
-    typeof obj['membershipCount'] !== 'number' ||
-    obj['claimIssuer'] !== 'supabase-e5.1'
-  ) {
-    return null;
-  }
-
-  return {
-    activeTenantId: obj['activeTenantId'],
-    homeTenantId: obj['homeTenantId'],
-    membershipCount: obj['membershipCount'],
-    claimIssuer: 'supabase-e5.1',
-  };
-}
-
-/**
  * Server-side cookie-reader wrapper for the TenantProvider lives in
  * `tenant-context-server.tsx`. It cannot live in this file because a file
  * with the `'use client'` directive at the top cannot ALSO export Server
  * Components — Next.js treats the entire module as a Client boundary, and
- * `next/headers` is a server-only API.
+ * `next/headers` is a server-only API. (Additionally, before the parser was
+ * lifted out, server code that imported `parseTenantClaimsCookie` from THIS
+ * file received a client reference and crashed at runtime with
+ * "Attempted to call ... from the server but ... is on the client." See
+ * `tenant-context-parser.ts` for the fix history.)
  *
  * The split mirrors the established `TopNav` / `TopNavPresentation` pattern
  * elsewhere in this codebase:
  *
- *   - `tenant-context.tsx`        ← Client Component: provider, hook, parser
+ *   - `tenant-context.tsx`        ← Client Component: provider, hook
+ *   - `tenant-context-parser.ts`  ← Pure parser + cookie name (shared)
  *   - `tenant-context-server.tsx` ← Server Component: reads cookie, forwards
  *
  * Consumers mount `TenantProviderFromCookie` from `tenant-context-server` at

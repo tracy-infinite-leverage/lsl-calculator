@@ -43,16 +43,37 @@
  * <= Next 14). The wrapper is therefore an `async` Server Component. The
  * app layout already awaits other async work (`headers()` for pathname
  * detection), so awaiting one more is free.
+ *
+ * # Imports — Client vs Parser split
+ *
+ * `TenantProvider` is the only symbol imported from `./tenant-context` (a
+ * `'use client'` module). Next.js handles that import correctly because the
+ * provider is RENDERED, not called — it's a Client Component that the Server
+ * Component composes into its output tree.
+ *
+ * `SESSION_CLAIMS_COOKIE_NAME` + `parseTenantClaimsCookie` are imported from
+ * `./tenant-context-parser` (a non-directive module). The parser MUST be
+ * imported from there, not from `./tenant-context`, because Next.js compiles
+ * every export of a `'use client'` module into an opaque client reference
+ * when imported by a Server Component. Calling such a reference at runtime
+ * raised:
+ *
+ *   "Attempted to call parseTenantClaimsCookie() from the server but
+ *    parseTenantClaimsCookie is on the client."
+ *
+ * (Confirmed by Playwright CI on PR #108, runs/26708179452.) Pulling the
+ * parser into a non-directive module restores symmetric Server-Component
+ * access.
  */
 
 import type { ReactNode } from 'react';
 import { cookies } from 'next/headers';
 
+import { TenantProvider } from './tenant-context';
 import {
   SESSION_CLAIMS_COOKIE_NAME,
-  TenantProvider,
   parseTenantClaimsCookie,
-} from './tenant-context';
+} from './tenant-context-parser';
 
 /**
  * Mount this in `app/app/layout.tsx` (or any Server Component above the
