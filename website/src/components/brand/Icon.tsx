@@ -76,6 +76,7 @@ export {
   User,
   Users,
   Building2,
+  LogOut,
 
   // Status / signals
   CheckCircle2,
@@ -86,6 +87,7 @@ export {
   FileWarning,
   Lock,
   Unlock,
+  Bell,
 
   // Navigation / motion
   ArrowRight,
@@ -93,6 +95,7 @@ export {
   ChevronDown,
   ChevronRight,
   RotateCcw,
+  Menu,
 
   // Editing / IO
   Plus,
@@ -114,6 +117,10 @@ export {
   Scale,
   TrendingDown,
   TrendingUp,
+  GitCompareArrows,
+
+  // Taxonomy / categorisation
+  Tag,
 
   // Brand-v1 §5 — no consumer on main yet, present for OQ-2 surface parity
   CalendarRange,
