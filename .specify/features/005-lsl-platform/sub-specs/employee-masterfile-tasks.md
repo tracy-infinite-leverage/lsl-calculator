@@ -166,13 +166,13 @@ Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 - **File:** `website/src/lib/data/employee/types.ts`
 - **Acceptance:** Discriminated-union `Result<T, ServiceError>` exported; `ServiceError` enum covers all error kinds enumerated in impl-plan §1.6. **[x] Done 2026-05-31. `ServiceErrorKind` exports 13 variants in 5 families (validation, duplicates, history, auth/lookup, catch-all). `Result<T,E>` discriminated union + `ok()` / `err()` constructors. Route-handler HTTP mapping documented inline for Phase 3. `tsc --noEmit` clean. See PR body for the enum-shape ratification request.**
 
-### Task 2.3 · PII strip — `pii-strip.ts` + tests (TDD)
+### Task 2.3 · PII strip — `pii-strip.ts` + tests (TDD) ✅ [x]
 
 - **Size:** M
 - **Cites:** AC-EMP-7; spec §5; impl-plan §1.5
 - **Test first** (`pii-strip.test.ts`): table-driven, all header patterns, plus a per-value 9-digit TFN flag. Tests fail.
 - **Implementation:** `stripPiiHeaders(headers, rows)` + `flagSuspectTfn(values)`.
-- **Acceptance:** All tests green; AC-EMP-7 verified at unit level. (Integration verification via Task 3.2.)
+- **Acceptance:** All tests green; AC-EMP-7 verified at unit level. (Integration verification via Task 3.2.) **[x] Done 2026-05-31. TDD red → green: 40 unit tests in `__tests__/pii-strip.test.ts` cover both layers (A: column-name allowlist, table-driven across all TFN / bank / super patterns + protected `tags` column + benign-name regression cases; B: per-value 9-digit TFN flag with dedup + whitespace tolerance). `pii-strip.ts` implements `stripPiiHeaders` + `flagSuspectTfn`. `tsc --noEmit` clean.**
 
 ### Task 2.4 · Masterfile CSV parser — `masterfile-csv.ts` + tests (TDD)
 
