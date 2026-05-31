@@ -159,12 +159,12 @@ Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 - **Verify:** Existing `bulk.test.ts` continues to pass with zero changes to assertions.
 - **Acceptance:** No regression in existing tests; `core.ts` exports `parseCsvHeader`, `splitQuotedRow`, `trimNormalise`. **[x] Done 2026-05-31. `core.ts` exports `splitQuotedRow`, `trimNormalise`, `parseCsvHeader`, `splitCsvLines`. `bulk.ts` refactored to import from `./core` — local `parseCSVLine` function removed. All 14 existing CSV parser tests (bulk + single) green; `tsc --noEmit` clean.**
 
-### Task 2.2 [P] · `types.ts` and `ServiceError` enum
+### Task 2.2 [P] · `types.ts` and `ServiceError` enum ✅ [x]
 
 - **Size:** S
 - **Cites:** Impl-plan §1.6
 - **File:** `website/src/lib/data/employee/types.ts`
-- **Acceptance:** Discriminated-union `Result<T, ServiceError>` exported; `ServiceError` enum covers all error kinds enumerated in impl-plan §1.6.
+- **Acceptance:** Discriminated-union `Result<T, ServiceError>` exported; `ServiceError` enum covers all error kinds enumerated in impl-plan §1.6. **[x] Done 2026-05-31. `ServiceErrorKind` exports 13 variants in 5 families (validation, duplicates, history, auth/lookup, catch-all). `Result<T,E>` discriminated union + `ok()` / `err()` constructors. Route-handler HTTP mapping documented inline for Phase 3. `tsc --noEmit` clean. See PR body for the enum-shape ratification request.**
 
 ### Task 2.3 · PII strip — `pii-strip.ts` + tests (TDD)
 
