@@ -61,14 +61,14 @@ Seven migrations, sequential (revised 2026-05-31 — Migration 7 added for `tags
 - **Verify via** `mcp__supabase__get_advisors` (security + performance) — zero new lints.
 - **Acceptance:** Migration applied; advisors clean; `organisations` columns visible via `mcp__supabase__list_tables`. **[x] Done 2026-05-31 on Supabase branch `e52-phase-1-employees-schema` (`pjjalownnwnikjqtjhgu`); advisors clean (zero new lints — pre-existing E5.1 INFO/WARN unchanged); CHECK constraints smoke-tested via inline DO block. Awaiting production apply.**
 
-### Task 1.2 · Write Migration 2 — create `employees` table
+### Task 1.2 · Write Migration 2 — create `employees` table ✅ [x]
 
 - **Size:** L
 - **Cites:** Spec §4.2; AC-EMP-3, AC-EMP-4, AC-EMP-7, AC-EMP-8, AC-EMP-9, AC-EMP-11, **AC-EMP-14** (tags)
-- **File:** `website/supabase/migrations/{ts}_create_employees.sql`
-- **Implements:** All **23 columns** per spec §4.2 (revised 2026-05-31 — includes `tags text[] DEFAULT '{}' NOT NULL`), all CHECK constraints per impl-plan §3.1, `UNIQUE (org_id, lower(employee_external_id))`, **4 indexes** (`(org_id)`, `(org_id, archived_at)`, `(retention_expires_at) WHERE retention_expires_at IS NOT NULL`, **`USING GIN (tags)`**), `tg_set_updated_at` trigger, RLS enabled + 4 policies (SELECT / INSERT / UPDATE / DELETE).
+- **File:** `website/supabase/migrations/20260531113015_create_employees.sql`
+- **Implements:** All **24 columns** per spec §4.2 (note: plan said "23 columns" — actual count is 24; stale plan count, all spec fields + tags present), all CHECK constraints per impl-plan §3.1, `UNIQUE (org_id, lower(employee_external_id))`, **5 indexes** (`(org_id)`, `(org_id, archived_at)`, `(retention_expires_at) WHERE retention_expires_at IS NOT NULL`, `USING GIN (tags)`, plus the case-insensitive UNIQUE), `tg_set_updated_at` trigger, RLS enabled + 4 policies (SELECT / INSERT / UPDATE / DELETE).
 - **Includes** seed comment block on each column for self-documentation.
-- **Acceptance:** Migration applied; advisors clean; RLS active; `mcp__supabase__list_tables` confirms; `\d employees` shows `tags` column and GIN index.
+- **Acceptance:** Migration applied; advisors clean; RLS active; `mcp__supabase__list_tables` confirms; `\d employees` shows `tags` column and GIN index. **[x] Done 2026-05-31 on Supabase branch `e52-phase-1-employees-schema` (`pjjalownnwnikjqtjhgu`); advisors clean (2 accepted INFO-level FK-unindexed lints on `created_by`/`updated_by`, same pattern as E5.1 precedent; zero new security lints); 11-step constraint smoke test passed; full RLS cross-tenant isolation test passed (SELECT/UPDATE/DELETE/INSERT all enforced). Awaiting production apply.**
 
 ### Task 1.3 · Write Migration 3 — create `employee_history` table
 
