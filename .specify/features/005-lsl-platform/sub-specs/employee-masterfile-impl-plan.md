@@ -1,7 +1,7 @@
 # Implementation Plan — E5.2 Employee Masterfile + Customer Setup
 
 **Spec:** `.specify/features/005-lsl-platform/sub-specs/employee-masterfile.md`
-**Status:** **DRAFT — rebased + amended 2026-05-31** (original drafted 2026-05-28; rebased onto post-E5.1-Phase-6 + post-E6.2 main 2026-05-31; amended for `tags` v1 column per OQ-LIA-1 resolution)
+**Status:** **DRAFT — rebased + amended 2026-05-31; follow-up amend 2026-05-31 per PR #94 review** (original drafted 2026-05-28; rebased onto post-E5.1-Phase-6 + post-E6.2 main 2026-05-31; amended for `tags` v1 column per OQ-LIA-1 resolution; resolved Q1/Q3/Q4/Q5/Q6a/Q6b from developer review)
 **Branch (planning):** `feat/E5.2-employee-masterfile-plan-rebased` (supersedes the original `feat/E5.2-employee-masterfile-plan` which is held as historical reference)
 **Author:** Developer agent (drafted 2026-05-28); rebased + amended by Product Manager 2026-05-31
 **Depends on:** E5.1 Auth + Tenancy + DB Scaffold ✅ **FULLY SHIPPED 2026-05-28** (Phase 5 PR #38 + env wiring PR #49 + Phase 6 PR #67 + 3 P0/P1 hotfixes PR #68/#69/#70 + email-branding closeout). **Mandatory reading for any new `'use server'` code:** `docs/learnings/E5.1-phase-6-deployment-gotchas.md`.
@@ -15,6 +15,19 @@
 | Phase 4 UI gate language flipped from "BLOCKED-BY E6.2" to "E6.2 cleared — UI work authorisable" | E6.2 ✅ SHIPPED 2026-05-30. |
 | Added `tags` v1 column work — masterfile sub-spec scope-amendment 2026-05-29 per OQ-LIA-1 (E5.5 spec dependency) | Operator decision 2026-05-29 to ship `tags` in both E5.2 v1 AND E5.5 v1, instead of deferring to v1.1. New migration for `tags` dictionary table; new code paths in CSV importer + UI; cascade trigger on rename / delete. |
 | Added `'use server'` Next.js 16 constraint note in §6 (route handlers) | Phase 6 of E5.1 surfaced 3 P0/P1 production failures within 4 hours of merge — captured in `docs/learnings/E5.1-phase-6-deployment-gotchas.md`. Any new `'use server'` code in E5.2 Phase 4 MUST honour the file-export constraint (only async functions exportable) and the `emailRedirectTo` / `NEXT_PUBLIC_SITE_URL` fallback patterns where Supabase Auth is involved. |
+
+### What changed in the 2026-05-31 follow-up amend (PR #94 review fixes)
+
+The 2026-05-31 rebase+amend (PR #91) shipped with five defects surfaced by the developer-agent review (full review in PR #94). All five resolved here:
+
+| Defect | Resolution | Severity |
+|---|---|---|
+| **Q1 — GIN index double-declared** in Migration 2 AND Migration 7 (second one would fail with duplicate-index error) | Kept in Migration 2 (conventional — index lives with the column it indexes); removed from Migration 7 + Task 1.6b. | HIGH (blocked Phase 1) |
+| **Q3 — Phase 2 effort under-counted** (zero delta reported despite adding Task 2.8b M + bumping Task 2.4 M→L) | Phase 2: 16–20 → 19–24 hrs. Total: 66–88 → 70–95 hrs. Backend-only: 37–50 → 42–56 hrs. | MED (schedule honesty) |
+| **Q4 — Combobox primitive gap** — E6.2 did not ship Combobox / Command / Popover (`cmdk` + `@radix-ui/react-popover` not in deps; no `combobox.tsx` / `command.tsx` / `popover.tsx` files). IM-7 risk row was factually wrong. | Operator decision 2026-05-31: pull Combobox forward into E6.2 as a follow-up wave (new task in `.specify/features/006-ui-design-system/tasks.md`). IM-7 rewritten; Tasks 4.9b + 4.10 carry Blocked-by note; sequencing diagram updated. | HIGH (blocked Phase 4) |
+| **Q5 — `usage_count_cached` maintenance trigger perf cliff** — would fire 5k times on a 5k-employee bulk import doing UPDATE-with-WHERE against the same small set of `tags` rows; row-lock contention. | Dropped the `usage_count_cached` column entirely (and the maintenance trigger). Usage counts computed on demand at the org-settings tag-edit page via `cardinality(employees.tags)` (low-traffic, sub-second acceptable). | MED (perf cliff) |
+| **Q6a — `(authed)` route-group convention does not exist** in the codebase. Actual convention is `/app/...` (verified against `website/src/app/app/{login,logout,verify-email,...}`). | Mechanical find-replace across impl-plan §1.1 + §5 + §6 + every Phase 4 task header. `(authed)/X` → `app/X`. | MED (clarity) |
+| **Q6b — Phase 1 sized as both "6 migrations / 12–16 hrs" AND "7 migrations / 14–18 hrs"** in different parts of the same file. | Reconciled to 7 migrations / L+ 14–18 hrs everywhere. | LOW (doc drift) |
 
 ---
 
@@ -152,7 +165,7 @@ If the masterfile persists `salaried` / `hourly` / `four_weekly` and the engine 
 ```
 ┌────────────────────────────────────────────────────────────┐
 │ UI (Phase 4 — E6.2 cleared 2026-05-30; gated on Phase 3)   │
-│  - Customer-setup wizard (route under /(authed)/setup)     │
+│  - Customer-setup wizard (route under /app/setup)          │
 │  - Employee list (react-table + react-virtual)             │
 │  - CSV upload wizard with dry-run preview                  │
 │  - Opening-balance setup wizard                            │
@@ -295,8 +308,8 @@ export type Result<T, E = ServiceError> =
 | Phase | Scope | Gating | Effort | Authorisable when |
 |---|---|---|---|---|
 | **Phase 0** | Pre-Planning: OQ-ING-3 / `employee_external_id` spike + dev-finding ratification | None | **S** (1–2 hrs) | Immediately |
-| **Phase 1** | DB layer: 6 migrations, triggers, pg_cron, Storage bucket | Phase 0 spike result | **L** (12–16 hrs) | After Phase 0 |
-| **Phase 2** | Service layer: pure functions + Vitest unit tests | Phase 1 migrations applied | **L** (16–20 hrs) | After Phase 1 |
+| **Phase 1** | DB layer: 7 migrations (incl. `tags` dictionary), triggers, pg_cron, Storage bucket | Phase 0 spike result | **L+** (14–18 hrs) | After Phase 0 |
+| **Phase 2** | Service layer: pure functions + Vitest unit tests (incl. tags service + CSV tags path) | Phase 1 migrations applied | **L** (19–24 hrs) | After Phase 1 |
 | **Phase 3** | Server actions / route handlers + integration tests | Phase 2 services complete | **M** (8–12 hrs) | After Phase 2 |
 | **Phase 4** | UI: customer setup, employee list, CSV upload wizard, opening-balance wizard, archive flow, **tags multi-select picker + org-settings tag-edit page** (added 2026-05-31) | E6.2 ✅ SHIPPED 2026-05-30 — gate cleared | **XL** (24–32 hrs) + S (3–4 hrs for tags UI) = ~27–36 hrs | After Phase 3 complete |
 
@@ -354,7 +367,7 @@ Full DDL drafted; key points:
 - All **23 columns** per spec §4.2 (revised 2026-05-31: added `tags text[]` per scope amendment).
 - Default value `state_lsl` on `scheme`.
 - `tags` defaults to `'{}'::text[]` (empty array, not NULL — simpler for downstream `&&` / `@>` queries).
-- GIN index on `tags`: `CREATE INDEX employees_tags_gin_idx ON public.employees USING GIN (tags);`. Enables fast tag-filter queries from E5.5 liability reports.
+- **GIN index on `tags` lives here in Migration 2** (refined 2026-05-31 per PR #94 review Q1): `CREATE INDEX employees_tags_gin_idx ON public.employees USING GIN (tags);`. Enables fast tag-filter queries from E5.5 liability reports. Migration 7 does NOT redeclare it.
 - CHECK on `tags` element validity is enforced at service layer (Phase 2) rather than DB — DB ensures the array exists, service ensures every element references a `tags.name` row for the same `org_id`.
 - CHECK constraint on `scheme` whitelisting valid values (writes only `state_lsl` in v1; CHECK permits future codes for AC-EMP-11 forward-compat).
 - CHECK on `employment_type IN ('full_time','part_time','casual','salaried','hourly')`.
@@ -440,16 +453,19 @@ SELECT cron.schedule(
 
 Storage bucket creation + RLS policies. Implementation uses the `storage.buckets` and `storage.objects` Supabase tables.
 
-**Migration 7 — `create_tags_dictionary`** *(added 2026-05-31 — v1 scope amendment per OQ-LIA-1)*
+**Migration 7 — `create_tags_dictionary`** *(added 2026-05-31 — v1 scope amendment per OQ-LIA-1; refined 2026-05-31 per PR #94 review Q1 + Q5)*
 
 Creates the org-scoped `tags` dictionary table referenced by `employees.tags`, plus the cascade triggers for rename / hard-delete behaviour described in masterfile sub-spec §4.4.
+
+**Index ownership (Q1, 2026-05-31):** the GIN index on `employees.tags` is created in **Migration 2** (it lives with the column it indexes — conventional; Migration 2 is where the column is created). Migration 7 does NOT redeclare it. The earlier amend-log claim that the GIN index "lives in this migration, references column from Migration 2" was a defect — leaving it in both would fail the second one with a duplicate-index error.
+
+**`usage_count_cached` dropped (Q5, 2026-05-31):** the prior amend included a denormalised `usage_count_cached` column on `tags` plus a maintenance trigger on `employees.tags` writes. PR #94 review surfaced that the maintenance trigger would fire 5k times on a 5k-employee bulk import, doing UPDATE-with-WHERE against the same small handful of `tags` rows — row-lock contention would perf-cliff. **Resolution: drop the cache.** Compute usage counts on demand for the org-settings tag-edit page via `cardinality(employees.tags)` (a low-traffic interactive page; trade a sub-second render-time cost for zero maintenance overhead). No counter trigger ships in Migration 7.
 
 ```sql
 CREATE TABLE public.tags (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id uuid NOT NULL REFERENCES public.organisations(id) ON DELETE CASCADE,
   name text NOT NULL,
-  usage_count_cached integer NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
   created_by uuid NOT NULL REFERENCES auth.users(id),
   CONSTRAINT tags_name_unique_per_org UNIQUE (org_id, name),
@@ -507,12 +523,13 @@ CREATE TRIGGER tg_cascade_tag_delete_on_tags
 BEFORE DELETE ON public.tags
 FOR EACH ROW EXECUTE FUNCTION public.tg_cascade_tag_delete();
 
--- `usage_count_cached` is maintained by a counter trigger on `employees.tags`
--- writes (drafted at migration-write time; one INSERT/UPDATE/DELETE trigger
--- that compares OLD vs NEW tags arrays and adjusts cached counts).
+-- NO `usage_count_cached` column and NO maintenance trigger (Q5 resolution
+-- 2026-05-31). Tag usage counts are computed on demand for the org-settings
+-- tag-edit page via `cardinality(employees.tags)` — low-traffic interactive
+-- surface, avoids row-lock contention on bulk imports.
 
 COMMENT ON TABLE public.tags IS
-  'E5.2 scope amendment 2026-05-29 — per E5.5 OQ-LIA-1 resolution. Org-scoped tag dictionary; referenced by employees.tags.';
+  'E5.2 scope amendment 2026-05-29 — per E5.5 OQ-LIA-1 resolution. Org-scoped tag dictionary; referenced by employees.tags. GIN index on employees.tags lives in Migration 2. No denormalised usage counter (computed on demand via cardinality()).';
 ```
 
 ### 3.2 Phase 1 verification
@@ -551,7 +568,7 @@ Files under `website/src/lib/data/employee/`:
 
 ## 5. Phase 3 — Server actions / route handlers
 
-Files under `website/src/app/(authed)/api/`:
+Files under `website/src/app/app/api/` (revised 2026-05-31 per PR #94 review Q6a — codebase convention post-E5.1 Phase 6 uses a non-grouped `/app/...` segment, not a `(authed)` route group; verified against `website/src/app/app/{login,logout,verify-email,forgot-password,reset-password,signup}` and `docs/learnings/E5.1-phase-6-deployment-gotchas.md`):
 
 | Route / action | Method | Service called |
 |---|---|---|
@@ -576,16 +593,18 @@ Files under `website/src/app/(authed)/api/`:
 
 **E6.2 ✅ SHIPPED 2026-05-30.** The `[GATED-E6.2]` annotation in the original tasks.md has been refreshed to `[E6.2-cleared]` — historical context preserved, signal flipped. Phase 4 may start once Phase 3 (route handlers + integration tests) is complete.
 
+**Route convention (revised 2026-05-31 per PR #94 review Q6a).** All Phase 4 routes live under `website/src/app/app/...` — the non-grouped `app/` segment that E5.1 Phase 6 established as the convention. Earlier drafts of this plan used a `(authed)` route group; that group does not exist in the codebase and the references have been corrected to `/app/...` everywhere below. URLs end up identical to the public segment-style path (e.g. `/app/setup`, `/app/employees`).
+
 UI surfaces:
 
-1. **Customer-setup wizard** at `/(authed)/setup` — captures the 5 organisations.* fields. Forces completion on first login when fields are unset (gated by middleware).
-2. **Employee list** at `/(authed)/employees` — `@tanstack/react-table` + `@tanstack/react-virtual`. Columns: external ID, full name, start date, end date, employment type, pay frequency, jurisdiction, **tags chips** (added 2026-05-31), archived badge. Pagination, sort, filter (archived / active / all, **tag filter**).
-3. **Employee detail / edit** at `/(authed)/employees/[id]` — fields + effective-dated history view + **tag multi-select picker** (added 2026-05-31).
-4. **CSV upload wizard** at `/(authed)/employees/import` — file pick → dry-run preview (row count, validation errors, stripped PII columns, flagged TFN values, **unknown-tag auto-create count** — added 2026-05-31) → confirm → commit. Reuses the dry-run / commit endpoints from Phase 3.
-5. **Manual single-add** at `/(authed)/employees/new` — form using the same Zod schema as the service layer.
+1. **Customer-setup wizard** at `/app/setup` — captures the 5 organisations.* fields. Forces completion on first login when fields are unset (gated by middleware).
+2. **Employee list** at `/app/employees` — `@tanstack/react-table` + `@tanstack/react-virtual`. Columns: external ID, full name, start date, end date, employment type, pay frequency, jurisdiction, **tags chips** (added 2026-05-31), archived badge. Pagination, sort, filter (archived / active / all, **tag filter**).
+3. **Employee detail / edit** at `/app/employees/[id]` — fields + effective-dated history view + **tag multi-select picker** (added 2026-05-31).
+4. **CSV upload wizard** at `/app/employees/import` — file pick → dry-run preview (row count, validation errors, stripped PII columns, flagged TFN values, **unknown-tag auto-create count** — added 2026-05-31) → confirm → commit. Reuses the dry-run / commit endpoints from Phase 3.
+5. **Manual single-add** at `/app/employees/new` — form using the same Zod schema as the service layer.
 6. **Archive / reactivate** controls on the list and detail pages.
 7. **Opening-balance setup wizard** — accessible from each employee row when an opening balance is missing or has been flagged for review.
-8. **Org-settings tag-edit page** (added 2026-05-31) at `/(authed)/settings/tags` — lists every tag in the org's dictionary with usage count; rename (cascade preview before commit); hard-delete (impact preview listing affected employees before commit).
+8. **Org-settings tag-edit page** (added 2026-05-31) at `/app/settings/tags` — lists every tag in the org's dictionary with usage count (computed on demand via `cardinality(employees.tags)` per Q5 resolution); rename (cascade preview before commit); hard-delete (impact preview listing affected employees before commit).
 
 **Why E6.2 was the gate (now cleared).** The design tokens, layout primitives, form components, table styling, and (now) tag-chip + multi-select picker variants that the above eight surfaces depend on are E6.2's deliverable. **E6.2 ✅ SHIPPED 2026-05-30** — design tokens live in `website/src/app/globals.css` (Tailwind v4 CSS-first per PR #58); core components (Button, Input, Table, Tabs, Dialog, Badge, Alert, Card, Tooltip, Accordion, Sonner Toast) are brand-styled per PR #61/63/64/66/79/80/81/82/84. Phase 4 can now ship against shipped tokens + components — no rewrite risk.
 
@@ -603,7 +622,7 @@ Spec §9 already enumerates RE-1 through RE-6. Additional impl-plan risks:
 | IM-4 | `employee_history` EXCLUDE constraint produces opaque Postgres error messages. | Low | Service layer catches `23P01` (exclusion violation) and translates to a typed `ServiceError` with the conflicting effective-date range surfaced. |
 | IM-5 | Service-role-key surface expands accidentally during route-handler implementation. | Med | Hard rule in `website/AGENTS.md` already documented. Code review checklist line item: "Did any new route handler import `service.ts` or use `SUPABASE_SERVICE_ROLE_KEY`?" If yes, justify. |
 | IM-6 | ~~E6.2 design system slips, blocking Phase 4 indefinitely.~~ **RESOLVED 2026-05-30** — E6.2 shipped. | ~~Med~~ → closed | Phase 4 can ship Phase 4 work as soon as Phase 3 is complete. |
-| IM-7 *(new 2026-05-31)* | The tags v1 scope amendment expanded Phase 1 from 6 migrations to 7 and Phase 4 from 7 UI surfaces to 8. Effort delta ~3–4 hrs. | Low | Sequential — Migration 7 is independent of Migrations 1–6 (different table); tag-chips display + multi-select picker reuses E6.2 Badge + Combobox primitives. No load-bearing risk. |
+| IM-7 *(new 2026-05-31; rewritten 2026-05-31 per PR #94 review Q4)* | The tags v1 scope amendment expanded Phase 1 from 6 migrations to 7 and Phase 4 from 7 UI surfaces to 8. **Combobox / Command / Popover primitives are not yet in E6.2** (verified — `cmdk` and `@radix-ui/react-popover` are not in `website/package.json`; no `combobox.tsx` / `command.tsx` / `popover.tsx` in `website/src/components/ui/`). Tag-chip display reuses the shipped E6.2 Badge primitive, but the multi-select picker (Task 4.9b) and tag-filter Combobox (Task 4.10) BOTH depend on a new Combobox primitive. **Operator decision 2026-05-31:** the Combobox primitive wave is being added to E6.2 as a follow-up task — see `.specify/features/006-ui-design-system/tasks.md` (new task in Phase 2, post Task 2.10b / 2.11). E5.2 Phase 4 cannot start until that E6.2 wave lands. | Med | Sequential — Migration 7 is independent of Migrations 1–6 (different table). Phase 4 Tasks 4.9b + 4.10 carry an explicit Blocked-by note pointing at the new E6.2 task. Phases 0–3 are unaffected. Operator landed both PRs (this amend + the E6.2 Combobox task addition) together on 2026-05-31. |
 | IM-8 *(new 2026-05-31)* | New `'use server'` code added in Phase 4 silently breaks production deployment (Next.js 16 export constraint, surfaced in E5.1 Phase 6 incident). | High | Mandatory `docs/learnings/E5.1-phase-6-deployment-gotchas.md` reading before authoring any server action. `npm run build` MUST be run locally before opening a Phase 4 PR. Production-failure pattern is well-understood — three hotfix PRs (#68/#69/#70) document the exact failure modes. |
 
 ---
@@ -630,12 +649,14 @@ These are deferred to the operator and do not block Phase 0 / 1 start. Most have
 |---|---|---|---|
 | Phase 0 (spike + ratification) | S | 1–2 | — |
 | Phase 1 (DB — 7 migrations incl. `tags`) | L+ | 14–18 | After Phase 0 |
-| Phase 2 (services — incl. tags CSV parser path) | L | 16–20 | After Phase 1 |
+| Phase 2 (services — incl. tags service + tags CSV parser path) | L | 19–24 | After Phase 1 |
 | Phase 3 (routes + integration tests) | M | 8–12 | After Phase 2 |
-| Phase 4 (UI — 8 surfaces incl. tag picker + tag-edit page) | XL+ | 27–36 | After Phase 3 (E6.2 ✅ cleared 2026-05-30) |
-| **Total (revised 2026-05-31)** | — | **66–88 hrs** | ≈ 8–11 working days |
+| Phase 4 (UI — 8 surfaces incl. tag picker + tag-edit page) | XL+ | 27–36 | After Phase 3 (E6.2 ✅ cleared 2026-05-30; Combobox primitive wave in E6.2 follow-up) |
+| **Total (revised 2026-05-31 — recalibrated per PR #94 review Q3)** | — | **70–95 hrs** | ≈ 9–12 working days |
 
-**Backend-only (Phases 0–3)** = **37–50 hrs** (≈ 5–6 working days). Authorisable to start immediately.
+**Backend-only (Phases 0–3)** = **42–56 hrs** (≈ 5–7 working days). Authorisable to start immediately.
+
+**Note on the Phase 2 delta (Q3 recalibration 2026-05-31):** the prior estimate left Phase 2 unchanged at 16–20 hrs despite adding Task 2.8b (M = 2–4 hrs for the new tags service) AND bumping Task 2.4 M → L (~+2 hrs for the CSV `tags` column parsing path + 5 new test cases). The +3–4 hr realistic delta lifts Phase 2 to 19–24 hrs, which lifts the project total accordingly.
 
 ---
 
@@ -644,9 +665,23 @@ These are deferred to the operator and do not block Phase 0 / 1 start. Most have
 **Operator authorise Phase 0** (1–2 hrs):
 1. Run Task 0.1 spike against real-world payroll exports.
 2. Confirm the dev-finding default resolutions (DEV-EMP-1 through DEV-EMP-6).
-3. Sign off on Phase 1 migration plan.
+3. Sign off on Phase 1 migration plan (now amended per PR #94 review Q1 — GIN index in Migration 2 only; Q5 — no `usage_count_cached` column or maintenance trigger).
 
-Then **Phase 1 starts the same day** as Phase 0 completes.
+Then **Phase 1 starts the same day** as Phase 0 completes. Phase 2 starts after Phase 1 PR merges. Phase 3 starts after Phase 2 PR merges.
+
+**Phase 4 gating (added 2026-05-31 per PR #94 review Q4):** Phase 4 is gated on TWO conditions: (a) Phase 3 PR merged, AND (b) the new E6.2 Combobox / Command / Popover primitive wave merged (see `.specify/features/006-ui-design-system/tasks.md` Task 2.12). The PR carrying this amend (E5.2 plan amends 2026-05-31) and the PR carrying the E6.2 Combobox task land in parallel; both must merge before Phase 4 work can start.
+
+**Sequencing diagram (E5.2 → E6.2 cross-epic):**
+
+```
+E5.2:        Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──┐
+                                                            │
+                                                            ▼
+                                                       Phase 4 (BLOCKED until both arrows below land)
+                                                            ▲
+                                                            │
+E6.2 follow-up: Task 2.12 (Combobox primitive wave) ────────┘
+```
 
 ---
 

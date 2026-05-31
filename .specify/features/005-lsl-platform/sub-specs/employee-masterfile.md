@@ -3,7 +3,7 @@
 **Slug:** `lsl-platform-employee-masterfile`
 **Parent feature:** `005-lsl-platform` (umbrella platform spec v1.0 APPROVED 2026-05-26)
 **Sub-epic:** **E5.2 · Employee Masterfile** (with customer-setup scope folded in)
-**Status:** **Scoped — APPROVED 2026-05-27 · Scope-amendment 2026-05-29** (operator decisions captured 2026-05-27; refined 2026-05-27 with locked decisions on OQ-EMP-1 + OQ-EMP-2; **scope amended 2026-05-29 to ship `tags` in v1 per E5.5 OQ-LIA-1 resolution — see §3 in-scope + §4.2 `tags` column + §6 AC-EMP-14 + §7 OQ-LIA-1 reference**)
+**Status:** **Scoped — APPROVED 2026-05-27 · Scope-amendment 2026-05-29 · Refined 2026-05-31** (operator decisions captured 2026-05-27; refined 2026-05-27 with locked decisions on OQ-EMP-1 + OQ-EMP-2; **scope amended 2026-05-29 to ship `tags` in v1 per E5.5 OQ-LIA-1 resolution — see §3 in-scope + §4.2 `tags` column + §6 AC-EMP-14 + §7 OQ-LIA-1 reference**; **§4.4 refined 2026-05-31 per PR #94 review Q5 — `usage_count_cached` column dropped, usage counts computed on demand**)
 **Author:** Product Manager (drafted 2026-05-27 from operator scoping brief 2026-05-27; locked-decisions update 2026-05-27)
 **Owner:** Tracy Angwin (austpayroll.com.au)
 **Depends on:** **E5.1 Auth + Tenancy + DB Scaffold** (must merge first — `organisations`, `org_members`, RLS primitives must be in place). E2 all-state engines are already live (8 of 8 — shipped 2026-05-27).
@@ -181,7 +181,7 @@ Captures historical values for fields where the *value as at a past date* matter
 
 **Note:** `start_date`, `dob`, `sex`, `full_name`, `employee_external_id` are NOT effective-dated. Sex / dob are biological constants. Start date is the continuous-service anchor (changing it after-the-fact is a data-quality issue, not an effective-dated event). Name + external ID changes are operational, not engine-load-bearing.
 
-### 4.4 `tags` table — org-scoped tag dictionary (scope amendment 2026-05-29)
+### 4.4 `tags` table — org-scoped tag dictionary (scope amendment 2026-05-29; refined 2026-05-31 per PR #94 review Q5)
 
 Added by the 2026-05-29 scope amendment per E5.5 OQ-LIA-1 resolution. Provides the org-scoped dictionary that `employees.tags` values reference.
 
@@ -192,7 +192,8 @@ Added by the 2026-05-29 scope amendment per E5.5 OQ-LIA-1 resolution. Provides t
 | `name` | text | yes | Tag display name. Validation: 1–50 chars, no leading/trailing whitespace, lowercased on insert for predictable matching. **`UNIQUE (org_id, name)`** enforces no duplicates per org. |
 | `created_at` | timestamptz | yes | |
 | `created_by` | uuid (FK → `auth.users.id`) | yes | |
-| `usage_count_cached` | integer | no | Optional denormalised counter, maintained by trigger on `employees.tags` writes. Powers the org-settings tag-edit page without scanning `employees` per render. |
+
+**Usage counts (Q5 resolution 2026-05-31).** The original 2026-05-29 draft of this table included a denormalised `usage_count_cached integer` column maintained by a row-level trigger on every `employees.tags` write. PR #94 review surfaced that for a 5k-employee bulk import, the trigger would fire 5k times sequentially against the same small set of dictionary rows — row-lock contention would perf-cliff the import. **Resolution:** the column is dropped from v1. Usage counts are computed **on demand** at the org-settings tag-edit page via `cardinality(employees.tags)` (or an equivalent `unnest()` aggregate). The tag-edit page is interactive and low-traffic; a sub-second extra render cost is acceptable in exchange for zero write-time maintenance overhead.
 
 **RLS:** rows visible iff `org_id` matches an `org_members.org_id` row whose `user_id = auth.uid()`. Mutations gated by role.
 
