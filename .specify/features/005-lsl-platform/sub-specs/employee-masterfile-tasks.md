@@ -50,16 +50,16 @@ Authorisable immediately on operator sign-off. Total: **S (1–2 hrs)**.
 
 Seven migrations, sequential (revised 2026-05-31 — Migration 7 added for `tags` v1 scope amendment). RLS and trigger tests live here. **L+ (14–18 hrs)**.
 
-### Task 1.1 · Write Migration 1 — extend `organisations` for customer setup
+### Task 1.1 · Write Migration 1 — extend `organisations` for customer setup ✅ [x]
 
 - **Size:** M
 - **Cites:** Spec §4.1; AC-EMP-1
-- **File:** `website/supabase/migrations/{ts}_extend_organisations_customer_setup.sql`
+- **File:** `website/supabase/migrations/20260531112558_extend_organisations_customer_setup.sql`
 - **Adds 6 columns** (`employer_legal_name`, `employer_trading_name`, `abn`, `default_work_jurisdiction`, `default_pay_frequency`, `opening_balances_method`) + CHECK constraints per impl-plan §3.1.
 - **NOT NULL deferred** until setup wizard backfills (Phase 4).
 - **Apply via** `mcp__2ac7599f-...__apply_migration` against project `woxtujkxatosbirikxtq`.
 - **Verify via** `mcp__supabase__get_advisors` (security + performance) — zero new lints.
-- **Acceptance:** Migration applied; advisors clean; `organisations` columns visible via `mcp__supabase__list_tables`.
+- **Acceptance:** Migration applied; advisors clean; `organisations` columns visible via `mcp__supabase__list_tables`. **[x] Done 2026-05-31 on Supabase branch `e52-phase-1-employees-schema` (`pjjalownnwnikjqtjhgu`); advisors clean (zero new lints — pre-existing E5.1 INFO/WARN unchanged); CHECK constraints smoke-tested via inline DO block. Awaiting production apply.**
 
 ### Task 1.2 · Write Migration 2 — create `employees` table
 
