@@ -1,0 +1,190 @@
+name: Lighthouse CI
+
+# Phase 3b Task 4.7 — Lighthouse CI observability for `/`.
+#
+# Per impl-plan PD-2: this workflow is a NON-BLOCKING observability metric.
+# The hard a11y gate is axe-core inside the Playwright suite (Task 2.8, in
+# the `playwright` job of ci.yml). Lighthouse is here for the brand-credibility
+# score reporting required by spec §8.4 ("Lighthouse accessibility score ≥ 95
+# on `/`") — it MUST NOT gate merge.
+#
+# Two safeguards keep this non-blocking:
+#   1. `continue-on-error: true` on the job — any internal step failure is
+#      surfaced but does not fail the workflow.
+#   2. Lighthouse assertion in `website/lighthouserc.json` is set to `warn`
+#      level (not `error`) for the accessibility category. A score under 95
+#      shows up in logs as a warning but does NOT exit non-zero.
+#
+# Score reporting: lhci autorun uploads to Google's temporary-public-storage
+# (no auth, results expire after 7 days). The "Post Lighthouse summary to PR"
+# step parses the local `.lighthouseci/manifest.json` + uploaded-report URL
+# and writes a comment to the PR with category scores + a link to the full
+# report. This is a one-shot upsert keyed on a marker comment line — re-runs
+# update the existing comment rather than spamming new ones.
+
+on:
+  pull_request:
+    branches: [main]
+  # Manual re-fire for the same reason ci.yml has workflow_dispatch — if the
+  # pull_request:synchronize webhook misses (rare but documented), Actions
+  # tab → "Run workflow" lets us re-trigger against any ref.
+  workflow_dispatch:
+
+# Cancel in-flight runs on the same ref when new commits arrive — Lighthouse
+# is the slowest job (~3 min for build + start + 3 runs), so this matters.
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Lighthouse · accessibility ≥ 95 on `/` (non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Belt-and-braces: even if every step inside this job errors, the workflow
+    # outcome stays neutral and never blocks the PR. See PD-2.
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: website
+    # `pull-requests: write` is required for the final step to post a PR
+    # comment with the score summary. `contents: read` is the standard
+    # checkout permission.
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        # Lighthouse measures the production build, not `next dev` — dev mode
+        # carries the React DevTools overlay + unoptimised bundles, which
+        # would skew every score.
+        run: npm run build
+
+      - name: Run Lighthouse CI (autorun)
+        id: lhci
+        # `lhci autorun` reads website/lighthouserc.json, boots `npm run
+        # start` per the `startServerCommand`, waits for the
+        # `startServerReadyPattern`, takes 3 runs against `/`, runs the
+        # assertion config (warn-only — see lighthouserc.json), then uploads
+        # to temporary-public-storage.
+        #
+        # Force a zero exit code regardless of assertion warnings — defence
+        # in depth against any future change to the rc file that turns a
+        # warn into an error. Combined with continue-on-error on the job,
+        # this guarantees the workflow never blocks a merge.
+        run: npx --yes @lhci/cli@0.15.x autorun || true
+
+      - name: Post Lighthouse summary to PR
+        # Parses the local lhci manifest, extracts the median run's category
+        # scores + the public report URL, and upserts a single PR comment.
+        # Uses the marker line "<!-- lighthouse-ci-summary -->" to find a
+        # prior comment and replace its body rather than spamming new ones.
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const lhciDir = path.join('website', '.lighthouseci');
+            if (!fs.existsSync(lhciDir)) {
+              core.warning('No .lighthouseci directory found — lhci autorun likely failed. Skipping PR comment.');
+              return;
+            }
+
+            // The manifest enumerates all runs + the upload URL per run.
+            const manifestPath = path.join(lhciDir, 'manifest.json');
+            if (!fs.existsSync(manifestPath)) {
+              core.warning('No manifest.json found in .lighthouseci — skipping PR comment.');
+              return;
+            }
+
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            // Pick the run lhci marked as representative (median). Falls back
+            // to the first run if no isRepresentativeRun flag.
+            const repr = manifest.find((m) => m.isRepresentativeRun) || manifest[0];
+            if (!repr) {
+              core.warning('Manifest is empty — skipping PR comment.');
+              return;
+            }
+
+            const reportPath = path.join('website', repr.jsonPath);
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            const cats = report.categories || {};
+            const fmt = (c) => c && typeof c.score === 'number' ? Math.round(c.score * 100) : 'n/a';
+
+            const a11y = fmt(cats.accessibility);
+            const perf = fmt(cats.performance);
+            const best = fmt(cats['best-practices']);
+            const seo = fmt(cats.seo);
+
+            const url = repr.url || 'http://localhost:3000/';
+            const publicUrl = repr.htmlPath ? `(local: \`${repr.htmlPath}\`)` : '';
+            // Public report URL — lhci writes it to links.json after upload.
+            const linksPath = path.join(lhciDir, 'links.json');
+            let publicReport = '';
+            if (fs.existsSync(linksPath)) {
+              const links = JSON.parse(fs.readFileSync(linksPath, 'utf8'));
+              const firstUrl = Object.values(links)[0];
+              if (firstUrl) publicReport = `\n\nFull report: ${firstUrl}`;
+            }
+
+            const a11yEmoji = a11y >= 95 ? '✅' : '⚠️';
+
+            const body = [
+              '<!-- lighthouse-ci-summary -->',
+              '### Lighthouse CI — `/` (non-blocking observability)',
+              '',
+              '| Category | Score |',
+              '|---|---|',
+              `| Accessibility | ${a11yEmoji} **${a11y}** / 100 (target ≥ 95) |`,
+              `| Performance | ${perf} / 100 |`,
+              `| Best Practices | ${best} / 100 |`,
+              `| SEO | ${seo} / 100 |`,
+              '',
+              `URL tested: \`${url}\` ${publicUrl}`.trim(),
+              publicReport,
+              '',
+              '_Per impl-plan PD-2: Lighthouse is an observability metric only. The hard a11y gate is axe-core inside the Playwright suite — this score does NOT block merge._',
+            ].join('\n');
+
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            // Upsert the comment — find prior summary by marker line and
+            // edit its body, else create a new one.
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number: prNumber, per_page: 100,
+            });
+            const marker = '<!-- lighthouse-ci-summary -->';
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+              core.info(`Updated Lighthouse summary comment #${existing.id}.`);
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
+              core.info('Created new Lighthouse summary comment.');
+            }
+
+      - name: Upload lhci artifacts on failure
+        # Keep the raw lhci output around for debugging when something
+        # in the autorun pipeline breaks (server boot, chromium crash, etc).
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-ci-output
+          path: website/.lighthouseci/
+          retention-days: 7

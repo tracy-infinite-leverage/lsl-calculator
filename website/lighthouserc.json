@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/GoogleChrome/lighthouse-ci/main/docs/configuration.md",
+  "ci": {
+    "collect": {
+      "url": ["http://localhost:3000/"],
+      "numberOfRuns": 3,
+      "startServerCommand": "npm run start",
+      "startServerReadyPattern": "Ready in|started server on|Local:",
+      "startServerReadyTimeout": 60000,
+      "settings": {
+        "preset": "desktop",
+        "onlyCategories": ["accessibility", "performance", "best-practices", "seo"],
+        "chromeFlags": "--no-sandbox --headless=new"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": ["warn", { "minScore": 0.95 }],
+        "categories:performance": "off",
+        "categories:best-practices": "off",
+        "categories:seo": "off"
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}
