@@ -3,7 +3,7 @@
 **Spec:** `.specify/features/005-lsl-platform/sub-specs/employee-masterfile.md`
 **Impl plan:** `.specify/features/005-lsl-platform/sub-specs/employee-masterfile-impl-plan.md`
 **Branch (planning):** `feat/E5.2-employee-masterfile-plan-rebased` (supersedes the stale `feat/E5.2-employee-masterfile-plan`; do not commit downstream code; operator reviews this plan first)
-**Status:** **DRAFT — rebased + amended 2026-05-31** (original 2026-05-28; rebased onto post-E5.1-Phase-6 + post-E6.2 main; amended for `tags` v1 column per OQ-LIA-1 resolution; E6.2 gate cleared)
+**Status:** **DRAFT — rebased + amended 2026-05-31; follow-up amend 2026-05-31 per PR #94 review** (original 2026-05-28; rebased onto post-E5.1-Phase-6 + post-E6.2 main; amended for `tags` v1 column per OQ-LIA-1 resolution; E6.2 gate cleared; PR #94 review Q1/Q3/Q4/Q5/Q6a/Q6b resolved)
 
 ---
 
@@ -48,7 +48,7 @@ Authorisable immediately on operator sign-off. Total: **S (1–2 hrs)**.
 
 ## Phase 1 — Database layer
 
-Six migrations, sequential. RLS and trigger tests live here. **L (12–16 hrs)**.
+Seven migrations, sequential (revised 2026-05-31 — Migration 7 added for `tags` v1 scope amendment). RLS and trigger tests live here. **L+ (14–18 hrs)**.
 
 ### Task 1.1 · Write Migration 1 — extend `organisations` for customer setup
 
@@ -108,7 +108,7 @@ Six migrations, sequential. RLS and trigger tests live here. **L (12–16 hrs)**
 - **Size:** M
 - **Cites:** Spec §4.4 (tags dictionary table); AC-EMP-14; OQ-LIA-1 resolution; E5.5 dependency
 - **File:** `website/supabase/migrations/{ts}_create_tags_dictionary.sql`
-- **Implements:** `public.tags` table (id, org_id, name, usage_count_cached, created_at, created_by; `UNIQUE (org_id, name)`; CHECK on name format — 1–50 chars, trimmed, lowercased). GIN index on `employees.tags` (added in this migration, references column from Migration 2). RLS policies on `public.tags` matching org_id pivot. Cascade triggers: `tg_cascade_tag_rename` (AFTER UPDATE OF name on tags → array_replace on every employees.tags), `tg_cascade_tag_delete` (BEFORE DELETE on tags → array_remove on every employees.tags). `usage_count_cached` maintenance trigger on `employees.tags` writes.
+- **Implements:** `public.tags` table (id, org_id, name, created_at, created_by; `UNIQUE (org_id, name)`; CHECK on name format — 1–50 chars, trimmed, lowercased). RLS policies on `public.tags` matching org_id pivot. Cascade triggers: `tg_cascade_tag_rename` (AFTER UPDATE OF name on tags → array_replace on every employees.tags), `tg_cascade_tag_delete` (BEFORE DELETE on tags → array_remove on every employees.tags). **The GIN index on `employees.tags` lives in Migration 2** (it lives with the column it indexes — conventional; Migration 2 is where the column is created). Migration 7 does NOT redeclare it. **`usage_count_cached` column is NOT included** (dropped 2026-05-31 per PR #94 review Q5 — usage counts are computed on demand via `cardinality(employees.tags)` for the org-settings tag-edit page, avoiding row-lock contention from a maintenance trigger during bulk imports).
 - **Acceptance:** Migration applied; `mcp__supabase__list_tables` shows `tags`; advisors clean; manual smoke test of cascade triggers (insert tag → attach to 2 employees → rename → verify employees reflect rename → delete → verify employees no longer carry it) passes.
 
 ### Task 1.7 · Integration test — retention cascade end-to-end
@@ -213,13 +213,14 @@ Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 - **Implementation:** `reconcileOpeningBalance(csvValue, wizardValue)`.
 - **Acceptance:** Tests pass; AC-EMP-12 verified at unit level.
 
-### Task 2.8b · Tags dictionary service — `tags.ts` + tests (TDD) *(added 2026-05-31 — v1 scope amendment)*
+### Task 2.8b · Tags dictionary service — `tags.ts` + tests (TDD) *(added 2026-05-31 — v1 scope amendment; refined 2026-05-31 per PR #94 review Q5)*
 
 - **Size:** M
 - **Cites:** Spec §4.4; AC-EMP-14; OQ-LIA-1 resolution
-- **Test first** (`tags.test.ts`): (a) create tag — succeeds + dictionary row present; (b) create duplicate within org — fails with `duplicate_tag_name` ServiceError; (c) create same name in different org — succeeds (RLS-isolated); (d) rename tag — verify cascade trigger updated all referencing `employees.tags` arrays; (e) hard-delete tag — verify cascade trigger removed it from all `employees.tags` arrays; (f) list tags for org — returns sorted-by-name with `usage_count_cached`; (g) bulk-create-from-import — accepts an array of names + an `import_audit_log_id`, auto-creates absent names, returns the canonical id-by-name map.
-- **Implementation:** `tags.ts` exports `createTag(orgId, name, userId)`, `renameTag(orgId, tagId, newName, userId)`, `deleteTag(orgId, tagId, userId)`, `listTags(orgId)`, `bulkCreateFromImport(orgId, names, userId, importAuditLogId)`. The bulk path is called by Task 2.4's CSV parser when it encounters unknown tags in a `tags` CSV column.
-- **Acceptance:** Tests pass; AC-EMP-14 cascade behaviour verified at integration level (Task 1.6b smoke).
+- **Test first** (`tags.test.ts`): (a) create tag — succeeds + dictionary row present; (b) create duplicate within org — fails with `duplicate_tag_name` ServiceError; (c) create same name in different org — succeeds (RLS-isolated); (d) rename tag — verify cascade trigger updated all referencing `employees.tags` arrays; (e) hard-delete tag — verify cascade trigger removed it from all `employees.tags` arrays; (f) list tags for org — returns sorted-by-name **with usage counts computed on demand via `cardinality(employees.tags)`** (Q5 resolution 2026-05-31 — no denormalised cache); (g) bulk-create-from-import — accepts an array of names + an `import_audit_log_id`, auto-creates absent names, returns the canonical id-by-name map.
+- **Implementation:** `tags.ts` exports `createTag(orgId, name, userId)`, `renameTag(orgId, tagId, newName, userId)`, `deleteTag(orgId, tagId, userId)`, `listTags(orgId)` — the list path joins `tags` with an aggregate over `employees.tags` using `cardinality()` / `unnest()` to compute per-tag usage counts at query time, and `bulkCreateFromImport(orgId, names, userId, importAuditLogId)`. The bulk path is called by Task 2.4's CSV parser when it encounters unknown tags in a `tags` CSV column.
+- **Note on the dropped `usage_count_cached` (Q5, 2026-05-31):** the prior amend specified a denormalised counter column maintained by a row-level trigger on every `employees.tags` write. PR #94 review surfaced row-lock contention against `tags` rows on a 5k-employee bulk import. Resolution: drop the cache; compute counts on demand at the org-settings tag-edit page (low-traffic, sub-second cost acceptable). The bulk import path no longer touches `tags` rows during the row-write loop.
+- **Acceptance:** Tests pass; AC-EMP-14 cascade behaviour verified at integration level (Task 1.6b smoke); list-tags usage counts match `cardinality(employees.tags)` ground truth.
 
 ### Task 2.9 · Phase 2 verification gate
 
@@ -233,7 +234,7 @@ Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 
 Thin wrappers around Phase 2. Integration tests against a Supabase branch. **M (8–12 hrs)**.
 
-### Task 3.1 · Route handlers under `website/src/app/(authed)/api/`
+### Task 3.1 · Route handlers under `website/src/app/app/api/` *(path corrected 2026-05-31 per PR #94 review Q6a — codebase convention is `/app/...`, not `(authed)`)*
 
 - **Size:** L
 - **Cites:** Impl-plan §5
@@ -245,7 +246,7 @@ Thin wrappers around Phase 2. Integration tests against a Supabase branch. **M (
 
 - **Size:** L
 - **Cites:** AC-EMP-1 through AC-EMP-13 end-to-end (route-level coverage)
-- **File:** `website/src/app/(authed)/api/**/__tests__/*.integration.test.ts`
+- **File:** `website/src/app/app/api/**/__tests__/*.integration.test.ts`
 - **Test fixture:** Single Supabase branch created at suite start, two orgs, two users seeded. All AC tests run against this branch. Branch deleted at suite end.
 - **AC-EMP-9 verification (cross-tenant RLS via real HTTP)** lives here in addition to Task 1.8 (which verifies at DB level).
 - **AC-EMP-12 (opening-balance reconciliation paired test)** lives here in addition to Task 2.8 (which verifies at unit level).
@@ -271,35 +272,35 @@ Thin wrappers around Phase 2. Integration tests against a Supabase branch. **M (
 
 **Previously gated on E6.2.** **E6.2 ✅ SHIPPED 2026-05-30** — design system tokens (Tailwind v4 CSS-first, PR #58) + core component variants (Button/Input/Table/Tabs/Dialog/Badge/Alert/Card/Tooltip/Accordion/Sonner Toast — PR #61/63/64/66/79/80/81/82/84) are on main. Every task below carries the `[E6.2-cleared]` marker (historical context preserved). The total Phase 4 effort with the tags scope amendment is **XL+ (27–36 hrs)** — 8 surfaces incl. tag multi-select picker (Task 4.3 / 4.4) and the new org-settings tag-edit page (Task 4.10 — added 2026-05-31).
 
-### Task 4.1 [E6.2-cleared] · Customer-setup wizard at `/(authed)/setup`
+### Task 4.1 [E6.2-cleared] · Customer-setup wizard at `/app/setup`
 
 - **Size:** M
 - **Cites:** AC-EMP-1
 - **Implements:** 5-field form (employer legal name, ABN, default work jurisdiction, default pay frequency, optional trading name). Uses Zod schema from Task 2.5. Forces completion on first login (middleware redirect when required fields are NULL on the org row).
 - **Acceptance:** AC-EMP-1 verified end-to-end via Playwright.
 
-### Task 4.2 [E6.2-cleared] · Employee list at `/(authed)/employees`
+### Task 4.2 [E6.2-cleared] · Employee list at `/app/employees`
 
 - **Size:** L
 - **Cites:** Spec §3 in-scope
 - **Implements:** `@tanstack/react-table` + `@tanstack/react-virtual` (already in deps). Columns per impl-plan §6. Pagination, sort, filter (archived / active / all).
 - **Acceptance:** List renders 1,000+ rows without jank; filters work.
 
-### Task 4.3 [E6.2-cleared] · Manual single-employee add at `/(authed)/employees/new`
+### Task 4.3 [E6.2-cleared] · Manual single-employee add at `/app/employees/new`
 
 - **Size:** M
 - **Cites:** AC-EMP-3
 - **Implements:** Form using the same Zod schema as `createEmployee` service. Shows helper text for the DEV-EMP-1 mapping caveats (`salaried` → engine `full_time`, `hourly` → engine `casual`).
 - **Acceptance:** AC-EMP-3 verified via Playwright.
 
-### Task 4.4 [E6.2-cleared] · Employee detail / edit + effective-dated history view at `/(authed)/employees/[id]`
+### Task 4.4 [E6.2-cleared] · Employee detail / edit + effective-dated history view at `/app/employees/[id]`
 
 - **Size:** L
 - **Cites:** AC-EMP-5
 - **Implements:** Field edit (history-aware — surfaces "this will create a history segment" when an effective-dated field changes). History panel listing prior segments. Archive / reactivate controls.
 - **Acceptance:** AC-EMP-5, AC-EMP-6 verified via Playwright.
 
-### Task 4.5 [E6.2-cleared] · CSV upload wizard at `/(authed)/employees/import`
+### Task 4.5 [E6.2-cleared] · CSV upload wizard at `/app/employees/import`
 
 - **Size:** XL
 - **Cites:** AC-EMP-2, AC-EMP-4, AC-EMP-7, AC-EMP-10
@@ -327,18 +328,20 @@ Thin wrappers around Phase 2. Integration tests against a Supabase branch. **M (
 - **Implements:** Axe-core checks on every Phase 4 page; responsive checks at standard breakpoints; keyboard-only flow tested for the upload wizard.
 - **Acceptance:** Zero axe violations; documented in QA sign-off.
 
-### Task 4.9b [E6.2-cleared] · Org-settings tag-edit page at `/(authed)/settings/tags` *(added 2026-05-31 — v1 scope amendment)*
+### Task 4.9b [E6.2-cleared] · Org-settings tag-edit page at `/app/settings/tags` *(added 2026-05-31 — v1 scope amendment)*
 
 - **Size:** M
 - **Cites:** Spec §4.4; AC-EMP-14
-- **Implements:** A `/app/settings/tags` route listing every tag in the org's dictionary with `usage_count_cached` badge per row. Two row actions: (a) **rename** — opens a Dialog (E6.2 brand variant) with new-name input + a preview of affected employees (top 10 + total count); on confirm, calls Task 2.8b's `renameTag` service; surface Sonner Toast on success. (b) **delete** — opens a Dialog with affected-employees preview; explicit type-name-to-confirm gate; on confirm, calls `deleteTag` service; Toast on success. Page uses E6.2 Table + Badge + Dialog primitives.
-- **Acceptance:** AC-EMP-14 cascade behaviour verifiable via this UI (axe-clean); manual smoke test passes; Playwright happy-path covers rename + delete.
+- **Blocked-by (added 2026-05-31 per PR #94 review Q4):** E6.2 follow-up Combobox / Command / Popover primitive wave (see `.specify/features/006-ui-design-system/tasks.md` Task 2.12). The rename Dialog's tag-name input is a plain Input, but the affected-employees preview uses a Combobox-style searchable list. Cannot start this task until the E6.2 primitive wave lands.
+- **Implements:** A `/app/settings/tags` route listing every tag in the org's dictionary with **usage count badge per row computed on demand via `cardinality(employees.tags)`** (Q5 resolution 2026-05-31 — no denormalised cache; the org-settings page reads tag counts via a view or service-layer aggregate at render time). Two row actions: (a) **rename** — opens a Dialog (E6.2 brand variant) with new-name input + a preview of affected employees (top 10 + total count); on confirm, calls Task 2.8b's `renameTag` service; surface Sonner Toast on success. (b) **delete** — opens a Dialog with affected-employees preview; explicit type-name-to-confirm gate; on confirm, calls `deleteTag` service; Toast on success. Page uses E6.2 Table + Badge + Dialog primitives.
+- **Acceptance:** AC-EMP-14 cascade behaviour verifiable via this UI (axe-clean); manual smoke test passes; Playwright happy-path covers rename + delete; usage counts match `cardinality(employees.tags)` ground truth.
 
 ### Task 4.10 [E6.2-cleared] · Employee tags filter + chip display on list page *(added 2026-05-31 — v1 scope amendment)*
 
-- **Size:** S
+- **Size:** S (filter integration only — the Combobox primitive itself is ~L of work, now owned by the E6.2 follow-up wave)
 - **Cites:** Spec §4.2 (tags column); AC-EMP-14; E5.5 OQ-LIA-1 dependency
-- **Implements:** Tag-filter Combobox above the employee list (multi-select from the org's dictionary, AND semantics default per E5.5 OQ-LIA-3). Each employee row renders their tags as Badge chips (E6.2 brand variant) — overflow handled with "+N more" tooltip when > 3 tags. Filter state mirrored to URL query params for shareable links.
+- **Blocked-by (added 2026-05-31 per PR #94 review Q4):** E6.2 follow-up Combobox / Command / Popover primitive wave (see `.specify/features/006-ui-design-system/tasks.md` Task 2.12). The original 2026-05-31 amend silently assumed Combobox was already in E6.2; it was not. Operator decision 2026-05-31 — Combobox primitives ship as an E6.2 follow-up, not inside this S-sized task. Cannot start this task until that E6.2 task lands.
+- **Implements:** Tag-filter Combobox above the employee list (multi-select from the org's dictionary, AND semantics default per E5.5 OQ-LIA-3) — **consumes** the E6.2 Combobox primitive; does NOT build it. Each employee row renders their tags as Badge chips (E6.2 brand variant — already shipped) — overflow handled with "+N more" Tooltip (E6.2 brand variant — already shipped) when > 3 tags. Filter state mirrored to URL query params for shareable links.
 - **Acceptance:** Filter narrows the list as expected; chips render axe-clean; deep-linking from URL works.
 
 ### Task 4.9 [E6.2-cleared] · Phase 4 verification gate + PR
@@ -361,12 +364,15 @@ Phase 0 ──► Phase 1 (1.1 → 1.2 → 1.3 → 1.4 → 1.5 → 1.6 → 1.6b 
             Phase 3 (3.1 → 3.2 → 3.3 → 3.4)
                 │
                 ▼
-       ┌────────┴────────┐
-       │                 │
-   merge to main    E6.2 ✅ cleared 2026-05-30 (gate open)
-                         │
-                         ▼
+       ┌────────┴────────┬─────────────────────────────────────────┐
+       │                 │                                         │
+   merge to main    E6.2 ✅ cleared 2026-05-30 (gate open)    E6.2 follow-up Combobox wave
+                                                              (006-ui-design-system Task 2.12)
+                                                              MUST be merged for Tasks 4.9b + 4.10
+                                                                       │
+                                                                       ▼
                      Phase 4 (4.1 [P] · 4.2 [P] · 4.3 [P] · 4.4 · 4.5 · 4.6 · 4.7 · 4.8 · 4.9b · 4.10 · 4.9)
+                                  └─ Tasks 4.9b + 4.10 specifically blocked on the Combobox wave (added 2026-05-31 per PR #94 review Q4)
 ```
 
 ---
@@ -393,18 +399,20 @@ Phase 0 ──► Phase 1 (1.1 → 1.2 → 1.3 → 1.4 → 1.5 → 1.6 → 1.6b 
 
 ---
 
-## Effort summary (revised 2026-05-31)
+## Effort summary (revised 2026-05-31 — recalibrated per PR #94 review Q3)
 
 | Phase | Sizing | Hours | Gating |
 |---|---|---|---|
 | Phase 0 | S | 1–2 | — |
 | Phase 1 (7 migrations incl. `tags`) | L+ | 14–18 | After Phase 0 |
-| Phase 2 (services incl. tags CSV path) | L | 16–20 | After Phase 1 |
+| Phase 2 (services incl. tags service + tags CSV path) | L | 19–24 | After Phase 1 |
 | Phase 3 (routes + integration tests) | M | 8–12 | After Phase 2 |
-| Phase 4 (UI — 8 surfaces incl. tag picker + tag-edit page) | XL+ | 27–36 | After Phase 3 (E6.2 ✅ cleared) |
-| **Total (revised)** | — | **66–88** | ≈ 8–11 working days |
+| Phase 4 (UI — 8 surfaces incl. tag picker + tag-edit page) | XL+ | 27–36 | After Phase 3 (E6.2 ✅ cleared; Combobox primitive wave in E6.2 follow-up) |
+| **Total (revised)** | — | **70–95** | ≈ 9–12 working days |
 
-Backend-only (Phases 0–3): **39–52 hrs**. Authorisable immediately.
+Backend-only (Phases 0–3): **42–56 hrs**. Authorisable immediately.
+
+**Note on the Phase 2 delta (Q3 recalibration 2026-05-31):** the original 2026-05-31 amend left Phase 2 at 16–20 hrs despite adding Task 2.8b (M = 2–4 hrs) AND bumping Task 2.4 M → L (~+2 hrs for the tags CSV parsing path + 5 new test cases). PR #94 review surfaced the under-count; corrected to 19–24 hrs.
 
 ---
 

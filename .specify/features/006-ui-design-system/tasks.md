@@ -279,6 +279,33 @@
 **Dependencies**: Task 2.1 (Storybook setup) — needed only to ensure the guard doesn't false-positive on test-config edits
 **Assignee**: developer
 
+### Task 2.12: Combobox / Command / Popover primitive wave *(added 2026-05-31 — closes E5.2 plan-review primitive gap)*
+
+**Description**: Ship the Combobox / Command / Popover primitives that E6.2 Phase 2 omitted. Discovered 2026-05-31 during PR #94 developer review of the E5.2 plan amends — `cmdk` and `@radix-ui/react-popover` are not in `website/package.json` and there are no `combobox.tsx` / `command.tsx` / `popover.tsx` files in `website/src/components/ui/`. The E5.2 plan (PR #91) assumed these primitives shipped with E6.2 Phase 2 — they did not. **Operator decision 2026-05-31:** add the wave here in E6.2 (the design-system epic; primitives belong here) rather than carving Task 4.10 in E5.2. The wave is reused by E5.2 Phase 4 (Tasks 4.9b tag-edit page + 4.10 tag-filter Combobox) and is also expected by E5.3 (pay-code mapping wizard) and E5.6 (reconciliation filters) downstream.
+
+Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 / 2.6 / 2.6a / 2.6b / 2.6c / 2.6d / 2.6e:
+
+1. **Install runtime deps** — `cmdk` + `@radix-ui/react-popover` in `website/package.json`.
+2. **`popover.tsx`** — brand-styled wrapper over `@radix-ui/react-popover` per shadcn convention. Variants via `cva`. Storybook story per variant. Axe-clean.
+3. **`command.tsx`** — brand-styled wrapper over `cmdk`. Variants via `cva`. Storybook story per variant. Axe-clean.
+4. **`combobox.tsx`** — composition of `popover` + `command` per shadcn convention. Brand variants. Storybook story per variant. Axe-clean.
+5. **Bundle / CSP guard regression** — re-run Task 2.10's audit; no third-party CDN, no new inline-script / unsafe-eval.
+
+**Source: PR #94 E5.2 plan review Q4 · operator decision 2026-05-31 · resolves the primitive gap blocking E5.2 Tasks 4.9b + 4.10**
+
+**Acceptance Criteria** (AC §8.2 — same as the canonical Task 2.6 conventions):
+- [ ] `cmdk` and `@radix-ui/react-popover` added to `website/package.json`
+- [ ] `website/src/components/ui/popover.tsx` committed; brand variants via `cva`; references tokens (no hard-coded colours); Storybook story per variant passes axe-core add-on with zero serious/critical violations
+- [ ] `website/src/components/ui/command.tsx` committed; same conventions
+- [ ] `website/src/components/ui/combobox.tsx` committed; same conventions; composition pattern matches shadcn reference
+- [ ] Task 2.10 bundle / CSP audit re-run with the new deps; no regression
+- [ ] Documented in the task body: this wave was added 2026-05-31 to close a primitive gap discovered during E5.2 plan review (PR #94). Required by E5.2 Phase 4 Tasks 4.9b + 4.10 and likely E5.3 + E5.6 downstream.
+- [ ] E5.2 Phase 4 cannot start until this task ✅ — cross-epic blocked-by note recorded in `.specify/features/005-lsl-platform/sub-specs/employee-masterfile-tasks.md` Tasks 4.9b + 4.10.
+
+**Effort**: L (4–8 hrs — three primitives + Storybook stories + axe-clean + bundle audit regression)
+**Dependencies**: Task 2.6 (variant system convention established); Task 2.10 (bundle / CSP audit infra to re-run)
+**Assignee**: developer
+
 ---
 
 ## Phase 3a — E6.3 `/app` workspace shell
@@ -803,18 +830,18 @@ Public families never read a session cookie. Authenticated families gate on the 
 
 ## Task count summary
 
-Post-grill amendment: 4 new tasks added (Task 2.10, Task 2.11, Task 3.3-bis, Task 5.5-bis), 3 tasks re-sized (Task 1.2 M→L, Task 3.7 M→L, Task 5.5 M→L).
+Post-grill amendment: 4 new tasks added (Task 2.10, Task 2.11, Task 3.3-bis, Task 5.5-bis), 3 tasks re-sized (Task 1.2 M→L, Task 3.7 M→L, Task 5.5 M→L). **2026-05-31 amendment:** 1 new task added (Task 2.12 — Combobox / Command / Popover primitive wave, closes E5.2 plan-review primitive gap per PR #94 review Q4).
 
 | Sub-epic | Phase | Tasks | Critical-path? |
 |---|---|---|---|
 | E6.1 | 1 | 5 | YES (Tasks 1.1–1.5; Task 1.3 is the gate) |
-| E6.2 | 2 | 11 | YES (Tasks 2.1–2.11 all blocking E5.2) — +Task 2.10 CSP audit, +Task 2.11 test-diff guard |
+| E6.2 | 2 | 12 | YES (Tasks 2.1–2.12 — +Task 2.12 Combobox primitive wave blocks E5.2 Tasks 4.9b + 4.10) |
 | E6.3 | 3a | 11 | No — +Task 3.3-bis SessionCookieClaims contract |
 | E6.4 | 3b | 8 | No |
 | E6.5 | 4 | 8 | No — +Task 5.5-bis posture contract test |
 | E6.6 (s/e + bulk) | 5a | 4 | No |
 | E6.6 (liab + recon) | 5b | 2 | No (trail E5.5 / E5.6) |
-| **Total** | | **49** | **16 on E5.2 critical path** |
+| **Total** | | **50** | **17 on E5.2 critical path** |
 
 ---
 
