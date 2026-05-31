@@ -104,7 +104,7 @@ If the masterfile persists `salaried` / `hourly` / `four_weekly` and the engine 
 - Implementation surface: single Postgres function `public.purge_expired_employees()`. It cascades to `pay_periods` and `employee_history` via FK `ON DELETE CASCADE`. `import_audit_log` (E5.4) is NOT FK-linked and is therefore retained per OQ-EMP-3.
 - A small **integration test** (Task 1.7) verifies: set `end_date`, set `retention_expires_at` to a past timestamp via test fixture, call the function manually, assert the rows are gone and `import_audit_log` is intact.
 
-**Confidence the operator should ratify:** MED — `pg_cron` is a hard dependency on the Supabase Pro tier (already in use for HIBP). If the operator prefers a Vercel cron route or a Supabase Edge Function on a scheduled trigger, swap at Phase 1 plan time. Recommendation stands at `pg_cron` for simplicity and zero app-surface for the service-role key.
+**Confidence the operator should ratify:** MED — `pg_cron` requires the Supabase Pro tier. **Correction 2026-05-31 (Finding 3, surfaced during Phase 1 Migration 5 dispatch):** an earlier version of this paragraph claimed `pg_cron` was "already in use for HIBP". That was incorrect — HIBP (leaked-password protection) runs via the Supabase Auth dashboard config, not via `pg_cron`. The extension was NOT pre-installed on the project at Phase 1 start. Migration 5 (`purge_expired_employees_function.sql`) now installs it at apply time via `CREATE EXTENSION IF NOT EXISTS pg_cron;` (extension lives in its own `cron` schema, not `public`, so no `extension_in_public` advisor concern). If the operator prefers a Vercel cron route or a Supabase Edge Function on a scheduled trigger, swap at Phase 1 plan time. Recommendation stands at `pg_cron` for simplicity and zero app-surface for the service-role key.
 
 ### DEV-EMP-4 (MED) — Source CSV file storage
 
@@ -215,12 +215,15 @@ E5.2 adds (filenames will use `date +%Y%m%d%H%M%S` at apply time):
 
 | Order | File (suffix) | Purpose |
 |---|---|---|
-| 1 | `extend_organisations_customer_setup.sql` | Add 5 cols to `organisations`. Backfill nullable, then promote required cols once data lands. |
-| 2 | `create_employees.sql` | `employees` table + indexes + RLS. |
-| 3 | `create_employee_history.sql` | `employee_history` table + EXCLUDE constraint + indexes + RLS. |
+| 1 | `extend_organisations_customer_setup.sql` | Add 6 cols to `organisations` (5 originally specified + `employer_trading_name` added during dispatch). Backfill nullable, then promote required cols once data lands. |
+| 2 | `create_employees.sql` | `employees` table + indexes + RLS. **GIN index on `tags` lives here** (Q1 resolution from PR #94 review — index lives with the column it indexes; Migration 7 does NOT redeclare it). |
+| 3 | `create_employee_history.sql` | `employee_history` table + EXCLUDE GIST constraint + indexes + RLS. **Requires `btree_gist` extension** — installed into the `extensions` schema (not `public`) to match the Supabase convention used by `pgcrypto` / `uuid-ossp` / `pg_stat_statements` and avoid the `extension_in_public` advisor WARN. **(Finding 2 — surfaced during Phase 1 dispatch 2026-05-31; convention now baked into Migration 3.)** |
 | 4 | `employee_retention_trigger.sql` | `tg_set_retention_expires_at` + attach to `employees`. |
-| 5 | `purge_expired_employees_function.sql` | `SECURITY DEFINER` function + `pg_cron` schedule. |
+| 5 | `purge_expired_employees_function.sql` | `SECURITY DEFINER` function + `pg_cron` schedule. **`pg_cron` extension was NOT pre-installed on the project** (impl-plan §0 DEV-EMP-3 claim about HIBP was incorrect — see Finding 3 amendment). Migration installs via `CREATE EXTENSION IF NOT EXISTS pg_cron;` at apply time. |
 | 6 | `employee_masterfile_storage_bucket.sql` | Storage bucket + RLS policies. |
+| 7 | `create_tags_dictionary.sql` | `tags` org-scoped dictionary table + cascade rename / delete triggers to `employees.tags`. **Added 2026-05-29** via OQ-LIA-1 v1 scope amendment (E5.5 dependency). NO `usage_count_cached` column or maintenance trigger (Q5 resolution from PR #94 review — computed on demand). NO redeclared GIN index on `employees.tags` (Q1 resolution — lives in Migration 2). |
+
+**Extension prerequisites (recap):** Migrations 3 and 5 install `btree_gist` (in `extensions` schema) and `pg_cron` (in `cron` schema) respectively. Both are forward-only `CREATE EXTENSION IF NOT EXISTS` idempotent. Verified clean on production main 2026-05-31.
 
 Each migration is applied via `mcp__2ac7599f-...__apply_migration` (account-scoped MCP, per `website/AGENTS.md`). Every DDL change followed by `mcp__supabase__get_advisors` per the project rule.
 
@@ -647,7 +650,7 @@ Spec §9 already enumerates RE-1 through RE-6. Additional impl-plan risks:
 | ID | Risk | Severity | Mitigation |
 |---|---|---|---|
 | IM-1 | Phase 0 spike (DEV-EMP-2) finds the dedup key needs an extra discriminator column, forcing a Phase 1 migration rewrite. | Med | The spike runs *before* Phase 1, so rework is cheap. Migration files are not yet written when the spike finishes. |
-| IM-2 | `pg_cron` requires the Supabase Pro tier (already confirmed in use for HIBP). If the operator downgrades the project, the deletion job silently stops. | Low | Document the dependency in `docs/engineering/`. Add an integration test that asserts the cron job exists in `cron.job`. |
+| IM-2 | `pg_cron` requires the Supabase Pro tier. **Correction 2026-05-31 (Finding 3):** the original claim "already confirmed in use for HIBP" was wrong — HIBP runs via the Supabase Auth dashboard, not `pg_cron`. The extension is now installed at Migration 5 apply time. If the operator downgrades from Pro tier, the deletion job silently stops. | Low | Document the dependency in `docs/engineering/`. Add an integration test that asserts the cron job exists in `cron.job` (Task 1.7 / Phase 2 — see HANDOFF). |
 | IM-3 | The hand-rolled CSV parser struggles with files > 50 MB. | Low | v1 customers have small employee counts (≤ 5k). If a customer arrives with > 50 MB, swap to `papaparse` streaming; isolated to one service module. |
 | IM-4 | `employee_history` EXCLUDE constraint produces opaque Postgres error messages. | Low | Service layer catches `23P01` (exclusion violation) and translates to a typed `ServiceError` with the conflicting effective-date range surfaced. |
 | IM-5 | Service-role-key surface expands accidentally during route-handler implementation. | Med | Hard rule in `website/AGENTS.md` already documented. Code review checklist line item: "Did any new route handler import `service.ts` or use `SUPABASE_SERVICE_ROLE_KEY`?" If yes, justify. |
