@@ -78,13 +78,13 @@ Seven migrations, sequential (revised 2026-05-31 — Migration 7 added for `tags
 - **Implements:** All 13 columns per spec §4.3, EXCLUDE GIST constraint per impl-plan §1.4, `(employee_id, effective_from)` index, FK to `employees` with `ON DELETE CASCADE` (needed by AC-EMP-13), `org_id` denormalised for RLS perf, RLS + 4 policies.
 - **Acceptance:** Migration applied; advisors clean; cascade FK verified by manual SQL probe. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (0 new lints — `btree_gist` installed into `extensions` schema, not public, to avoid `extension_in_public` WARN — see FINDING-2.md); EXCLUDE-constraint smoke test passed (2 non-overlapping segments accepted; overlapping third rejected with `exclusion_violation`). Awaiting production apply.**
 
-### Task 1.4 · Write Migration 4 — `retention_expires_at` trigger
+### Task 1.4 · Write Migration 4 — `retention_expires_at` trigger ✅ [x]
 
 - **Size:** S
 - **Cites:** AC-EMP-13; spec §4.2 + §7 OQ-EMP-2
-- **File:** `website/supabase/migrations/{ts}_employee_retention_trigger.sql`
+- **File:** `website/supabase/migrations/20260531171545_employee_retention_trigger.sql`
 - **Implements:** `tg_set_retention_expires_at()` function per impl-plan §3.1, attached BEFORE INSERT OR UPDATE OF `end_date` on `employees`.
-- **Acceptance:** Migration applied; advisors clean. Manual probe: insert employee with `end_date = '2030-01-01'` → `retention_expires_at` is `2037-01-01`. Clear `end_date` → `retention_expires_at` becomes NULL.
+- **Acceptance:** Migration applied; advisors clean. Manual probe: insert employee with `end_date = '2030-01-01'` → `retention_expires_at` is `2037-01-01`. Clear `end_date` → `retention_expires_at` becomes NULL. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (0 new lints); smoke test asserted INSERT case → `2037-01-01 00:00:00+00` and UPDATE → NULL. Awaiting production apply.**
 
 ### Task 1.5 · Write Migration 5 — `purge_expired_employees` function + pg_cron schedule
 
