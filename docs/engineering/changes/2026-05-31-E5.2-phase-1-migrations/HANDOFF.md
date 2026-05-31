@@ -6,6 +6,8 @@
 **Supabase branch:** `e52-phase-1-employees-schema` — project ref `pjjalownnwnikjqtjhgu` (parent `woxtujkxatosbirikxtq`) — **DO NOT delete; operator may want to inspect**
 **Status:** Migrations 1 + 2 applied to the Supabase branch with advisors clean (+ accepted INFO lints) and DB-level smoke tests passing. PR opened. Production main untouched.
 
+> **CLOSED-OUT 2026-05-31 (Sunday) — Phase 1 complete.** All 7 migrations now applied + verified on the Supabase branch. See `COMPLETION.md` in this folder for the final state. PR for Migrations 3-7 is the follow-up to PR #105.
+
 ---
 
 ## What's done
