@@ -70,77 +70,80 @@ Seven migrations, sequential (revised 2026-05-31 — Migration 7 added for `tags
 - **Includes** seed comment block on each column for self-documentation.
 - **Acceptance:** Migration applied; advisors clean; RLS active; `mcp__supabase__list_tables` confirms; `\d employees` shows `tags` column and GIN index. **[x] Done 2026-05-31 on Supabase branch `e52-phase-1-employees-schema` (`pjjalownnwnikjqtjhgu`); advisors clean (2 accepted INFO-level FK-unindexed lints on `created_by`/`updated_by`, same pattern as E5.1 precedent; zero new security lints); 11-step constraint smoke test passed; full RLS cross-tenant isolation test passed (SELECT/UPDATE/DELETE/INSERT all enforced). Awaiting production apply.**
 
-### Task 1.3 · Write Migration 3 — create `employee_history` table
+### Task 1.3 · Write Migration 3 — create `employee_history` table ✅ [x]
 
 - **Size:** M
 - **Cites:** Spec §4.3; AC-EMP-5
-- **File:** `website/supabase/migrations/{ts}_create_employee_history.sql`
+- **File:** `website/supabase/migrations/20260531171530_create_employee_history.sql`
 - **Implements:** All 13 columns per spec §4.3, EXCLUDE GIST constraint per impl-plan §1.4, `(employee_id, effective_from)` index, FK to `employees` with `ON DELETE CASCADE` (needed by AC-EMP-13), `org_id` denormalised for RLS perf, RLS + 4 policies.
-- **Acceptance:** Migration applied; advisors clean; cascade FK verified by manual SQL probe.
+- **Acceptance:** Migration applied; advisors clean; cascade FK verified by manual SQL probe. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (0 new lints — `btree_gist` installed into `extensions` schema, not public, to avoid `extension_in_public` WARN — see FINDING-2.md); EXCLUDE-constraint smoke test passed (2 non-overlapping segments accepted; overlapping third rejected with `exclusion_violation`). Awaiting production apply.**
 
-### Task 1.4 · Write Migration 4 — `retention_expires_at` trigger
+### Task 1.4 · Write Migration 4 — `retention_expires_at` trigger ✅ [x]
 
 - **Size:** S
 - **Cites:** AC-EMP-13; spec §4.2 + §7 OQ-EMP-2
-- **File:** `website/supabase/migrations/{ts}_employee_retention_trigger.sql`
+- **File:** `website/supabase/migrations/20260531171545_employee_retention_trigger.sql`
 - **Implements:** `tg_set_retention_expires_at()` function per impl-plan §3.1, attached BEFORE INSERT OR UPDATE OF `end_date` on `employees`.
-- **Acceptance:** Migration applied; advisors clean. Manual probe: insert employee with `end_date = '2030-01-01'` → `retention_expires_at` is `2037-01-01`. Clear `end_date` → `retention_expires_at` becomes NULL.
+- **Acceptance:** Migration applied; advisors clean. Manual probe: insert employee with `end_date = '2030-01-01'` → `retention_expires_at` is `2037-01-01`. Clear `end_date` → `retention_expires_at` becomes NULL. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (0 new lints); smoke test asserted INSERT case → `2037-01-01 00:00:00+00` and UPDATE → NULL. Awaiting production apply.**
 
-### Task 1.5 · Write Migration 5 — `purge_expired_employees` function + pg_cron schedule
+### Task 1.5 · Write Migration 5 — `purge_expired_employees` function + pg_cron schedule ✅ [x]
 
 - **Size:** M
 - **Cites:** AC-EMP-13
-- **File:** `website/supabase/migrations/{ts}_purge_expired_employees_function.sql`
-- **Implements:** `purge_expired_employees()` `SECURITY DEFINER` function per impl-plan §3.1, `REVOKE EXECUTE` from public, `GRANT EXECUTE` to `postgres`. `cron.schedule(...)` daily at 16:00 UTC (≈ 02:00 Sydney).
-- **Verify pg_cron is enabled** — check `mcp__supabase__list_extensions`; enable if absent.
-- **Acceptance:** Migration applied; advisors clean; `cron.job` table shows the scheduled job.
+- **File:** `website/supabase/migrations/20260531171600_purge_expired_employees_function.sql`
+- **Implements:** `purge_expired_employees()` `SECURITY DEFINER` function per impl-plan §3.1, `REVOKE EXECUTE` from public/anon/authenticated. `cron.schedule(...)` daily at 16:00 UTC (≈ 02:00 AEST / 03:00 AEDT).
+- **Verify pg_cron is enabled** — check `mcp__supabase__list_extensions`; enable if absent. **`pg_cron` was NOT installed on the project at start of Phase 1; migration installs via `create extension if not exists pg_cron;`. Surfaces a doc drift in impl-plan §0 DEV-EMP-3 (claimed pg_cron was already in use for HIBP — it is not).**
+- **Acceptance:** Migration applied; advisors clean; `cron.job` table shows the scheduled job. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (0 new lints — the new SECURITY DEFINER function did NOT trip `anon_security_definer_function_executable` because EXECUTE is revoked from anon/authenticated/public); `cron.job` row confirmed (`jobname=purge-expired-employees-daily`, `schedule=0 16 * * *`, `active=true`); end-to-end smoke test asserted purge returned ≥1, employee row gone, and `employee_history` child row removed via FK CASCADE. Awaiting production apply.**
 
-### Task 1.6 · Write Migration 6 — Storage bucket + RLS for source CSV uploads
+### Task 1.6 · Write Migration 6 — Storage bucket + RLS for source CSV uploads ✅ [x]
 
 - **Size:** M
 - **Cites:** Spec §5 (CSV file preservation); DEV-EMP-4
-- **File:** `website/supabase/migrations/{ts}_employee_masterfile_storage_bucket.sql`
-- **Implements:** Insert into `storage.buckets` (name `employee-masterfile-uploads`, private, no public access). RLS policies on `storage.objects` for that bucket per impl-plan §0 DEV-EMP-4.
-- **Acceptance:** Migration applied; bucket visible via Supabase dashboard; advisors clean.
+- **File:** `website/supabase/migrations/20260531171615_employee_masterfile_storage_bucket.sql`
+- **Implements:** Insert into `storage.buckets` (name `employee-masterfile-uploads`, private, 50 MB cap, MIME allowlist `text/csv` / `application/vnd.ms-excel` / `text/plain`). Two RLS policies on `storage.objects` for that bucket — SELECT (any org_member of folder's org); INSERT (admin/payroll_user of folder's org). No UPDATE/DELETE client policy — retention removal runs server-side.
+- **Acceptance:** Migration applied; bucket visible via Supabase dashboard; advisors clean. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (0 new lints); bucket + 2 storage policies verified via probe. Awaiting production apply.**
 
-### Task 1.6b · Write Migration 7 — `tags` dictionary table + cascade triggers *(added 2026-05-31 — v1 scope amendment)*
+### Task 1.6b · Write Migration 7 — `tags` dictionary table + cascade triggers ✅ [x] *(added 2026-05-31 — v1 scope amendment)*
 
 - **Size:** M
 - **Cites:** Spec §4.4 (tags dictionary table); AC-EMP-14; OQ-LIA-1 resolution; E5.5 dependency
-- **File:** `website/supabase/migrations/{ts}_create_tags_dictionary.sql`
+- **File:** `website/supabase/migrations/20260531171630_create_tags_dictionary.sql`
 - **Implements:** `public.tags` table (id, org_id, name, created_at, created_by; `UNIQUE (org_id, name)`; CHECK on name format — 1–50 chars, trimmed, lowercased). RLS policies on `public.tags` matching org_id pivot. Cascade triggers: `tg_cascade_tag_rename` (AFTER UPDATE OF name on tags → array_replace on every employees.tags), `tg_cascade_tag_delete` (BEFORE DELETE on tags → array_remove on every employees.tags). **The GIN index on `employees.tags` lives in Migration 2** (it lives with the column it indexes — conventional; Migration 2 is where the column is created). Migration 7 does NOT redeclare it. **`usage_count_cached` column is NOT included** (dropped 2026-05-31 per PR #94 review Q5 — usage counts are computed on demand via `cardinality(employees.tags)` for the org-settings tag-edit page, avoiding row-lock contention from a maintenance trigger during bulk imports).
-- **Acceptance:** Migration applied; `mcp__supabase__list_tables` shows `tags`; advisors clean; manual smoke test of cascade triggers (insert tag → attach to 2 employees → rename → verify employees reflect rename → delete → verify employees no longer carry it) passes.
+- **Acceptance:** Migration applied; `mcp__supabase__list_tables` shows `tags`; advisors clean; manual smoke test of cascade triggers (insert tag → attach to 2 employees → rename → verify employees reflect rename → delete → verify employees no longer carry it) passes. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`; advisors clean (1 new accepted INFO lint on `tags_created_by_fkey` — same audit-column FK precedent as `employees.created_by`/`updated_by`/`employee_history.created_by`); 10-case smoke test passed (4 CHECK rejections + 1 UNIQUE + rename cascade across 2 employees + delete cascade preserving sibling tag). Awaiting production apply.**
 
-### Task 1.7 · Integration test — retention cascade end-to-end
+### Task 1.7 · Integration test — retention cascade end-to-end [DEFERRED to Phase 2]
 
 - **Size:** M
 - **Cites:** AC-EMP-13
 - **File:** `website/src/lib/data/employee/__tests__/retention-cascade.integration.test.ts`
 - **Test fixture:** Supabase branch created via `mcp__2ac7599f-...__create_branch`. Seed: 1 org, 1 employee with `end_date`, 1 stub `employee_history` row. Manually set `retention_expires_at` to a past timestamp. Call `public.purge_expired_employees()` directly. Assert employee + history rows gone; `import_audit_log` rows (if any) remain.
 - **Acceptance:** Test passes against the Supabase branch. Branch deleted at end of suite.
+- **DEFERRED 2026-05-31** — application-layer integration test requires the Vitest harness + Supabase client wiring under `website/src/lib/data/employee/__tests__/`, which doesn't exist yet (Phase 2 service layer creates that folder). The DB-level cascade contract has already been smoke-tested inline during Migration 5 application on the branch (employee row + FK-cascaded `employee_history` rows confirmed removed by `public.purge_expired_employees()`; see commit `8ad07ed`). Re-author as a Vitest integration test in Phase 2 when the service-layer folder exists.
 
-### Task 1.8 · Integration test — cross-tenant RLS isolation
+### Task 1.8 · Integration test — cross-tenant RLS isolation [DEFERRED to Phase 2]
 
 - **Size:** M
 - **Cites:** AC-EMP-9
 - **File:** `website/src/lib/data/employee/__tests__/rls-cross-tenant.integration.test.ts`
 - **Test fixture:** Supabase branch with 2 orgs, 2 users (each linked to one org via `org_members`). User A inserts an employee. User B attempts SELECT / UPDATE / DELETE. All denied by RLS.
 - **Acceptance:** Test passes; documented in QA checklist for E5.2 sign-off.
+- **DEFERRED 2026-05-31** — same reason as Task 1.7. The DB-level cross-tenant isolation was already verified inline during Migration 2 application (PR #105 commit `b508f04`) — two synthetic auth.users + two orgs + full SELECT/UPDATE/DELETE/INSERT cross-tenant matrix under `set local role authenticated; set local request.jwt.claim.sub`. Re-author as a Vitest integration test in Phase 2.
 
-### Task 1.9 · Integration test — `employee_history` overlap rejection
+### Task 1.9 · Integration test — `employee_history` overlap rejection [DEFERRED to Phase 2]
 
 - **Size:** S
 - **Cites:** Spec §4.3 EXCLUDE constraint
 - **File:** `website/src/lib/data/employee/__tests__/history-overlap.integration.test.ts`
 - **Test:** Insert two history rows for same employee with overlapping date ranges. Second insert fails with Postgres `23P01`.
 - **Acceptance:** Test passes; error caught and translated by service layer (Task 2.6 verifies translation).
+- **DEFERRED 2026-05-31** — same reason. Already smoke-tested at the DB layer during Migration 3 (commit `c1cd9bc` — three overlapping segments, third rejected with `exclusion_violation` SQLSTATE 23P01). Re-author as a Vitest integration test in Phase 2 alongside Task 2.6 (service-layer error translation), since the two share the error-code-translation contract.
 
-### Task 1.10 · Phase 1 verification gate
+### Task 1.10 · Phase 1 verification gate ✅ [x]
 
 - **Size:** S
 - **Cites:** Impl-plan §3.2
 - **Output:** All **7 migrations** applied (revised 2026-05-31 — added Migration 7 for `tags` v1 scope amend); advisors run after each; zero unaddressed lints. `pg_cron` job listed. **Tags cascade smoke test** (per Task 1.6b acceptance) recorded as passed.
-- **Acceptance:** Migrations on `feat/E5.2-employee-masterfile-impl` (the implementation branch, separate from this planning branch). PR opened for Phase 1 alone (decoupled from Phase 2 to keep PRs reviewable). Phase 2 starts when Phase 1 PR merges.
+- **Acceptance:** Migrations on `feat/E5.2-employee-masterfile-impl` (the implementation branch, separate from this planning branch). PR opened for Phase 1 alone (decoupled from Phase 2 to keep PRs reviewable). Phase 2 starts when Phase 1 PR merges. **[x] Done 2026-05-31 on Supabase branch `pjjalownnwnikjqtjhgu`. All 7 migration files committed. Advisor final state: 0 new security lints, 1 new INFO performance lint on `tags_created_by_fkey` (accepted, audit-column FK precedent). `cron.job` shows `purge-expired-employees-daily` at `0 16 * * *`. `btree_gist` + `pg_cron` extensions installed. Tags cascade smoke test passed (10 cases incl. 4 CHECK rejections, 1 UNIQUE rejection, rename cascade, delete cascade preserving siblings). Tasks 1.7/1.8/1.9 deferred to Phase 2 — see notes per task. See `docs/engineering/changes/2026-05-31-E5.2-phase-1-migrations/COMPLETION.md`.**
 
 ---
 
