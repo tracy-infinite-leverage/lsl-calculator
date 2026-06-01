@@ -78,10 +78,15 @@ The masterfile is **per-employer**: one row in `organisations` maps to one ABN a
 - Re-activation of an archived employee (clears `archived_at`, opens a new effective-dated segment).
 - PII minimisation: detect and **strip before insert** any column containing TFN (9-digit AU pattern), bank BSB/account, or super member number patterns. The platform never persists these fields.
 - Forward-looking `scheme` column on `employees` (default `state_lsl`). v1 writes only `state_lsl`. v1.1 adds portable scheme codes.
-- **Opening LSL balance capture for tenured employees — BOTH paths** (locked 2026-05-27, resolves OQ-EMP-1):
+- **Opening LSL balance capture for tenured employees — BOTH paths** (locked 2026-05-27, resolves OQ-EMP-1; behavioural-contract amended 2026-05-31 — see "Policy-column-driven collision resolution" below):
   - **CSV column** on the employee masterfile import (`opening_balance_weeks`, `opening_balance_taken_weeks`, `opening_balance_as_at_date`) for customers who can export this data from their payroll system.
   - **Setup-wizard fallback** for customers whose payroll system cannot export this — operator captures the same three fields per employee via the manual add / edit UI.
-  - **Reconciliation rule**: both paths write to the same `employees.opening_balance_weeks` / `employees.opening_balance_taken_weeks` / `employees.opening_balance_as_at_date` fields. If both a CSV value and a wizard-entered value are present for the same employee, **the wizard value wins** (operator-entered overrides CSV) — the rationale is that the wizard is a deliberate post-import correction; the CSV is the bulk-import default.
+  - **Policy-column-driven collision resolution** (amended 2026-05-31, post Phase 2 Task 2.8 PR #117): the per-org `organisations.opening_balances_method` field (§4.1) is **load-bearing** — it governs which paths may write to `employees.opening_balance_*` for that org:
+    - `setup_wizard` → CSV imports SKIP the opening-balance columns at parse time; wizard is the sole source.
+    - `csv_field` → wizard UI SKIPS the opening-balance fields; CSV is the sole source.
+    - `both` → both paths write the same fields; **wizard wins on collision** (operator-entered overrides CSV; AC-EMP-12 semantics preserved). The wizard is a deliberate post-import correction; the CSV is the bulk-import default.
+    - `none` (or NULL during pre-wizard phase) → neither path accepts opening-balance writes; opening balances must be entered explicitly via a future explicit-entry surface or by promoting the policy column first.
+  - The pure reconciler service (`opening-balance.ts`, Task 2.8) is policy-agnostic — both candidate values pass in. The policy-column lookup happens at the call site in Task 2.6 (CRUD).
 - **7-year retention post-termination** (locked 2026-05-27, resolves OQ-EMP-2):
   - Hard-delete the employee row and all associated pay-period rows **7 years after `employees.end_date`** (the termination date — NOT the import date).
   - Implementation surface: a `retention_expires_at` timestamptz column on `employees`, populated by trigger when `end_date` is set (= `end_date + 7 years`). Cleared if `end_date` is cleared (e.g. re-activation). A scheduled deletion mechanism (cron job or Postgres pg_cron job — impl-plan choice) reads `retention_expires_at <= now()` and hard-deletes the row + its `pay_periods` rows + its `employee_history` rows. `import_audit_log` is retained indefinitely per OQ-EMP-3.
@@ -122,7 +127,7 @@ E5.1 ships `organisations` with `id`, `name`, `created_at`, `updated_at` and an 
 | `abn` | text (11 chars) | yes | 11-digit Australian Business Number. Format-validated; check-digit validation is SHOULD, not MUST, in v1. |
 | `default_work_jurisdiction` | enum | yes | One of `NSW`, `VIC`, `QLD`, `WA`, `SA`, `TAS`, `ACT`, `NT`. Used as the dropdown default when adding employees and as the legacy-data fallback when a pay-period row has no work-location field. |
 | `default_pay_frequency` | enum | no | One of `weekly`, `fortnightly`, `monthly`, `four_weekly`. UI default only — non-load-bearing. |
-| `opening_balances_method` | enum | no | Informational — one of `csv_field`, `setup_wizard`, `both`, `none`. Captures *how* the customer provided opening LSL balances. With OQ-EMP-1 locked to **both paths** (CSV column + setup wizard), this field is a reporting / debugging aid only; the load-bearing data lives on the per-employee opening-balance fields in §4.2. |
+| `opening_balances_method` | enum | no | **Load-bearing** (amended 2026-05-31 — see §3 "Policy-column-driven collision resolution"). One of `csv_field`, `setup_wizard`, `both`, `none`. Governs which paths may write to `employees.opening_balance_*`: `setup_wizard` → CSV skipped; `csv_field` → wizard skipped; `both` → both write, wizard wins on collision (AC-EMP-12); `none` / NULL → neither path writes. The per-employee load-bearing data lives on `employees.opening_balance_*` (§4.2); this column drives the policy at the call site. |
 
 **Why on the org and not a separate `customer_setup` table:** the customer is the org; one-to-one cardinality; storing setup on the same row keeps RLS straightforward.
 
