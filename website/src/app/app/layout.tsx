@@ -52,6 +52,7 @@ import { TopNav } from '@/components/app-shell/TopNav';
 import { Sidebar } from '@/components/app-shell/Sidebar';
 import { TenantSwitcher } from '@/components/app-shell/TenantSwitcher';
 import { ActingAsBanner } from '@/components/app-shell/ActingAsBanner';
+import { Breadcrumbs } from '@/components/app-shell/Breadcrumbs';
 import { fetchMembershipsForActiveUser } from '@/components/app-shell/memberships';
 import { TenantProviderFromCookie } from '@/lib/tenant-context-server';
 
@@ -146,14 +147,23 @@ export default async function AppLayout({
         <ActingAsBanner memberships={memberships} />
         <div className="flex flex-1">
           <Sidebar />
-          <main
-            className="flex-1 overflow-y-auto bg-brand-white px-4 py-6 sm:px-6 lg:px-8"
-            // Subtle ring so the main column reads as a panel against the
-            // bg without competing with the wordmark for visual weight.
-            data-testid="app-main"
-          >
-            {children}
-          </main>
+          {/* Right-column wrapper: Breadcrumbs sit at the top of the content
+            * column (above `<main>`, right of Sidebar), then `<main>` flexes
+            * to fill the rest. Breadcrumbs are page metadata — they scroll
+            * with the page content (NOT sticky like the ActingAsBanner),
+            * since they describe the current page rather than the global
+            * tenant context. (E6.3 Task 3.6 — spec §5.2 + §8.3.) */}
+          <div className="flex flex-1 flex-col overflow-y-auto">
+            <Breadcrumbs />
+            <main
+              className="flex-1 bg-brand-white px-4 py-6 sm:px-6 lg:px-8"
+              // Subtle ring so the main column reads as a panel against the
+              // bg without competing with the wordmark for visual weight.
+              data-testid="app-main"
+            >
+              {children}
+            </main>
+          </div>
         </div>
       </div>
     </TenantProviderFromCookie>
