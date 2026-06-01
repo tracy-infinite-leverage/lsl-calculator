@@ -15,6 +15,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "sync-brand-assets": "node scripts/sync-brand-assets.mjs",
+    "spike:pdf": "tsx scripts/e6-pdf-spike.tsx",
     "prestorybook": "node scripts/sync-brand-assets.mjs",
     "storybook": "storybook dev -p 6006",
     "prebuild-storybook": "node scripts/sync-brand-assets.mjs",
