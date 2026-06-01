@@ -55,6 +55,7 @@ import { ActingAsBanner } from '@/components/app-shell/ActingAsBanner';
 import { Breadcrumbs } from '@/components/app-shell/Breadcrumbs';
 import { fetchMembershipsForActiveUser } from '@/components/app-shell/memberships';
 import { TenantProviderFromCookie } from '@/lib/tenant-context-server';
+import { KeyboardShortcuts } from '@/lib/keyboard-shortcuts';
 
 export const dynamic = 'force-dynamic';
 
@@ -135,6 +136,14 @@ export default async function AppLayout({
 
   return (
     <TenantProviderFromCookie>
+      {/* Global keyboard shortcuts handler (E6.3 Task 3.9 — spec §5.2 +
+        * §8.3 + OQ-8). Mounted once at the layout level so a single
+        * `keydown` listener serves every `/app/*` page. Renders the
+        * `?` overlay as a controlled Dialog. The handler self-IGNORES
+        * keystrokes while focus is in INPUT / TEXTAREA / contenteditable
+        * — see `shouldIgnoreKeydown` in `shortcuts-map.ts`. Always-on
+        * in v1 per OQ-8 (operator-locked). */}
+      <KeyboardShortcuts />
       <div className="flex min-h-screen flex-col bg-brand-white">
         {/* TopNav with the TenantSwitcher composed into its `rightRailSlot`.
           * The switcher self-hides when membershipCount < 2 (OQ-4) — so
