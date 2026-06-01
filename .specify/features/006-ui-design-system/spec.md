@@ -268,16 +268,16 @@ Distinct visual lockup: "LSL Calculator" as the primary mark in Montserrat Semib
 **Implementation note — Tailwind v4 CSS-first substitution (recorded 2026-05-30):** the AC above references `website/tailwind.config.{js,ts}` because the spec was authored against Tailwind v3 conventions. The project shipped Task 2.3 on **Tailwind v4 CSS-first** instead — tokens live in `website/src/app/globals.css` inside an `@theme inline { … }` block (see PR #58, merged 2026-05-28; HANDOFF at `docs/engineering/changes/2026-05-28-E6.2-task-2.3-tokens/HANDOFF.md`). This is the v4-canonical home for design tokens; a parallel `tailwind.config.ts` is no longer required. Treat any AC bullet that names `tailwind.config.{js,ts}` as satisfied when the equivalent tokens are present in `globals.css`. This is a config-surface substitution only; no token semantics, palette values, or contract surfaces change.
 
 ### 8.3 E6.3 — `/app` workspace shell
-- [ ] Top nav with sub-brand wordmark + user menu + notifications affordance live on every `/app/*` route.
-- [ ] Sidebar with placeholder entries for E5.2+ surfaces; sections show / hide as features land.
-- [ ] Tenant switcher component built; "Acting as: <client name>" indicator visible whenever active tenant ≠ home org.
-- [ ] Tenant switcher is **hidden** for users with exactly one org membership; rendered only for users with ≥ 2 memberships. (OQ-4)
-- [ ] Active tenant **reverts to home org on hard refresh** and **after 30 minutes of idle**. (OQ-9)
-- [ ] Destructive write actions under non-home-tenant context show a confirm dialog naming the active tenant.
-- [ ] Breadcrumbs render on every `/app/*` page.
-- [ ] Opinionated empty state ships for at least Employees, Pay Codes, Pay History, Valuations, Liability, Reconciliation.
-- [ ] Skeleton or spinner loading state ships on every data-fetching surface.
-- [ ] Keyboard shortcuts (`g e`, `g v`, etc.) implemented always-on and discoverable via `?` overlay; no settings-toggle in v1. (OQ-8)
+- [x] Top nav with sub-brand wordmark + user menu + notifications affordance live on every `/app/*` route.
+- [x] Sidebar with placeholder entries for E5.2+ surfaces; sections show / hide as features land.
+- [x] Tenant switcher component built; "Acting as: <client name>" indicator visible whenever active tenant ≠ home org.
+- [x] Tenant switcher is **hidden** for users with exactly one org membership; rendered only for users with ≥ 2 memberships. (OQ-4)
+- [x] Active tenant **reverts to home org on hard refresh** and **after 30 minutes of idle**. (OQ-9)
+- [x] Destructive write actions under non-home-tenant context show a confirm dialog naming the active tenant.
+- [x] Breadcrumbs render on every `/app/*` page.
+- [x] Opinionated empty state ships for at least Employees, Pay Codes, Pay History, Valuations, Liability, Reconciliation.
+- [x] Skeleton or spinner loading state ships on every data-fetching surface.
+- [x] Keyboard shortcuts (`g e`, `g v`, etc.) implemented always-on and discoverable via `?` overlay; no settings-toggle in v1. (OQ-8)
 
 ### 8.4 E6.4 — Public calculator re-skin
 - [ ] State selector, single-employee form, bulk-upload entry, result/breakdown screens all render with brand tokens.
