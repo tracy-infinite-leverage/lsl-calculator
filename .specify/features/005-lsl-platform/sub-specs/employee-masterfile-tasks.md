@@ -184,13 +184,13 @@ Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 - **Reuses** Task 2.3's `pii-strip.ts`.
 - **Acceptance:** All test cases pass; coverage on every validation rule from spec §5 including the tags rule.
 
-### Task 2.5 [P] · Org-setup service — `org-setup.ts` + tests
+### Task 2.5 [P] · Org-setup service — `org-setup.ts` + tests ✅ [x]
 
 - **Size:** M
 - **Cites:** AC-EMP-1
 - **Test first** (`org-setup.test.ts`): valid payload writes; invalid ABN rejected; invalid jurisdiction rejected; RLS-denied error surfaced.
 - **Implementation:** `updateOrgSetup(supabase, orgId, payload)`. Uses Zod schema. Mutates `organisations` columns from Task 1.1.
-- **Acceptance:** Tests pass.
+- **Acceptance:** Tests pass. **[x] Done 2026-05-31 via PR #118 — `getOrgSetup` + `saveOrgSetup` + `validateOrgSetup` shipped; 52 Vitest cases (Hand-wave summary: required-field validation, ABN format + check-digit soft warning, jurisdiction enum (8 codes), pay-frequency enum, opening-balances-method enum, trading name, getOrgSetup error paths, saveOrgSetup happy + 11 error paths); two architectural decisions surfaced for ratification — narrow `ServiceError` discriminants (`invalid_jurisdiction` / `invalid_pay_frequency`) extending the Task 2.2 taxonomy; PostgREST `23514` (CHECK violation) → `validation_failed` (defence-in-depth).**
 
 ### Task 2.6 · Employee CRUD service — `employees.ts` + tests (TDD)
 
@@ -208,13 +208,13 @@ Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 - **Implementation:** Per impl-plan §1.4, 4-step pattern wrapped in `BEGIN ... COMMIT`. Uses Supabase RPC or `pg_transaction` pattern as documented in the Supabase client library version.
 - **Acceptance:** Tests pass; AC-EMP-5 verified.
 
-### Task 2.8 · Opening-balance reconciliation — `opening-balance.ts` + tests (TDD)
+### Task 2.8 · Opening-balance reconciliation — `opening-balance.ts` + tests (TDD) ✅ [x]
 
 - **Size:** S
 - **Cites:** AC-EMP-12
 - **Test first** (`opening-balance.test.ts`): paired-tests per AC-EMP-12 (CSV value + wizard value → wizard wins; CSV only → CSV wins; wizard only → wizard wins; neither → null).
 - **Implementation:** `reconcileOpeningBalance(csvValue, wizardValue)`.
-- **Acceptance:** Tests pass; AC-EMP-12 verified at unit level.
+- **Acceptance:** Tests pass; AC-EMP-12 verified at unit level. **[x] Done 2026-05-31 via PR #117 — pure reconciler shipped, policy-agnostic (both candidates pass in); 28 Vitest cases. Two scope-trims absorbed into Task 2.6 per operator ratification 2026-05-31: `getOpeningBalance(employeeId)` + `clearOpeningBalance(employeeId)` (need Supabase + employee-row lifecycle that Task 2.6 owns). One design decision ratified via PR #119 spec amend: `organisations.opening_balances_method` promoted from "reporting aid" to **load-bearing** — drives collision resolution at the Task 2.6 call site (four behavioural states: `setup_wizard` / `csv_field` / `both` / `none`).**
 
 ### Task 2.8b · Tags dictionary service — `tags.ts` + tests (TDD) *(added 2026-05-31 — v1 scope amendment; refined 2026-05-31 per PR #94 review Q5)*
 
