@@ -3,11 +3,40 @@
 **Slug:** `lsl-platform-pay-code-mapping`
 **Parent feature:** `005-lsl-platform` (umbrella platform spec v1.0 APPROVED 2026-05-26)
 **Sub-epic:** **E5.3 · Pay-Code Mapping**
-**Status:** **Scoped — APPROVED 2026-05-27** (operator decisions captured 2026-05-27; refined 2026-05-27 with locked decision on OQ-MAP-1)
-**Author:** Product Manager (drafted 2026-05-27 from operator scoping brief 2026-05-27; locked-decisions update 2026-05-27)
+**Status:** **Amended v0.2 — LOCKED 2026-06-01** — all v0.2 OQs (OQ-MAP-5 / OQ-MAP-6 / OQ-MAP-7) resolved by operator 2026-06-01; ready for impl-plan + tasks. Prior approval: v0.1 APPROVED 2026-05-27; v0.2 DRAFTED 2026-05-31.
+**Author:** Product Manager (drafted 2026-05-27; amended v0.2 2026-05-31 from Virtus Health payroll-file analysis)
 **Owner:** Tracy Angwin (austpayroll.com.au)
 **Depends on:** **E5.1 Auth + Tenancy + DB Scaffold** (RLS primitives) and **E5.2 Employee Masterfile** (foreign-key target for the customer's mapping table). E5.4 ingestion is the **consumer** of this layer (mapping must exist before pay periods can be valued).
 **Sequence within E5:** Third after E5.1 + E5.2. E5.4 ingestion runs against this mapping layer.
+
+---
+
+## Amendment v0.2 — 2026-05-31 (DRAFT)
+
+**Trigger.** Operator analysed a representative customer payroll export 2026-05-31 (Virtus Health — multi-employer IVF group, ~1,400 employees, 10 ABNs, cross-state staff). Two distinct shapes observed:
+
+1. **Single-`.xlsx` reconciliation summary** — 3 sheets (calculated-results / employee-master / payroll-export). Sheet headers use long-form state names (`"Tasmania"`), prefixed employment-type codes (`"CA - Casual"`, `"FP - Full Time Salaried"`), and surface two unmodelled concepts: **Cohort** (cross-jurisdiction grouping like `VIC-TAS`) and **LSL Instrument / Award** (16 distinct values mixing EBA names, award names, common law contracts).
+2. **Three-CSV relational shape** — `PayHistory` (per-period `Pay Code` + `Units` + `Amount` + `Pay Run`) + `PayRateHistory` (effective-dated `Hourly` + `Annual` + `FTE Salary`) + `PositionHistory` (effective-dated state + employment-type + classification + hours). This is the **richer ingestion source** that the v0.1 sub-specs did not anticipate.
+
+**What changed in this spec (all sections marked `[AMENDED 2026-05-31]`):**
+
+- §1 / §2 / §3 — generic-CSV scope **extended to `.xlsx` and multi-file relational drops**.
+- §3 — **LLM-assisted column auto-detection promoted from v1.1 to v1** (deterministic header-pattern matching stays as first pass; LLM is second pass before user falls through to wizard). Reinstates `ANTHROPIC_API_KEY` env var dependency that the PDF-Removal companion deleted 2026-05-27.
+- §3 + new §4.4 — **value normalisation library** (long-form state names → 8-code enum; prefixed employment-type codes → masterfile enum; case + whitespace + hyphen variants). Catalogue is org-versioned.
+- §5 — **auto-detection algorithm extended**: multi-file relational shape (join key resolution); sheet-selection step for `.xlsx` with multiple candidate sheets; LLM second-pass before wizard fallback.
+- §6 — **wizard UX extended** with sheet-picker, multi-file relationship picker, and LLM-suggestion review state.
+- §7 — new acceptance criteria AC-MAP-13 (Excel multi-sheet), AC-MAP-14 (multi-file relational), AC-MAP-15 (value normalisation), AC-MAP-16 (LLM-assist behaviour).
+- §8 — six new open questions (renumbered to OQ-MAP-5..OQ-MAP-10 to avoid collision with existing OQ-MAP-2..4).
+
+**Engine input contract is unchanged by this spec.** The bucket → state engine treatment stays as it was. The contract change (typed pay components vs single `gross_amount`) lives in the E5.4 amendment — this spec just continues to deliver `bucket` values to the engine; E5.4 owns how the period record is shaped.
+
+**What did NOT change:**
+
+- §0 / umbrella §5.3 load-bearing decision (mapping is org-wide; bucket → state treatment engine-resolved) — unchanged.
+- §6.4 / §7 — OQ-MAP-1 (inline-on-first-import) — still locked.
+- §7 acceptance criteria AC-MAP-1..AC-MAP-12 — unchanged at the contract layer.
+
+---
 
 ---
 
@@ -26,15 +55,16 @@ The umbrella spec's load-bearing decision stays: **mapping (raw code → bucket)
 
 ## 1. Executive summary
 
-The platform's ingestion pipeline is `customer CSV → raw pay codes → org-wide mapping → LSL buckets → engine input`. The mapping layer is where customer-specific payroll vocabulary (e.g. "OT15", "PUBHOL", "BONUS-Q4") becomes the deterministic bucket taxonomy the engines consume.
+The platform's ingestion pipeline is `customer file(s) → raw pay codes → org-wide mapping → LSL buckets → engine input`. The mapping layer is where customer-specific payroll vocabulary (e.g. "OT15", "PUBHOL", "BONUS-Q4", "ORD", "LSL") becomes the deterministic bucket taxonomy the engines consume.
 
-Three components:
+**[AMENDED 2026-05-31]** Four components in v0.2:
 
-1. **Auto-detection** — when a new CSV uploads (E5.4), the system inspects column headers and the distinct values seen in the `pay_code` column, scores each against known patterns + the customer's historical mappings, and **proposes** a mapping for each unfamiliar code.
-2. **Mapping wizard** — a UI surface where the customer reviews proposed mappings, accepts / overrides them, and commits. The wizard runs **inline during first import** (covering the entire initial code list) and **incrementally on subsequent imports** (only covering codes the system hasn't seen for this customer).
-3. **Versioned mapping store** — every change writes a new version row; the live mapping is the latest version per `(org_id, raw_code)`. A valuation references the mapping version that was current at the time the valuation ran, so historical valuations can be replayed against the mapping they actually used.
+1. **Auto-detection** — when a new file uploads (E5.4), the system inspects column headers, sheet names (for `.xlsx`), inter-file relationships (for multi-file CSV drops), and the distinct values seen in the `pay_code` column. For each surface it runs two passes: (a) **deterministic** scoring against `pay_code_aliases` patterns + the customer's historical mappings, then (b) **LLM-assisted** suggestion for anything below the deterministic confidence threshold. Both surfaces feed **proposals** into the wizard — the system never auto-commits.
+2. **Value normalisation** — long-form state names (`"Tasmania"` → `TAS`), prefixed employment-type codes (`"CA - Casual"` → `casual`, `"FP - Full Time Salaried"` → `full_time`), case + whitespace + hyphen variants, and similar surface-form-to-canonical-enum mappings happen here. Catalogue is org-versioned alongside `pay_code_mappings`.
+3. **Mapping wizard** — a UI surface where the customer reviews proposed mappings, accepts / overrides them, and commits. The wizard runs **inline during first import** (covering the entire initial code list + sheet + file selections) and **incrementally on subsequent imports** (only covering codes / shapes the system hasn't seen for this customer).
+4. **Versioned mapping store** — every change writes a new version row; the live mapping is the latest version per `(org_id, raw_code)`. A valuation references the mapping version that was current at the time the valuation ran, so historical valuations can be replayed against the mapping they actually used.
 
-**Critical invariant.** A valuation cannot run for an employee whose relevant pay history contains any **unmapped** raw code. The platform returns a blocking error listing the unmapped codes and routes the user to the wizard. This is the umbrella spec's §5.3 MUST.
+**Critical invariant.** A valuation cannot run for an employee whose relevant pay history contains any **unmapped** raw code or unresolved value-normalisation token. The platform returns a blocking error listing the unmapped surfaces and routes the user to the wizard. This is the umbrella spec's §5.3 MUST, extended to value-normalisation tokens in v0.2.
 
 ---
 
@@ -43,33 +73,43 @@ Three components:
 | Capability | Today | What this sub-spec adds |
 |---|---|---|
 | Pay bucket taxonomy | Defined in umbrella spec §6 — fixed list of LSL buckets (Ordinary Time, Overtime — Regular, Overtime — Ad-hoc, Penalty Rates, Commission, Bonus — Discretionary, Bonus — Contractual, All-purpose Allowance, Single-purpose Allowance, Casual Loading, Leave — Annual / Personal / LSL / Workers Comp / Unpaid Parental / Unpaid Other, Termination Payment — LSL / Other, Excluded — Other). Engine layer applies per-state treatment. | This sub-spec exposes the bucket taxonomy as an enum in the mapping table. Bucket → engine treatment is unchanged. |
-| Customer mapping | None. The public calc has no concept of per-customer mapping. | New tables: `pay_code_mappings`, `pay_code_mapping_versions`, `pay_code_aliases` (the auto-detection knowledge base). |
-| Column auto-detection | `/api/normalize-csv` exists in the public calc (LLM-based) — being **deleted** by the PDF Removal sub-spec. | A new deterministic auto-detection layer based on header-name patterns and historical mappings. **No LLM dependency.** |
-| Mapping wizard UI | None. | New `/app/mapping/*` surface. |
+| Customer mapping | None. The public calc has no concept of per-customer mapping. | New tables: `pay_code_mappings`, `pay_code_mapping_versions`, `pay_code_aliases` (the auto-detection knowledge base). **[AMENDED 2026-05-31]** Plus `value_normalisation_aliases` (state names, employment-type codes) — see §4.4. |
+| Column auto-detection | `/api/normalize-csv` exists in the public calc (LLM-based) — **deleted** by the PDF Removal sub-spec 2026-05-27 (`ANTHROPIC_API_KEY` env var removed). | **[AMENDED 2026-05-31]** A new auto-detection layer with deterministic pattern-match as the first pass + LLM-assisted second pass for low-confidence surfaces. **`ANTHROPIC_API_KEY` reinstated** in v1 — the env var that PDF-Removal deleted comes back for this path. **Wizard remains the source of truth — LLM only proposes; nothing auto-commits.** |
+| File-shape support | Public calc accepts a single CSV file. | **[AMENDED 2026-05-31]** v0.2 adds `.xlsx` / `.xlsm` (multi-sheet — user picks the payroll-export sheet) and **multi-file relational drops** (`PayHistory` + `PayRateHistory` + `PositionHistory` joined on a user-confirmed employee key). See §5. |
+| Value normalisation | None. The public calc accepts only the strict 8-code state enum and a fixed employment-type vocabulary. | **[AMENDED 2026-05-31]** Surface-form-to-canonical normalisation. Long-form state names, prefixed employment-type codes, whitespace + case + hyphen variants. Catalogue is org-versioned. Wizard surfaces every unrecognised value before commit. |
+| Mapping wizard UI | None. | New `/app/mapping/*` surface. **[AMENDED 2026-05-31]** Extended in v0.2 with sheet-picker step + file-relationship picker step + LLM-suggestion review state. |
 
 ---
 
 ## 3. Scope boundary — v1 vs deferred
 
-### In scope for v1
+### In scope for v1 **[AMENDED 2026-05-31]**
 
 - `pay_code_mappings` table (current live mapping per `(org_id, raw_code)`).
 - `pay_code_mapping_versions` table (full audit trail of every change).
 - `pay_code_aliases` table (system-level knowledge base of known header / code patterns → suggested bucket).
-- Auto-detection at import time:
-  - **Column-header detection** — identifies which CSV column carries the pay code (e.g. `pay_code`, `earnings_code`, `payment_type`).
-  - **Value-pattern detection** — for each distinct raw code value, scores against the customer's historical mappings (highest priority) and the system alias table (fallback).
+- **[AMENDED 2026-05-31]** `value_normalisation_aliases` table — surface-form → canonical-enum for state names and employment-type codes (§4.4).
+- **[AMENDED 2026-05-31]** `.xlsx` + `.xlsm` ingestion in addition to `.csv`. Multi-sheet handling: when more than one sheet is present, the system proposes which sheet is the payroll-export based on column-signature heuristics; user picks (or confirms) in the wizard.
+- **[AMENDED 2026-05-31]** Multi-file relational drops — the wizard accepts a set of related files (e.g. one for pay periods, one for rate history, one for position history) and lets the user confirm the join key (typically `Employee ID`). The system proposes the relationship based on shared key columns.
+- Auto-detection at import time (two passes):
+  - **Pass 1 — deterministic.**
+    - **Column-header detection** — identifies which column carries the pay code (e.g. `pay_code`, `earnings_code`, `payment_type`, `Pay Code`).
+    - **Sheet-name + sheet-shape detection** — for `.xlsx`, score sheet names against `pay_code_aliases` patterns; tie-break by column-signature match (e.g. a sheet containing `Employee ID` + `Pay Period End` + `Pay Code` + `Amount` is the payroll-export sheet).
+    - **Value-pattern detection** — for each distinct raw code value, score against the customer's historical mappings (highest priority) and the system alias table (fallback).
+    - **Value-normalisation detection** — for state-name and employment-type columns, score each unique surface form against `value_normalisation_aliases`.
+  - **Pass 2 — LLM-assisted (`ANTHROPIC_API_KEY` reinstated in v1).** For any surface that Pass 1 scores below the deterministic threshold, the system calls Anthropic Claude API (no-retention enterprise tier per existing umbrella terms) with the unresolved surfaces and proposes mappings. **The wizard surfaces LLM proposals with a distinct visual marker — `llm_suggested` — and the user must explicitly accept.** Behaviour, opt-in vs opt-out default, cost-cap, latency budget — open question (OQ-MAP-5 below).
 - Mapping wizard UI:
-  - Inline on first import — surfaces every distinct unmapped code with a proposed mapping (or "unknown" if no proposal); customer accepts / overrides; commits in one batch.
-  - Incremental on subsequent imports — surfaces only new codes; existing codes flow through silently.
-- Versioned mapping store — every change creates a new `pay_code_mapping_versions` row; the live row in `pay_code_mappings` is replaced.
+  - Inline on first import — surfaces every distinct unmapped code + every unresolved state/employment-type value + every sheet/file selection with a proposed mapping (or "unknown" if no proposal); customer accepts / overrides; commits in one batch.
+  - Incremental on subsequent imports — surfaces only new surfaces; existing surfaces flow through silently.
+  - **[AMENDED 2026-05-31]** Wizard now has a sheet-picker step (Excel) and a file-relationship step (multi-file) BEFORE the column-detection step.
+- Versioned mapping store — every change creates a new `pay_code_mapping_versions` row; the live row in `pay_code_mappings` is replaced. Same versioning applies to `value_normalisation_aliases` (org-scoped overrides).
 - Admin-only edit of existing mapping (post-commit) — also versioned.
-- Block-valuation rule (umbrella AC5.3.3) — surfaced as a structured error pointing to the wizard.
-- Mapping export as JSON (umbrella §5.3 MAY).
+- Block-valuation rule (umbrella AC5.3.3) — surfaced as a structured error pointing to the wizard. **[AMENDED 2026-05-31]** Extended to unresolved value-normalisation tokens.
+- Mapping export as JSON (umbrella §5.3 MAY). **[AMENDED 2026-05-31]** Export now also covers org-scoped `value_normalisation_aliases` overrides so a consultant can migrate the full normalisation context.
 
 ### Out of scope for v1 (deferred)
 
-- LLM-assisted mapping suggestions (umbrella spec — deferred to v1.1).
+- ~~LLM-assisted mapping suggestions (umbrella spec — deferred to v1.1).~~ **[AMENDED 2026-05-31 — moved INTO v1 scope above. The 2026-05-27 "no LLM in v1" decision is reopened by the operator on 2026-05-31. Real customer-file complexity (mixed-prefix employment types, long-form state names, sheet/file selection) makes the deterministic-only path too brittle for go-live. LLM is second-pass-after-deterministic, never auto-commit.]**
 - Cross-org mapping share (a consultant publishes their mapping to another org). v1 workaround: export JSON + manual import.
 - Per-employee mapping overrides — mapping is org-wide. If a customer needs different treatment for a code under different conditions, they restructure the code in their payroll system (operational concern, not a platform concern in v1).
 - Mapping wizard inside the standalone public calc — the public calc remains stateless.
@@ -131,43 +171,105 @@ This is a **system-managed** table — orgs do not write to it. It carries known
 
 **Seed content.** The dev impl plan seeds this table with the obvious patterns the operator will recognise: `ORDINARY*` → Ordinary Time, `OT*` → Overtime — Ad-hoc (Regular OT is operator-flagged), `PEN*` / `*-PEN` → Penalty Rates, `COMM*` → Commission, `BON*` → Bonus — Discretionary (Contractual flagged), `CAS_LOAD` / `25_LOAD` → Casual Loading, `LSL*` → Leave — Long Service, `WC*` / `WORKERSCOMP*` → Leave — Workers Comp, `PARENTAL*` → Leave — Unpaid Parental, `TFN`/`TAX_FILE`/`BSB`/etc → **excluded from import entirely** (these are PII strip patterns, surfaced for safety).
 
+### 4.4 `value_normalisation_aliases` table (system + org seed, value-form → canonical enum) **[AMENDED 2026-05-31]**
+
+Surfaces in customer payroll files frequently use non-canonical value forms — `"Tasmania"` rather than `"TAS"`, `"CA - Casual"` rather than `"casual"`, `"FP - Full Time Salaried"` and `"FP - Full-time Salaried"` (same intent, hyphen variance) and `"Part Time"` (no prefix). v1 introduces a deterministic normalisation pass before any other validation runs.
+
+| Column | Type | Required | Notes |
+|---|---|---|---|
+| `id` | uuid (PK) | yes | |
+| `org_id` | uuid (FK → `organisations.id`) | no | Null = system-managed; non-null = org-scoped override. Org overrides shadow system rows of the same `(target_field, surface_form)`. |
+| `target_field` | enum | yes | One of `work_jurisdiction`, `employment_type`, `pay_frequency`. Extensible. |
+| `surface_form` | text | yes | The raw value seen in customer files. Case-insensitive compared; whitespace + hyphen normalised. |
+| `canonical_value` | text | yes | The masterfile enum value (`TAS`, `casual`, `weekly`, etc.). |
+| `confidence` | numeric(3,2) | yes | 0.0–1.0. System rows ship at 0.95+; org rows at 1.0 (explicit user confirmation). |
+| `source` | enum | yes | One of `system_seed`, `wizard_confirmed`, `llm_suggested`, `admin_edit`. |
+| `created_at` | timestamptz | yes | |
+| `created_by` | uuid | no | Null for system rows. |
+
+**RLS:** Org-scoped rows visible only to that org; system rows read-only globally. Writes scoped to org admin/payroll_user.
+
+**Seed content.** State names (all 8 jurisdictions × long-form + short-form + common typos), employment-type prefixes (`FP - `, `FT - `, `PP - `, `PT - `, `PC- `, `CO - `, `CA - ` + their hyphenless variants), pay-frequency words (`weekly`, `fortnightly`, `bi-weekly`, `monthly`, `4-weekly`, etc.). The dev impl plan ships the full seed list referencing the Virtus fixture as the canonical surface-form test set.
+
+**Versioning.** Org-scoped rows are versioned via the same `pay_code_mapping_versions` pattern (or a parallel `value_normalisation_aliases_versions` table — dev decides at impl-plan time). Pay-period rows reference the version that was active at insert time so a later re-mapping cannot retroactively shift historical valuations.
+
 ---
 
-## 5. Auto-detection algorithm (v1, deterministic)
+## 5. Auto-detection algorithm (v1) **[AMENDED 2026-05-31]**
 
-When a customer uploads a CSV in E5.4 ingestion, the system:
+When a customer uploads file(s) in E5.4 ingestion, the system runs the steps below in order. **Pass 1 is deterministic. Pass 2 is LLM-assisted and only fires for surfaces Pass 1 left unresolved.** Both passes feed the wizard — the system never auto-commits.
+
+### 5.1 File-shape detection (new in v0.2)
+
+0. **Determine file shape.**
+   - **Single CSV** → straight through to step 1.
+   - **Single `.xlsx` / `.xlsm` with one sheet** → straight through to step 1.
+   - **`.xlsx` / `.xlsm` with multiple sheets** → score each sheet's column signature against `pay_code_aliases` `pattern_kind = 'header_name'`. The sheet whose top 5 headers match the payroll-export pattern wins. **If two or more sheets tie or both score ≥ 0.7 → wizard surfaces a sheet-picker.** (Open question OQ-MAP-6 — should the wizard ALWAYS show the sheet-picker for confirmation, even when one sheet wins decisively?)
+   - **Multi-file relational drop** (the customer uploads 2–4 files together) → the system identifies the shared key column (typically `Employee ID`) and proposes a join — one file as payroll-period source, others as rate-history / position-history. Wizard confirms the relationship before any code-mapping work runs. If the system cannot identify a shared key with confidence ≥ 0.7, the wizard surfaces a relationship picker.
+
+### 5.2 Column auto-detection (Pass 1, deterministic)
 
 1. **Identify the pay-code column.**
    - Score each column header against `pay_code_aliases` rows where `pattern_kind = 'header_name'`.
    - Tie-break by the column's value cardinality (the pay-code column typically has 10–50 distinct values per pay period — not 1, not thousands).
-   - If no header scores ≥ 0.7, the wizard prompts the customer to pick the column manually.
-2. **Identify the gross-amount column.** Same approach (`amount`, `gross`, `pay_amount`, `value` patterns). Manual fallback if none.
+   - If no header scores ≥ 0.7, defer to Pass 2 (LLM-assist) before falling through to the wizard manual-pick.
+2. **Identify the gross-amount column.** Same approach (`amount`, `gross`, `pay_amount`, `value`, `Amount` patterns). Pass-2 fallback if none.
 3. **Identify the employee-id, pay-period-end, work-location columns** the same way.
-4. **For each distinct raw code value seen in the CSV:**
+4. **Identify the units (hours) column** **[AMENDED 2026-05-31]** — `units`, `hours`, `Hours`, `Normal Hours Paid`, `Fixed Ordinary Weekly Hours`. Required for hours-mode in E5.4.
+5. **Identify the pay-frequency column** **[AMENDED 2026-05-31]** — `pay_frequency`, `Pay Frequency`, `frequency`, `pay_cycle`. Pass-2 fallback if none. E5.4 spec §5 covers what happens when no frequency column exists (user declaration / inference fallback chain).
+
+### 5.3 Value-normalisation pass (new in v0.2)
+
+6. **For each column whose header indicates a `target_field` of `value_normalisation_aliases`** (state column, employment-type column, pay-frequency column), collect the unique surface forms and score each against `value_normalisation_aliases`.
+   - `(org_id, target_field, lower(surface_form))` match → resolved silently to the org-scoped canonical value.
+   - Else, `(NULL, target_field, lower(surface_form))` system-managed match → proposed in the wizard with `source = 'system_seed'` (one-click accept).
+   - Else, defer to Pass 2.
+
+### 5.4 Value-pattern detection for pay codes (Pass 1, deterministic)
+
+7. **For each distinct raw code value seen in the file:**
    - If `(org_id, lower(raw_code))` exists in `pay_code_mappings` → resolved silently to the current mapping.
-   - Else, score the raw code against `pay_code_aliases` rows where `pattern_kind` ∈ (`code_value`, `code_prefix`, `code_suffix`); highest-scoring proposal becomes the wizard's default. If no pattern scores ≥ 0.6 → wizard shows "unknown" and forces the user to pick.
-5. **Surface every unresolved code** in the wizard (inline during first import; incremental afterwards).
-6. **On wizard commit:** for each accepted / overridden code, write a new `pay_code_mapping_versions` row and update `pay_code_mappings.current_version_id`. **The pay-period rows do not commit to `pay_periods` until the wizard is committed.**
+   - Else, score the raw code against `pay_code_aliases` rows where `pattern_kind` ∈ (`code_value`, `code_prefix`, `code_suffix`); highest-scoring proposal becomes the wizard's default. If no pattern scores ≥ 0.6 → defer to Pass 2.
 
-**Confidence thresholds.** The 0.7 / 0.6 numbers above are seeds — calibrate in impl-plan against real-world examples. Lower threshold = more user touches per import; higher threshold = more risk of silent mis-mapping. The wizard always shows the proposed bucket and asks for confirmation; the threshold only governs whether a proposal is made vs left blank.
+### 5.5 LLM-assisted pass (Pass 2, new in v0.2)
 
-**No LLM in the loop.** v1 auto-detection is pure pattern-match. v1.1 may layer LLM-assisted suggestions on top (umbrella spec — deferred). If/when that lands, it writes to the same `pay_code_mapping_versions` table with `source = 'llm_suggested'`.
+8. **For every surface left unresolved by Pass 1:** the system batches them and calls Anthropic Claude API once per import (single round-trip, structured-output JSON response). Each suggestion lands in the wizard as a row with `source = 'llm_suggested'` and a confidence score. **The wizard renders these visually distinct from deterministic suggestions** — operator sees the difference, must explicitly accept or override.
+
+   Cost-cap behaviour, opt-in vs opt-out, latency budget, and what happens when the LLM is unreachable — see open question **OQ-MAP-5** in §8.
+
+   On accept, the system writes the resolution to the appropriate versioned table (`pay_code_mapping_versions` with `source = 'llm_suggested'`, or `value_normalisation_aliases` with `source = 'llm_suggested'` and `org_id` set). The system **never auto-promotes** an `llm_suggested` row to a system seed — operator review at platform level is the only path to system-seed promotion.
+
+### 5.6 Wizard surface + commit
+
+9. **Surface every unresolved surface** in the wizard (inline during first import; incremental afterwards) — sheet picks, file relationships, columns, normalisation values, pay codes — in one logical wizard journey with clear progress (e.g. step 1 of 5).
+10. **On wizard commit:** for each accepted / overridden surface, write a new versioned row in the appropriate table (`pay_code_mapping_versions`, `value_normalisation_aliases`, sheet/file mappings persisted on the `imports` row). **The pay-period rows do not commit to `pay_periods` until the wizard is committed.**
+
+**Confidence thresholds.** The 0.7 / 0.6 numbers above are seeds — calibrate in impl-plan against real-world examples (Virtus fixture is the primary calibration target). Lower threshold = more user touches per import; higher threshold = more risk of silent mis-mapping. The wizard always shows the proposed bucket and asks for confirmation; the threshold only governs whether a proposal is made vs left blank vs sent to LLM.
+
+**LLM in the loop — second pass only, never auto-commit.** The 2026-05-27 "no LLM in v1" decision is reopened on 2026-05-31. v1 uses deterministic pattern-match as the first pass; LLM-assisted suggestions as the second pass for surfaces below the deterministic threshold. The wizard is still the source of truth — every LLM suggestion requires explicit accept. See §3 (PDF-Removal companion reverse-coupling) and OQ-MAP-5.
 
 ---
 
 ## 6. Mapping wizard UX
 
-### 6.1 First-import flow (inline)
+### 6.1 First-import flow (inline) **[AMENDED 2026-05-31]**
 
-After the CSV uploads and auto-detection runs, the user lands on `/app/import/{id}/mapping`:
+After the file(s) upload and auto-detection runs, the user lands on `/app/import/{id}/wizard` — a multi-step wizard. The steps that have nothing unresolved are auto-confirmed and shown as a one-line "looks good, click to review" affordance; the user only spends time on the steps that need them.
 
-- Header section: "We found 23 pay codes in your file. 18 we recognise; 5 need your attention."
+**Step order:**
+
+1. **File shape** (only shown if `.xlsx` multi-sheet or multi-file relational drop): pick the payroll-export sheet / confirm the file relationships. The system's proposal is pre-selected; user confirms or overrides.
+2. **Columns**: confirm pay-code / amount / units / employee-id / pay-period-end / work-jurisdiction / pay-frequency columns. Pre-filled from Pass 1 + Pass 2.
+3. **Value normalisation**: confirm state-name forms (`"Tasmania"` → `TAS`), employment-type prefixes (`"CA - Casual"` → `casual`), pay-frequency forms. Pre-filled where confidence is high; LLM-suggested rows marked.
+4. **Pay-code mapping** (the original v0.1 wizard surface):
+
+- Header section: "We found 23 pay codes in your file. 18 we recognise; 3 we have a suggestion for; 2 need your attention."
 - A table of **every distinct code** in the import:
   - **Code** column (the raw payroll value).
   - **Suggested bucket** dropdown (pre-filled if the algorithm proposed one; otherwise blank).
   - **Sample rows** mini-cell (shows the first 3 employees + pay periods + amounts using this code — helps the user identify what the code actually is).
-  - **Status pill**: `auto-mapped` (from `pay_code_aliases`), `historical` (from prior org mapping), `needs review` (no proposal).
-- **Bulk actions**: "Accept all auto-mappings", "Mark all unknown as Excluded — Other" (escape hatch, surfaces a warning).
+  - **Status pill**: `auto-mapped` (from `pay_code_aliases`), `historical` (from prior org mapping), `llm_suggested` (Pass 2 — visually distinct), `needs review` (no proposal).
+- **Bulk actions**: "Accept all deterministic auto-mappings", "Accept all LLM suggestions" (separate button — operator chooses whether to trust LLM batch), "Mark all unknown as Excluded — Other" (escape hatch, surfaces a warning).
 - **Commit** button (blocked until every row has a bucket).
 - **Save and resume later** — saves the in-progress mappings to a draft state; the user can come back to it without re-uploading.
 
@@ -215,10 +317,14 @@ This decision is final for v1. See §7 *Locked decisions*.
 - **AC-MAP-10** JSON export of a customer's current mappings produces a portable file that can be JSON-imported into a different org with identical resulting `pay_code_mappings` rows (one wizard skip per re-imported code).
 - **AC-MAP-11** RLS prevents a user in Org 1 from reading or writing any row in `pay_code_mappings` or `pay_code_mapping_versions` belonging to Org 2, validated by automated cross-tenant security tests in CI.
 - **AC-MAP-12** `pay_code_aliases` is read-only at the API surface (no org-writable mutation path).
+- **AC-MAP-13** **[AMENDED 2026-05-31]** Excel multi-sheet ingestion — `.xlsx` and `.xlsm` files upload successfully; the wizard surfaces a sheet-picker when more than one sheet exists and the system's first-choice score is below the configured threshold or when OQ-MAP-6 resolves "always show". On commit, the chosen sheet name is persisted on the `imports` row so a re-import remembers the prior selection. Verified against the Virtus 3-sheet `.xlsx` fixture (Sheet3 is the payroll-export shape).
+- **AC-MAP-14** **[AMENDED 2026-05-31]** Multi-file relational ingestion — uploading 2–4 related files (e.g. `PayHistory` + `PayRateHistory` + `PositionHistory`) is accepted; the wizard surfaces a relationship-picker showing the proposed join key (typically `Employee ID`). On commit, the file relationship is persisted on the `imports` row. Verified against the Virtus 3-CSV fixture set.
+- **AC-MAP-15** **[AMENDED 2026-05-31]** Value normalisation — long-form state names (`"Tasmania"` → `TAS`, `"Victoria"` → `VIC`, all 8 jurisdictions × long-form), prefixed employment-type codes (`"CA - Casual"` → `casual`, `"FP - Full Time Salaried"` → `full_time`, `"PT - Part-time Salary"` → `part_time`, hyphen + whitespace variants), and pay-frequency words (`"Weekly"` → `weekly`, `"Bi-weekly"` → `fortnightly`) are recognised via system-managed `value_normalisation_aliases`; the wizard surfaces every unrecognised form before commit. Verified against the Virtus payroll-export sheet (Sheet3 of the canonical fixture — 12 distinct employment-type values, 7 long-form state values).
+- **AC-MAP-16** **[AMENDED 2026-05-31]** LLM-assisted second pass — for every surface left unresolved after Pass 1 (deterministic), Anthropic Claude API is invoked once per import; the response populates the wizard with `source = 'llm_suggested'` rows visually distinct from deterministic suggestions. The wizard requires explicit acceptance per LLM row (or via the explicit "Accept all LLM suggestions" bulk button). Cost-cap, latency budget, opt-in behaviour, and unreachable-LLM fallback resolved per OQ-MAP-5. No LLM call is ever made for a surface the deterministic pass already resolved with confidence ≥ threshold. Verified by paired-fixture: same import with `ANTHROPIC_API_KEY` set vs unset — LLM-set version surfaces additional proposals, unset version falls through cleanly to manual wizard pick for the same surfaces.
 
 ---
 
-## 7. Locked decisions (formerly open)
+## 7a. Locked decisions (formerly open)
 
 These were flagged as open questions in the 2026-05-27 first-pass scoping and were resolved by the operator on 2026-05-27.
 
@@ -230,11 +336,23 @@ These were flagged as open questions in the 2026-05-27 first-pass scoping and we
 
 ## 8. Open questions
 
+### Open since v0.1 (2026-05-27) — unchanged
+
 | ID | Question | PM recommendation |
 |---|---|---|
 | **OQ-MAP-2** | Confidence threshold for auto-detection (currently 0.7 for column-header, 0.6 for code-value). Tune now or after pilot? | PM recommendation: **ship the seed values, recalibrate post-pilot.** Pattern table will accumulate real data. |
 | **OQ-MAP-3** | Should the wizard show what the bucket *means* per state, given the engine resolves per-state treatment? E.g. inline tooltip: "Penalty Rates: counts as ordinary pay in QLD and TAS, excluded elsewhere." | PM recommendation: **yes, as a small "what this means" link**, deferred to UX polish. Not a launch gate. |
 | **OQ-MAP-4** | Does the system seed `pay_code_aliases` ship with content tailored to specific payroll vendors (Xero, MYOB, KeyPay)? | PM recommendation: **no in v1 — keep seed generic** to avoid signalling vendor support. Vendor-specific aliases are a v1.1 enhancement, possibly bundled with E4 vendor connectors. |
+
+### Locked 2026-06-01 (formerly v0.2 open)
+
+**Numbering note:** The 2026-05-31 amendment scope in `docs/product/epics.md` listed these as `OQ-MAP-2` and `OQ-MAP-3` — but those IDs are already in use in this spec for unrelated questions. They were renumbered to **OQ-MAP-5 / OQ-MAP-6**. A third question, **OQ-MAP-7**, was surfaced during amendment drafting (PII strip on Excel sheets the customer didn't pick). All three locked by operator 2026-06-01.
+
+| ID | Question | Decision | Locked on |
+|---|---|---|---|
+| **OQ-MAP-5** | LLM-assisted column/value mapping — opt-in vs default-on; cost-cap; latency budget; `ANTHROPIC_API_KEY` unset behaviour. | **LOCKED 2026-06-01 — PM recommendation accepted.** **Default-on with per-org opt-out toggle** on the org settings page. **Cost-cap: $0.05 per import** (single batched call; prompt fits in one round-trip). **Latency budget: 10 seconds** — if Anthropic doesn't respond in that window, fall through to manual wizard with a soft notice. When `ANTHROPIC_API_KEY` is unset, no LLM call is attempted, no error raised; wizard surfaces "LLM assistance unavailable — proceeding with deterministic suggestions only" and user picks manually. | 2026-06-01 |
+| **OQ-MAP-6** | Excel multi-sheet sheet-picker — unconditional confirmation vs skip-when-decisive? | **LOCKED 2026-06-01 — PM recommendation accepted.** **Show the sheet-picker on first import unconditionally** (onboarding customer benefits from explicit confirmation). On subsequent imports from the same uploader against the same file signature, **skip the picker** and use the prior choice silently. The `imports` row persists the sheet-name choice for re-import detection. | 2026-06-01 |
+| **OQ-MAP-7** | For `.xlsx` files, are sheets the customer did NOT select also scanned for PII (TFN / bank / super patterns)? | **LOCKED 2026-06-01 — PM recommendation accepted.** **Scan ALL sheets for PII column names at upload time.** Refuse to store the source file (or store it with offending sheets stripped) if any sheet contains a known PII header. Defence-in-depth aligns with the per-value regex flag pattern already specced. | 2026-06-01 |
 
 ---
 
@@ -259,7 +377,10 @@ These were flagged as open questions in the 2026-05-27 first-pass scoping and we
 - `.specify/features/005-lsl-platform/sub-specs/pay-period-ingestion.md` — E5.4 consumer of this mapping layer.
 - `website/src/lib/lsl/engine/normalise.ts` — engine input normalisation; the bucket → state treatment lives below this layer.
 - `docs/research/lsl-pay-components-deep-research.md` v2.0 — canonical pay-bucket reference, source of umbrella spec §6.
+- **[AMENDED 2026-05-31]** `~/Downloads/Virtus Health - LSL calculation/Sample run/` — canonical real-world test fixture set surfacing the structural gaps this amendment closes. Two shapes:
+  - `Virtus Health LSL - Sample run.xlsx` (3 sheets: 1,386 / 1,717 / 1,384 rows) — reconciliation-summary shape; Sheet3 holds payroll-export columns with long-form states + prefixed employment types.
+  - `Virtus SAMPLE PayHistorySampleFile(in).csv` + `…PayRateHistorySampleFile(in).csv` + `…PositionHistorySampleFile(in).csv` — the richer 3-CSV relational shape (per-period `Pay Code` + `Units` + `Amount` + `Pay Run`; effective-dated rate history; effective-dated position history). Dev impl plan treats this as the canonical multi-file relational fixture; the `.xlsx` is the canonical Excel-multi-sheet fixture.
 
 ---
 
-*End of E5.3 sub-spec — scoped 2026-05-27, OQ-MAP-1 locked 2026-05-27, awaiting dev impl plan.*
+*End of E5.3 sub-spec — v0.1 scoped 2026-05-27, OQ-MAP-1 locked 2026-05-27. v0.2 amended 2026-05-31; **OQ-MAP-5 / OQ-MAP-6 / OQ-MAP-7 LOCKED 2026-06-01**. Spec is LOCKED — ready for impl-plan + tasks generation.*

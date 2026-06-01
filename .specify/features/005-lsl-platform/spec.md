@@ -114,6 +114,7 @@ Why not one epic? Each sub-epic is 1–3 weeks of work and has its own acceptanc
 - Workflow features: approval chains, comments, e-sign on reconciliation reports.
 - **Australian data-residency hosting**. v1 uses Supabase default region; deferred compliance consideration, revisit when a client makes residency a hard requirement.
 - **Reconciliation-only commercial tier**. Folded into the broader pricing/strategy discussion (see §14).
+- **Multi-employer customers (one corporate group → N ABNs)** — locked-deferred 2026-06-01 from the E5.4 v0.2 amendment review (Virtus Health surfacing). v1 ships one-org-one-ABN per the 2026-05-27 E5.2 lock-in; multi-employer groups cannot be v1 pilot customers. v1.1 backlog: add `employer` as a first-class entity below `organisation` (E5.2 amendment) with consolidated cross-employer reporting. See `sub-specs/pay-period-ingestion.md` §3 *Explicitly deferred to v1.1* for the full decision record.
 
 ---
 
