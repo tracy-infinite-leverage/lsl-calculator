@@ -86,6 +86,17 @@ const DEV_ONLY_IMPORTS = [
   'axe-core/lib/', // axe-core's actual JS payload — substring distinct from devDep specifier
 ];
 
+// Server-only asset paths that must never appear in client JS / CSS.
+// `/fonts/pdf/` is the unsubset-TTF directory registered by
+// `src/lib/pdf/fonts.ts` for the @react-pdf/renderer pipeline (E6.5 Task 5.2).
+// Those TTFs are ~3× the size of the parent woff2 files and serve a
+// server-side concern only — the browser never fetches them. A reference
+// to `/fonts/pdf/` in a client chunk would mean the path leaked into a
+// `'use client'` module and would unnecessarily preload the TTF.
+const SERVER_ONLY_PATHS = [
+  '/fonts/pdf/',
+];
+
 // Patterns that indicate an SVG (or any text asset) is fetching a font over
 // the network at render time. The wordmark @import-leak bug class (PR #62).
 const SVG_FONT_IMPORT_PATTERN = '@import url(';
@@ -151,7 +162,7 @@ async function auditNextStatic() {
   console.log(`[audit-bundle]   ${scanFiles.length} text artefacts to scan`);
 
   const findings = [];
-  const needles = [...THIRD_PARTY_HOSTS, ...DEV_ONLY_IMPORTS];
+  const needles = [...THIRD_PARTY_HOSTS, ...DEV_ONLY_IMPORTS, ...SERVER_ONLY_PATHS];
   for (const file of scanFiles) {
     const hits = await scanFile(file, needles);
     for (const h of hits) {
