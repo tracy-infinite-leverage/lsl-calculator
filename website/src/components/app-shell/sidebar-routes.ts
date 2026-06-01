@@ -74,14 +74,14 @@ export const SIDEBAR_ENTRIES: readonly SidebarEntry[] = [
   },
   {
     slug: 'pay-codes',
-    label: 'Pay Codes',
+    label: 'Pay codes',
     href: '/app/pay-codes',
     icon: Tag,
     flag: 'NEXT_PUBLIC_FEATURE_PAY_CODES',
   },
   {
     slug: 'pay-history',
-    label: 'Pay History',
+    label: 'Pay history',
     href: '/app/pay-history',
     icon: CalendarRange,
     flag: 'NEXT_PUBLIC_FEATURE_PAY_HISTORY',
