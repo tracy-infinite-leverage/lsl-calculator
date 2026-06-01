@@ -40,7 +40,6 @@ import {
   clearOpeningBalance,
   type EmployeeRow,
   type CreateEmployeePayload,
-  type UpdateEmployeePatch,
 } from '../employees';
 
 // ---------------------------------------------------------------------------
@@ -1201,12 +1200,9 @@ describe('updateEmployee — opening_balance policy', () => {
       opening_balance_weeks: 10,
     };
     const { supabase } = mockSequence([
-      {
-        table: 'organisations',
-        verb: 'select',
-        result: { data: { opening_balances_method: 'both' }, error: null },
-      },
-      // Read existing employee to detect collision (was a prior CSV value present?).
+      // Read existing employee FIRST (to learn org_id + prior balance) before
+      // looking up org policy. updateEmployee takes only employeeId — orgId
+      // is not a parameter, so the impl must derive it from the row.
       {
         table: 'employees',
         verb: 'select',
@@ -1214,6 +1210,11 @@ describe('updateEmployee — opening_balance policy', () => {
           data: { org_id: ORG_ID, opening_balance_weeks: null },
           error: null,
         },
+      },
+      {
+        table: 'organisations',
+        verb: 'select',
+        result: { data: { opening_balances_method: 'both' }, error: null },
       },
       { table: 'employees', verb: 'update', result: { data: updatedRow, error: null } },
     ]);
@@ -1237,17 +1238,17 @@ describe('updateEmployee — opening_balance policy', () => {
     };
     const { supabase } = mockSequence([
       {
-        table: 'organisations',
-        verb: 'select',
-        result: { data: { opening_balances_method: 'both' }, error: null },
-      },
-      {
         table: 'employees',
         verb: 'select',
         result: {
           data: { org_id: ORG_ID, opening_balance_weeks: 10 },
           error: null,
         },
+      },
+      {
+        table: 'organisations',
+        verb: 'select',
+        result: { data: { opening_balances_method: 'both' }, error: null },
       },
       { table: 'employees', verb: 'update', result: { data: updatedRow, error: null } },
     ]);
@@ -1265,17 +1266,17 @@ describe('updateEmployee — opening_balance policy', () => {
   it('source=wizard + policy=csv_field → wizard write silently skipped', async () => {
     const { supabase } = mockSequence([
       {
-        table: 'organisations',
-        verb: 'select',
-        result: { data: { opening_balances_method: 'csv_field' }, error: null },
-      },
-      {
         table: 'employees',
         verb: 'select',
         result: {
           data: { org_id: ORG_ID, opening_balance_weeks: null },
           error: null,
         },
+      },
+      {
+        table: 'organisations',
+        verb: 'select',
+        result: { data: { opening_balances_method: 'csv_field' }, error: null },
       },
       // Update happens but with the opening_balance_* fields stripped.
       { table: 'employees', verb: 'update', result: { data: PERSISTED_ROW, error: null } },
