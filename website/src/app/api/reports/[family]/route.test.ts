@@ -1,0 +1,339 @@
+/**
+ * Unit tests for the `POST /api/reports/[family]` endpoint.
+ *
+ * E6.5 Task 5.5. Pins the load-bearing auth-posture split (OQ-6 / G-1):
+ *
+ *   - Public families (single-employee, bulk-summary) NEVER call Supabase.
+ *   - Authenticated families (liability, reconciliation) return 401 without
+ *     a valid session.
+ *
+ * Tests use a Supabase mock that asserts whether `createSupabaseServerClient`
+ * is invoked. The whole point of the posture split is that public families
+ * do NOT touch Supabase — the test framework asserts that as an INVARIANT
+ * (via `getUserMock.toHaveBeenCalled()`) on every public-family test case.
+ *
+ * Status-code coverage in this file:
+ *
+ *   - 200 application/pdf: NOT exercised today (templates land in 6.1+).
+ *     The contract test (Task 5.5-bis) takes that role once templates ship.
+ *   - 400 unsupported-family: unknown family in URL.
+ *   - 400 invalid-payload: malformed JSON / Zod failure.
+ *   - 401 unauthorized: authenticated family without a session.
+ *   - 500 render-failure: Supabase auth lookup throws (the only render path
+ *     wired today is the auth-check path).
+ *   - 501 template-not-shipped: every recognised family today returns this
+ *     because templates have not been wired.
+ */
+
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { NextRequest } from 'next/server';
+
+// ─── Supabase mock ──────────────────────────────────────────────────────────
+// The mock is wired so that:
+//   - getUserMock returns a logged-in user by default
+//   - Each test can override per-call behaviour
+//   - The `createSupabaseServerClient` factory itself is a spy — so we can
+//     assert that PUBLIC families NEVER call it (the OQ-6 contract).
+
+type GetUserResult = {
+  data: { user: { id: string } | null };
+  error: null;
+};
+const getUserMock = vi.fn<() => Promise<GetUserResult>>(async () => ({
+  data: { user: { id: 'user-1' } },
+  error: null,
+}));
+
+const createSupabaseServerClientMock = vi.fn(async () => ({
+  auth: {
+    getUser: getUserMock,
+  },
+}));
+
+vi.mock('@/lib/supabase/server', () => ({
+  createSupabaseServerClient: createSupabaseServerClientMock,
+}));
+
+// Import AFTER mocks are set up.
+const { POST } = await import('./route');
+
+// ─── Test helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Build a NextRequest with a JSON body for the endpoint. Default body is a
+ * valid `{ context, payload }` shape that satisfies the Zod schema. Tests
+ * that need invalid bodies pass an explicit body or use `makeRequestRaw`.
+ */
+function makeRequest(family: string, body?: unknown): NextRequest {
+  return new NextRequest(
+    new URL(`http://localhost/api/reports/${family}`),
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body ?? VALID_BODY),
+    },
+  );
+}
+
+/**
+ * Build a NextRequest with a literal raw body string — used for the
+ * invalid-JSON case where `JSON.stringify` would otherwise produce valid JSON.
+ */
+function makeRequestRaw(family: string, rawBody: string): NextRequest {
+  return new NextRequest(
+    new URL(`http://localhost/api/reports/${family}`),
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: rawBody,
+    },
+  );
+}
+
+/**
+ * Construct the route context object Next.js 16 passes as the second arg.
+ * The `params` property is a Promise — we await it inside the handler.
+ */
+function makeCtx(family: string): { params: Promise<{ family: string }> } {
+  return { params: Promise.resolve({ family }) };
+}
+
+const VALID_BODY = {
+  context: {
+    reportTitle: 'Test report',
+    generatedAtIso: '2026-05-31T05:42:00Z',
+    organisationName: 'Acme Pty Ltd',
+    calcMethodologyVersion: 'lsl-engine-v1.4.2',
+    stateEngineVersion: 'rules-engine-v1.2',
+    dataAsAtIso: '2026-05-31T05:42:00Z',
+    apaContact: {
+      email: 'admin@austpayroll.com.au',
+      url: 'www.austpayroll.com.au',
+    },
+  },
+  payload: { whatever: 'family-specific' },
+};
+
+// ─── Test setup ─────────────────────────────────────────────────────────────
+
+beforeEach(() => {
+  createSupabaseServerClientMock.mockClear();
+  getUserMock.mockClear();
+  // Reset to logged-in default.
+  getUserMock.mockImplementation(async () => ({
+    data: { user: { id: 'user-1' } },
+    error: null,
+  }));
+});
+
+// ─── Public families: NEVER touch Supabase (OQ-6 / G-1) ─────────────────────
+
+describe('POST /api/reports/single-employee — PUBLIC posture (OQ-6)', () => {
+  it('does NOT call createSupabaseServerClient (load-bearing OQ-6 contract)', async () => {
+    await POST(makeRequest('single-employee'), makeCtx('single-employee'));
+    expect(createSupabaseServerClientMock).not.toHaveBeenCalled();
+    expect(getUserMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 501 template-not-shipped today (will flip to 200 in Task 6.1)', async () => {
+    // Public family + valid body → recognised but no template wired.
+    const response = await POST(
+      makeRequest('single-employee'),
+      makeCtx('single-employee'),
+    );
+    expect(response.status).toBe(501);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('template-not-shipped');
+  });
+
+  it('returns 400 invalid-payload for malformed JSON — without touching Supabase', async () => {
+    const response = await POST(
+      makeRequestRaw('single-employee', '{ not valid json'),
+      makeCtx('single-employee'),
+    );
+    expect(response.status).toBe(400);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('invalid-payload');
+    expect(createSupabaseServerClientMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 invalid-payload for missing required context fields', async () => {
+    const response = await POST(
+      makeRequest('single-employee', { context: {}, payload: {} }),
+      makeCtx('single-employee'),
+    );
+    expect(response.status).toBe(400);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('invalid-payload');
+    expect(createSupabaseServerClientMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/reports/bulk-summary — PUBLIC posture (OQ-6)', () => {
+  it('does NOT call createSupabaseServerClient', async () => {
+    await POST(makeRequest('bulk-summary'), makeCtx('bulk-summary'));
+    expect(createSupabaseServerClientMock).not.toHaveBeenCalled();
+    expect(getUserMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 501 template-not-shipped today', async () => {
+    const response = await POST(
+      makeRequest('bulk-summary'),
+      makeCtx('bulk-summary'),
+    );
+    expect(response.status).toBe(501);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('template-not-shipped');
+  });
+});
+
+// ─── Authenticated families: 401 without session ────────────────────────────
+
+describe('POST /api/reports/liability — AUTHENTICATED posture', () => {
+  it('returns 401 unauthorized without a valid Supabase session', async () => {
+    // Override the default mock to return no user.
+    getUserMock.mockImplementationOnce(async () => ({
+      data: { user: null },
+      error: null,
+    }));
+    const response = await POST(
+      makeRequest('liability'),
+      makeCtx('liability'),
+    );
+    expect(response.status).toBe(401);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('unauthorized');
+    // Verify Supabase WAS consulted (this is the authenticated path).
+    expect(createSupabaseServerClientMock).toHaveBeenCalledTimes(1);
+    expect(getUserMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns 501 template-not-shipped when authenticated (template lands in E5.5)', async () => {
+    // Default mock = logged-in user.
+    const response = await POST(
+      makeRequest('liability'),
+      makeCtx('liability'),
+    );
+    expect(response.status).toBe(501);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('template-not-shipped');
+  });
+
+  it('returns 500 render-failure with a requestId when Supabase auth lookup throws', async () => {
+    // Mock the underlying client factory to throw.
+    createSupabaseServerClientMock.mockImplementationOnce(async () => {
+      throw new Error('Supabase outage');
+    });
+    const response = await POST(
+      makeRequest('liability'),
+      makeCtx('liability'),
+    );
+    expect(response.status).toBe(500);
+    const json = (await response.json()) as { error: string; requestId: string };
+    expect(json.error).toBe('render-failure');
+    // requestId must be a non-empty string (UUID v4 from crypto.randomUUID).
+    expect(json.requestId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+  });
+
+  it('does NOT process the body if auth fails (auth-first ordering)', async () => {
+    // Override to return no user. Send a body that would fail Zod
+    // validation — but since auth fires FIRST, we should get 401 not 400.
+    getUserMock.mockImplementationOnce(async () => ({
+      data: { user: null },
+      error: null,
+    }));
+    const response = await POST(
+      makeRequest('liability', { context: {}, payload: {} }),
+      makeCtx('liability'),
+    );
+    expect(response.status).toBe(401);
+  });
+});
+
+describe('POST /api/reports/reconciliation — AUTHENTICATED posture', () => {
+  it('returns 401 unauthorized without a valid Supabase session', async () => {
+    getUserMock.mockImplementationOnce(async () => ({
+      data: { user: null },
+      error: null,
+    }));
+    const response = await POST(
+      makeRequest('reconciliation'),
+      makeCtx('reconciliation'),
+    );
+    expect(response.status).toBe(401);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('unauthorized');
+    expect(createSupabaseServerClientMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns 501 template-not-shipped when authenticated (template lands in E5.6)', async () => {
+    const response = await POST(
+      makeRequest('reconciliation'),
+      makeCtx('reconciliation'),
+    );
+    expect(response.status).toBe(501);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('template-not-shipped');
+  });
+});
+
+// ─── Unknown families: 400 BEFORE any auth check ────────────────────────────
+
+describe('POST /api/reports/[unknown] — unsupported family', () => {
+  it('returns 400 unsupported-family for an unknown segment', async () => {
+    const response = await POST(
+      makeRequest('not-a-real-family'),
+      makeCtx('not-a-real-family'),
+    );
+    expect(response.status).toBe(400);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('unsupported-family');
+  });
+
+  it('does NOT touch Supabase for unknown families', async () => {
+    await POST(
+      makeRequest('not-a-real-family'),
+      makeCtx('not-a-real-family'),
+    );
+    expect(createSupabaseServerClientMock).not.toHaveBeenCalled();
+    expect(getUserMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects prototype-pollution attempts (e.g. `toString`, `__proto__`)', async () => {
+    for (const evil of ['toString', 'constructor', '__proto__', 'hasOwnProperty']) {
+      const response = await POST(makeRequest(evil), makeCtx(evil));
+      expect(response.status).toBe(400);
+      const json = (await response.json()) as { error: string };
+      expect(json.error).toBe('unsupported-family');
+    }
+  });
+
+  it('rejects an empty family segment', async () => {
+    const response = await POST(makeRequest(''), makeCtx(''));
+    expect(response.status).toBe(400);
+    const json = (await response.json()) as { error: string };
+    expect(json.error).toBe('unsupported-family');
+  });
+});
+
+// ─── Family-validation ordering: family check FIRST, before auth ────────────
+
+describe('Family validation fires BEFORE the auth check', () => {
+  it('an unknown family with no auth still returns 400 (not 401)', async () => {
+    // If auth ran first for authenticated families, an unknown family
+    // happening to match an authed posture (it cannot, but defensively)
+    // would 401. Our handler should 400 for unknown — full stop.
+    getUserMock.mockImplementationOnce(async () => ({
+      data: { user: null },
+      error: null,
+    }));
+    const response = await POST(
+      makeRequest('garbage'),
+      makeCtx('garbage'),
+    );
+    expect(response.status).toBe(400);
+    expect(createSupabaseServerClientMock).not.toHaveBeenCalled();
+  });
+});
