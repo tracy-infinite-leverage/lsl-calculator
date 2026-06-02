@@ -98,20 +98,92 @@ function makeCtx(family: string): { params: Promise<{ family: string }> } {
   return { params: Promise.resolve({ family }) };
 }
 
+const VALID_CONTEXT = {
+  reportTitle: 'Test report',
+  generatedAtIso: '2026-05-31T05:42:00Z',
+  organisationName: 'Acme Pty Ltd',
+  calcMethodologyVersion: 'lsl-engine-v1.4.2',
+  stateEngineVersion: 'rules-engine-v1.2',
+  dataAsAtIso: '2026-05-31T05:42:00Z',
+  apaContact: {
+    email: 'admin@austpayroll.com.au',
+    url: 'www.austpayroll.com.au',
+  },
+};
+
 const VALID_BODY = {
-  context: {
-    reportTitle: 'Test report',
-    generatedAtIso: '2026-05-31T05:42:00Z',
-    organisationName: 'Acme Pty Ltd',
-    calcMethodologyVersion: 'lsl-engine-v1.4.2',
-    stateEngineVersion: 'rules-engine-v1.2',
-    dataAsAtIso: '2026-05-31T05:42:00Z',
-    apaContact: {
-      email: 'admin@austpayroll.com.au',
-      url: 'www.austpayroll.com.au',
+  context: VALID_CONTEXT,
+  payload: { whatever: 'family-specific' },
+};
+
+/**
+ * Minimal single-employee payload that satisfies the dispatcher's narrowing
+ * and exercises the real react-pdf render path. The engine `Result` carries
+ * `Decimal` instances on numeric outputs / diagnostics in normal flow — but
+ * JSON-round-trip serialises them as strings (see `rehydrateResult` in
+ * route.ts). Strings are exactly what a real CTA `fetch` body delivers, so
+ * the fixture uses bare strings — the route handler rehydrates them into
+ * Decimals before passing to the template.
+ */
+const MINIMAL_SINGLE_EMPLOYEE_PAYLOAD = {
+  result: {
+    employeeId: 'emp-001',
+    status: 'computed',
+    category: 'B',
+    trigger: {
+      kind: 'termination',
+      terminationDate: '2026-05-31',
+      reason: 'redundancy',
+    },
+    outputs: {
+      valueOfWeek: {
+        value: '1000.00',
+        display: '1,000.00',
+        citations: [
+          { section: 'NSW LSL Act 1955 s.4(2)', rule: 'long_service_leave_entitlement_after_10_years' },
+        ],
+      },
+      valueOfDay: {
+        value: '200.00',
+        display: '200.00',
+        citations: [],
+      },
+      totalEntitlement: {
+        weeks: {
+          value: '10.83',
+          display: '10.83',
+          citations: [],
+        },
+        dollars: {
+          value: '10830.00',
+          display: '10,830.00',
+          citations: [],
+        },
+      },
+    },
+    warnings: [],
+    diagnostics: {
+      yearsOfContinuousService: '10.83',
+      daysOfContinuousService: 3954,
+      daysNotCountedInService: 0,
+      daysNotCountedInLookback: { window12mo: 0, window5yr: 0 },
+      weeklyAvg12mo: '1000.00',
+      weeklyAvg5yr: '950.00',
+      payableIndicator: 'payable',
+      serviceStartUsed: '2015-09-01',
     },
   },
-  payload: { whatever: 'family-specific' },
+  identity: {
+    legalName: 'Sample Employee',
+    externalEmployeeId: 'EMP-001',
+    startDate: '2015-09-01',
+  },
+};
+
+const MINIMAL_BULK_SUMMARY_PAYLOAD = {
+  results: [MINIMAL_SINGLE_EMPLOYEE_PAYLOAD.result],
+  namesById: { 'emp-001': 'Sample Employee' },
+  summary: { computed: 1, blocked: 0, failed: 0, elapsedMs: 42 },
 };
 
 // ─── Test setup ─────────────────────────────────────────────────────────────
@@ -135,15 +207,48 @@ describe('POST /api/reports/single-employee — PUBLIC posture (OQ-6)', () => {
     expect(getUserMock).not.toHaveBeenCalled();
   });
 
-  it('returns 501 template-not-shipped today (will flip to 200 in Task 6.1)', async () => {
-    // Public family + valid body → recognised but no template wired.
+  it('returns 200 application/pdf for a valid single-employee payload (Task 6.3 dispatch)', async () => {
+    // Wire the dispatcher end-to-end against a real react-pdf render. The
+    // assertion is intentionally loose on PDF contents (the template
+    // snapshot tests own that surface) — what we lock here is the WIRE
+    // contract: 200, the correct content-type, an attachment header, and
+    // a real PDF byte buffer (`%PDF-` start, `%%EOF` end).
+    const response = await POST(
+      makeRequest('single-employee', {
+        context: VALID_CONTEXT,
+        payload: MINIMAL_SINGLE_EMPLOYEE_PAYLOAD,
+      }),
+      makeCtx('single-employee'),
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toMatch(/application\/pdf/);
+    expect(response.headers.get('content-disposition')).toMatch(/^attachment;/);
+    expect(response.headers.get('content-disposition')).toMatch(/\.pdf"$/);
+    const buf = Buffer.from(await response.arrayBuffer());
+    expect(buf.length).toBeGreaterThan(1024); // >1 KB — sanity gate
+    expect(buf.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+    expect(buf.subarray(-8).toString('latin1')).toMatch(/%%EOF/);
+    // OQ-6 invariant: a successful render of a public family must NOT have
+    // touched Supabase. Belt-and-braces alongside the dedicated test above.
+    expect(createSupabaseServerClientMock).not.toHaveBeenCalled();
+  }, 30000);
+
+  it('returns 400 invalid-payload when payload lacks the family-specific `result` field (Task 6.3 flip)', async () => {
+    // Task 6.3 — public families now dispatch to the SingleEmployee / BulkSummary
+    // templates. The default VALID_BODY has `payload: { whatever: 'family-specific' }`
+    // which is intentionally opaque at the route's Zod layer (validated only
+    // structurally). Family-specific narrowing now happens inside the dispatch,
+    // so a payload without `result` correctly fails with 400 invalid-payload
+    // rather than 501 template-not-shipped. The 501 outcome is reserved for
+    // RECOGNISED families with NO renderer wired (today: liability,
+    // reconciliation — Phase 5b).
     const response = await POST(
       makeRequest('single-employee'),
       makeCtx('single-employee'),
     );
-    expect(response.status).toBe(501);
+    expect(response.status).toBe(400);
     const json = (await response.json()) as { error: string };
-    expect(json.error).toBe('template-not-shipped');
+    expect(json.error).toBe('invalid-payload');
   });
 
   it('returns 400 invalid-payload for malformed JSON — without touching Supabase', async () => {
@@ -176,14 +281,32 @@ describe('POST /api/reports/bulk-summary — PUBLIC posture (OQ-6)', () => {
     expect(getUserMock).not.toHaveBeenCalled();
   });
 
-  it('returns 501 template-not-shipped today', async () => {
+  it('returns 200 application/pdf for a valid bulk-summary payload (Task 6.3 dispatch)', async () => {
+    const response = await POST(
+      makeRequest('bulk-summary', {
+        context: VALID_CONTEXT,
+        payload: MINIMAL_BULK_SUMMARY_PAYLOAD,
+      }),
+      makeCtx('bulk-summary'),
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toMatch(/application\/pdf/);
+    expect(response.headers.get('content-disposition')).toMatch(/^attachment;/);
+    const buf = Buffer.from(await response.arrayBuffer());
+    expect(buf.length).toBeGreaterThan(1024);
+    expect(buf.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+    expect(buf.subarray(-8).toString('latin1')).toMatch(/%%EOF/);
+    expect(createSupabaseServerClientMock).not.toHaveBeenCalled();
+  }, 30000);
+
+  it('returns 400 invalid-payload when payload lacks the family-specific `results` array (Task 6.3 flip)', async () => {
     const response = await POST(
       makeRequest('bulk-summary'),
       makeCtx('bulk-summary'),
     );
-    expect(response.status).toBe(501);
+    expect(response.status).toBe(400);
     const json = (await response.json()) as { error: string };
-    expect(json.error).toBe('template-not-shipped');
+    expect(json.error).toBe('invalid-payload');
   });
 });
 
