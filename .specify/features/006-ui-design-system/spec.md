@@ -297,13 +297,13 @@ Distinct visual lockup: "LSL Calculator" as the primary mark in Montserrat Semib
 - [x] No draft / preview watermarks anywhere.
 
 ### 8.6 E6.6 — Report templates per family
-- [ ] **Single-employee** template wraps existing public-calc result + citation; PDF download CTA visible on result screen.
-- [ ] **Bulk-summary** template wraps existing public-calc multi-employee summary; PDF download CTA visible on result screen.
+- [x] **Single-employee** template wraps existing public-calc result + citation; PDF download CTA visible on result screen.
+- [x] **Bulk-summary** template wraps existing public-calc multi-employee summary; PDF download CTA visible on result screen.
 - [ ] **E5.5 liability** template ships once E5.5 valuations + liability features land; one-page executive summary at top leading with a **3-column at-a-glance** (employees / total accrued weeks / total accrued $). (OQ-5 + OQ-11)
 - [ ] **E5.6 reconciliation** template ships once E5.6 reconciliation feature lands; one-page executive summary at top leading with a **single headline number** (total variance $); per-row variance verdict table follows. (OQ-5 + OQ-11)
-- [ ] Single-employee + bulk-summary templates do NOT carry a separate exec summary (OQ-5).
-- [ ] All four templates inherit letterhead + methodology footer + page numbering from E6.5 foundation.
-- [ ] Each template renders cleanly in print preview as well as PDF download.
+- [x] Single-employee + bulk-summary templates do NOT carry a separate exec summary (OQ-5).
+- [x] All four templates inherit letterhead + methodology footer + page numbering from E6.5 foundation. *(Phase 5a: single-employee + bulk-summary verified via `<A4Page>` composition; liability + reconciliation pending Phase 5b templates.)*
+- [x] Each template renders cleanly in print preview as well as PDF download. *(Phase 5a: single-employee + bulk-summary verified — PDF via dispatcher, browser print via `globals.css @media print` block + DOM fallback; liability + reconciliation pending Phase 5b templates.)*
 
 ---
 
