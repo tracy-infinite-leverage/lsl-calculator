@@ -12,7 +12,9 @@ export default function BulkCalculatorPage() {
   // SC 1.3.1 / axe `landmark-no-duplicate-main` requires exactly one main.
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-8">
-      <header className="space-y-2">
+      {/* Page heading + intro copy are screen-only — `print:hidden` so
+       * Cmd+P emits a result-only deliverable (E6.5 Task 5.6). */}
+      <header className="space-y-2 print:hidden">
         <p className="text-sm uppercase tracking-wider text-muted-foreground">
           Bulk mode
         </p>

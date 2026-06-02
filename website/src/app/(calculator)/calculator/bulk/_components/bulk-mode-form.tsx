@@ -246,7 +246,7 @@ export function BulkModeForm() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>1. Upload your CSV</CardTitle>
           <CardDescription>
@@ -347,7 +347,7 @@ export function BulkModeForm() {
       </Card>
 
       {stage.kind === 'preview' && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle>2. Review extracted employees</CardTitle>
             <CardDescription>
@@ -402,7 +402,7 @@ export function BulkModeForm() {
       )}
 
       {stage.kind === 'running' && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -426,6 +426,20 @@ export function BulkModeForm() {
       )}
 
       {stage.kind === 'done' && (
+        <>
+          {/* Print-only letterhead — DOM-level fallback for browsers that
+           * don't honour @page margin boxes (E6.5 Task 5.6). */}
+          <div className="hidden print:block print-letterhead">
+            <div className="print-wordmark">LSL Calculator by APA</div>
+            <div className="print-generated-at">
+              Bulk summary generated {new Date().toLocaleDateString('en-AU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </div>
+          </div>
+
         <Card>
           <CardHeader>
             <CardTitle>3. Results</CardTitle>
@@ -453,8 +467,8 @@ export function BulkModeForm() {
               onUnblock={(employeeId) => setUnblockTarget(employeeId)}
             />
 
-            <Separator />
-            <div className="flex flex-wrap gap-2">
+            <Separator className="print:hidden" />
+            <div className="flex flex-wrap gap-2 print:hidden">
               <Button variant="outline" type="button" onClick={reset}>
                 <Trash2 className="h-4 w-4 mr-1" /> Start over
               </Button>
@@ -471,10 +485,18 @@ export function BulkModeForm() {
             </div>
           </CardContent>
         </Card>
+
+          {/* Print-only methodology footer — byte-identical
+           * "Calculated, not advice." voice with MethodologyFooter.tsx. */}
+          <div className="hidden print:block print-methodology">
+            <div>www.austpayroll.com.au · Australian Payroll Association</div>
+            <div className="print-disclosure">Calculated, not advice.</div>
+          </div>
+        </>
       )}
 
       {stage.kind === 'idle' && (
-        <Card className="bg-muted/30">
+        <Card className="bg-muted/30 print:hidden">
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground flex items-center gap-2">
               <FileUp className="h-4 w-4" />
