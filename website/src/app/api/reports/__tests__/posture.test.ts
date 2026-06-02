@@ -172,11 +172,48 @@ const { POST } = await import('../[family]/route');
 // ---------------------------------------------------------------------------
 
 /**
- * A spec-compliant request body. The route's Zod schema enforces the shape
- * but the contents are not asserted here — every assertion targets the
- * wire response (status + body), not the rendered PDF (templates have not
- * shipped yet).
+ * A spec-compliant request body. The route's Zod schema enforces the
+ * `context` shape; family-specific narrowing of `payload` happens inside
+ * the dispatcher (E6.6a Task 6.3). The body below carries BOTH the
+ * single-employee `result` AND the bulk-summary `results` so the SAME
+ * fixture satisfies both public families' narrowing — the posture test
+ * exercises the canonical 200/501 wire-state contract per family without
+ * needing per-family fixtures.
+ *
+ * Decimal-valued fields are strings — the route handler rehydrates strings
+ * into `Decimal` instances before invoking the template (the JSON-round-
+ * trip shape a real CTA `fetch` body delivers).
  */
+const _MINIMAL_RESULT = {
+  employeeId: 'emp-posture',
+  status: 'computed' as const,
+  category: 'B' as const,
+  trigger: {
+    kind: 'termination' as const,
+    terminationDate: '2026-05-31',
+    reason: 'redundancy',
+  },
+  outputs: {
+    valueOfWeek: { value: '1000.00', display: '1,000.00', citations: [] },
+    valueOfDay: { value: '200.00', display: '200.00', citations: [] },
+    totalEntitlement: {
+      weeks: { value: '10.83', display: '10.83', citations: [] },
+      dollars: { value: '10830.00', display: '10,830.00', citations: [] },
+    },
+  },
+  warnings: [],
+  diagnostics: {
+    yearsOfContinuousService: '10.83',
+    daysOfContinuousService: 3954,
+    daysNotCountedInService: 0,
+    daysNotCountedInLookback: { window12mo: 0, window5yr: 0 },
+    weeklyAvg12mo: '1000.00',
+    weeklyAvg5yr: '950.00',
+    payableIndicator: 'payable' as const,
+    serviceStartUsed: '2015-09-01',
+  },
+};
+
 const VALID_BODY = {
   context: {
     reportTitle: 'Posture contract test',
@@ -190,7 +227,16 @@ const VALID_BODY = {
       url: 'www.austpayroll.com.au',
     },
   },
-  payload: { whatever: 'family-specific' },
+  // Carries BOTH the single-employee `{ result, identity }` slice AND the
+  // bulk-summary `{ results }` slice so this single fixture passes the per-
+  // family narrowing for either public-family target. Authenticated-family
+  // tests 401 before the body is touched so the unused fields are harmless
+  // for those paths.
+  payload: {
+    result: _MINIMAL_RESULT,
+    identity: { legalName: 'Posture Test', externalEmployeeId: 'POSTURE-1', startDate: '2015-09-01' },
+    results: [_MINIMAL_RESULT],
+  },
 };
 
 /**

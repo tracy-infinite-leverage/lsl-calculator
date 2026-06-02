@@ -40,6 +40,7 @@ import {
   saveToStorage,
   clearStorage,
 } from './form-to-engine';
+import { buildReportContext } from '@/lib/pdf/report-context';
 
 export function SingleModeForm() {
   const [state, setState] = React.useState<FormState>(emptyFormState);
@@ -208,38 +209,34 @@ export function SingleModeForm() {
     if (!result) return;
     setPdfDownloading(true);
     try {
-      const res = await fetch('/api/export-pdf', {
+      // E6.6a Task 6.3 — swap from the legacy `/api/export-pdf` shape
+      // (flat, pre-stringified payload) to the canonical Phase 5a endpoint
+      // `/api/reports/single-employee` with the `{ context, payload }`
+      // contract. The legacy endpoint is being retired in a follow-up
+      // cleanup; we no longer call it.
+      //
+      // The engine `Result` carries `decimal.js` Decimal instances on numeric
+      // outputs / diagnostics. `JSON.stringify` serialises Decimals to
+      // strings via the library's `toJSON()`; the route handler rehydrates
+      // strings back into Decimals before invoking the SingleEmployee
+      // template (see `rehydrateResult` in
+      // `app/api/reports/[family]/route.ts`). The CTA therefore sends the
+      // raw `result` verbatim — no pre-stringification needed.
+      const context = buildReportContext({
+        reportTitle: 'Long Service Leave report',
+      });
+      const res = await fetch('/api/reports/single-employee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          legalName: state.legalName || null,
-          externalEmployeeId: state.externalEmployeeId || null,
-          startDate: state.startDate,
-          trigger: result.trigger,
-          category: result.category,
-          outputs: {
-            valueOfWeek: result.outputs?.valueOfWeek.display,
-            valueOfDay: result.outputs?.valueOfDay.display,
-            totalEntitlementWeeks: result.outputs?.totalEntitlement.weeks.display,
-            totalEntitlementDollars: result.outputs?.totalEntitlement.dollars.display,
-            systemFormula: result.outputs?.systemFormula,
-          },
-          warnings: result.warnings,
-          diagnostics: result.diagnostics
-            ? {
-                yearsOfContinuousService:
-                  result.diagnostics.yearsOfContinuousService.toFixed(4),
-                daysOfContinuousService: result.diagnostics.daysOfContinuousService,
-                weeklyAvg12mo: result.diagnostics.weeklyAvg12mo.toFixed(2),
-                weeklyAvg5yr: result.diagnostics.weeklyAvg5yr.toFixed(2),
-                serviceStartUsed: result.diagnostics.serviceStartUsed,
-              }
-            : null,
-          citations: {
-            valueOfWeek: result.outputs?.valueOfWeek.citations ?? [],
-            valueOfDay: result.outputs?.valueOfDay.citations ?? [],
-            weeks: result.outputs?.totalEntitlement.weeks.citations ?? [],
-            dollars: result.outputs?.totalEntitlement.dollars.citations ?? [],
+          context,
+          payload: {
+            result,
+            identity: {
+              legalName: state.legalName || undefined,
+              externalEmployeeId: state.externalEmployeeId || undefined,
+              startDate: state.startDate || undefined,
+            },
           },
         }),
       });
