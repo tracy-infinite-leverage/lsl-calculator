@@ -2,7 +2,7 @@
 
 **Slug:** `valuations-liability-reports`
 **Feature number:** 007
-**Status:** **v0.1 SCOPED — 2026-05-31** (re-authored from operator's Round-1 OQ decisions; never previously persisted)
+**Status:** **v0.1.1 ADDENDUM — 2026-06-01** (additive contract pin to E5.4 v0.2 typed-component shape; no rewrite). Prior status: v0.1 SCOPED 2026-05-31 (re-authored from operator's Round-1 OQ decisions; never previously persisted).
 **Author:** Product Manager (re-author 2026-05-31 after forensic discovery that the original spec was never committed to disk)
 **Owner:** Tracy Angwin (austpayroll.com.au)
 **Depends on:** E5.1 (Auth + Tenancy + DB Scaffold) ✅ shipped 2026-05-28 · E5.2 (Employee Masterfile) ☐ scoped · E5.3 (Pay-Code Mapping) ☐ scoped · E5.4 (Pay-Period Ingestion) ☐ scoped
@@ -262,3 +262,62 @@ Running the same liability report twice in a row (no upstream writes between) MU
 ---
 
 *v0.1 re-authored by product-manager agent 2026-05-31. Awaits operator review → optional `/speckit-clarify` pass → `/dev-feature-plan` to produce impl-plan + tasks.*
+
+---
+
+## Addendum 2026-06-01 — Engine input contract aligned to E5.4 v0.2 typed-component shape
+
+**Status:** v0.1.1 — additive contract pin. No section of the v0.1 spec is rewritten; this addendum is the authoritative reference for the engine input contract until a future v0.2 spec rewrite (if any) absorbs it inline.
+
+**Trigger.** E5.4 v0.2 was LOCKED 2026-06-01 (operator decision lock on OQ-ING-8 / OQ-ING-9 / OQ-ING-10 / OQ-ING-11). Per OQ-ING-11, the E5.5 sub-spec must absorb the typed-component shape before E5.5 Phase 1 dev work starts. This addendum pins the contract.
+
+### A.1 Engine input contract — typed components per pay period
+
+The E5.5 valuation pipeline reads **typed components per pay period** from the canonical `pay_periods` table specified in `.specify/features/005-lsl-platform/sub-specs/pay-period-ingestion.md` §4.5. It applies per-state inclusion rules deterministically against the typed-component shape — **replacing the v0.1 assumed-`gross_amount`-plus-warning-codes pattern** implied by the parent umbrella spec §5.4.
+
+**The contract.** For every employee-pay-period pair in the valuation's averaging window:
+- The orchestrator reads `pay_periods.components` (JSONB) — one row per `(org_id, employee_id, pay_period_end)`, every umbrella §6 bucket present (zero-valued if not applicable).
+- The orchestrator reads `pay_periods.pay_frequency`, `pay_periods.work_jurisdiction`, `pay_periods.input_mode`, and `pay_periods.pay_code_mapping_version_id` from the same row.
+- The orchestrator does NOT read `pay_periods.components_total_gross` for engine input (that field exists for query-speed of summary screens; engine math operates on per-bucket components).
+- The orchestrator constructs the `Employee.wageHistory` engine input by applying **per-state bucket inclusion rules** (e.g. Penalty Rates counts as ordinary pay in QLD + TAS; excluded for NSW/VIC/WA/SA/ACT/NT) **directly against the typed components**. This replaces any prior "trust the single `gross_amount` and emit a warning if the customer mapped a code that shouldn't be in gross" pattern.
+- The orchestrator passes through the `lsl_instrument_label` (per OQ-ING-10 lock) and surfaces it in the valuation result's citation block for auditor traceability.
+
+### A.2 Reference points in E5.4
+
+| E5.4 reference | What it pins for E5.5 |
+|---|---|
+| §4.5 `pay_periods` canonical table — `components` JSONB schema | Bucket key set (19 buckets per umbrella §6); per-bucket `amount` + optional `hours` shape. |
+| §4.5 `components_total_gross` (trigger-maintained) | NOT engine input — UI/query-summary only. |
+| §4.5 `pay_frequency` per-row | Authoritative for normalisation window (per-row, not per-employee — overrides masterfile fallback). |
+| §4.5 `work_jurisdiction` per-row | Authoritative for engine dispatch per pay period (overrides employee default). Per AC-ING-9. |
+| §4.5 `input_mode` per-row | `per_period_components` vs `hours_based` — informs how UI explains the source of the values, not the engine math. |
+| §4.5 `pay_code_mapping_version_id` per-row | Pins the bucket-resolution at insert time — replays against this version, not current. Per AC-MAP-7. |
+| §4.5 `value_normalisation_version_id` per-row | Pins normalisation-alias version — analogous to mapping version. |
+| AC-ING-21 (jointly owned with E5.5) | The valuation pipeline reads `pay_periods.components` as its canonical pay-history input. Verified by paired test: same valuation request against components-persisted vs legacy single-gross shape produces same engine output. Red/green state lives in the E5.5 implementation suite. |
+
+### A.3 Implications for E5.5 v0.1 sections
+
+- **§2 *Background — what already exists vs what is new*.** The row "Pay-period data" reading "consumed as the historical pay stream the engine needs" stands, but the **shape** is now §4.5 typed components per A.1, not the umbrella v1.0 §5.4 implied `(employee_id, pay_period_end, pay_code, gross_amount)` shape.
+- **§4.1 `valuations` table.** `inputs_hash` (SHA-256 of canonical `Employee` input record) MUST include the typed-component shape per pay period in its canonical serialisation. A re-import that supersedes a `pay_periods` row triggers a different `inputs_hash` and a different cached row — existing cache invalidation rule (§5 V8) covers this automatically.
+- **§5 V8 — Cache invalidation.** Already lists `pay_periods` as an upstream table that triggers `superseded_at` on `valuations`. Unchanged. The typed-component shape means a re-import that changes any single bucket (not just total gross) invalidates the row — this is correct behaviour.
+- **§6 Acceptance criteria.** AC-VAL-1, AC-VAL-2, AC-LIA-1 all stand. **A.4 below adds AC-VAL-5 — typed-component engine input** to pair with E5.4 AC-ING-21.
+- **§10 References.** Already references the E5.4 sub-spec. Now references E5.4 v0.2 specifically (LOCKED 2026-06-01).
+
+### A.4 Acceptance criterion added by this addendum
+
+**AC-VAL-5 — Typed-component engine input (cross-spec, jointly owned with E5.4 AC-ING-21).** Given an employee with N pay periods of typed-component pay history (per E5.4 §4.5), when a valuation is run for that employee at any date within the averaging window, the orchestrator constructs the engine input by reading per-bucket `amount` + `hours` from `pay_periods.components` and applying per-state inclusion rules deterministically. The engine output for that valuation MUST equal the engine output produced when the same components are passed through the legacy single-`gross_amount` shape (modulo the state-specific bucket-inclusion treatment that the typed shape now captures correctly and the legacy shape required a warning code for). Verified by paired-fixture test where the same employee's pay history is materialised in both shapes; the engine result for in-scope states (QLD penalty / TAS penalty / ACT casual loading / WA + ACT regular overtime) is the contract under test.
+
+### A.5 Sequencing implication
+
+E5.5 Phase 1 dev work **can start once this addendum is in place** (i.e. now, 2026-06-01). The dev impl plan + tasks for E5.5 will reference §4.5 of E5.4 + AC-ING-21 + this addendum's AC-VAL-5 as the canonical engine input contract. The orchestrator's `inputs_hash` canonical serialisation is the single load-bearing engineering detail that flows from this contract; the impl plan owns it.
+
+### A.6 What this addendum does NOT change
+
+- §3 v1 scope boundary — unchanged. Still two surfaces (on-demand valuations + multi-employee liability reports) + PDF/CSV export + cache.
+- §7 *Locked decisions* — OQ-VAL-1 / OQ-LIA-1 / OQ-LIA-2 stand.
+- §8 *Open questions* (Round 2 + Round 3) — all still NON-BLOCKING; addendum does not resolve any of them.
+- §9 *Risks and dependencies* — already lists E5.2 / E5.3 / E5.4 as sequencing dependencies. The "Engine determinism / version pinning" risk now also implicitly covers the typed-component shape (changing the bucket set is a schema migration coordinated with umbrella §6, NOT a silent contract drift).
+
+---
+
+*Addendum 2026-06-01 by product-manager agent. Engine input contract pinned to E5.4 v0.2 §4.5 + AC-ING-21. No v0.2 spec rewrite required — this addendum supersedes the implied v0.1 contract until a future rewrite consolidates.*
