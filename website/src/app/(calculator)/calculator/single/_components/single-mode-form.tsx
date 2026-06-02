@@ -260,7 +260,10 @@ export function SingleModeForm() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      {/* Print-only screen chrome — input cards below are hidden via
+       * `print:hidden` (E6.5 Task 5.6). Browser Cmd+P on this page should
+       * print only the result block at the bottom. */}
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Employee details</CardTitle>
         </CardHeader>
@@ -363,7 +366,7 @@ export function SingleModeForm() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Jurisdiction</CardTitle>
         </CardHeader>
@@ -433,7 +436,7 @@ export function SingleModeForm() {
           field here entirely. */}
       {(state.statesOfService.includes('TAS') ||
         state.governingJurisdiction === 'TAS') && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle>Tasmania-specific inputs</CardTitle>
           </CardHeader>
@@ -612,7 +615,7 @@ export function SingleModeForm() {
           website/src/lib/lsl/states/nt/extra-inputs.ts. */}
       {(state.statesOfService.includes('NT') ||
         state.governingJurisdiction === 'NT') && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle>Northern Territory-specific inputs</CardTitle>
           </CardHeader>
@@ -867,7 +870,7 @@ export function SingleModeForm() {
         </Card>
       )}
 
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Wage history</CardTitle>
         </CardHeader>
@@ -879,7 +882,7 @@ export function SingleModeForm() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Continuous service</CardTitle>
         </CardHeader>
@@ -892,7 +895,7 @@ export function SingleModeForm() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Trigger</CardTitle>
         </CardHeader>
@@ -1044,7 +1047,7 @@ export function SingleModeForm() {
       </Card>
 
       {generalErrors.length > 0 && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="print:hidden">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Fix these before calculating</AlertTitle>
           <AlertDescription>
@@ -1057,7 +1060,7 @@ export function SingleModeForm() {
         </Alert>
       )}
 
-      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 print:hidden">
         <Button variant="ghost" onClick={reset} type="button">
           <RotateCcw className="h-4 w-4 mr-1" /> Clear calculation
         </Button>
@@ -1068,11 +1071,36 @@ export function SingleModeForm() {
 
       {result && (
         <div ref={resultRef}>
+          {/* Print-only letterhead — DOM-level fallback for browsers that
+           * don't honour @page margin boxes (E6.5 Task 5.6). Renders only
+           * in print mode; hidden on screen. Single-source-of-truth wording
+           * matches the @page @top-center rule in globals.css. */}
+          <div className="hidden print:block print-letterhead">
+            <div className="print-wordmark">LSL Calculator by APA</div>
+            <div className="print-generated-at">
+              Calculation generated {new Date().toLocaleDateString('en-AU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </div>
+          </div>
+
           <ResultPanel
             result={result}
             onDownloadPDF={downloadPDF}
             pdfDownloading={pdfDownloading}
           />
+
+          {/* Print-only methodology footer — byte-identical "Calculated, not
+           * advice." voice with MethodologyFooter.tsx::DISCLOSURE_PHRASE.
+           * Rendered at the end of the print document; the per-page
+           * @bottom-left margin-box rule covers repetition in browsers that
+           * support it. */}
+          <div className="hidden print:block print-methodology">
+            <div>www.austpayroll.com.au · Australian Payroll Association</div>
+            <div className="print-disclosure">Calculated, not advice.</div>
+          </div>
         </div>
       )}
 
