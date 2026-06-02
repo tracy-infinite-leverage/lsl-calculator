@@ -289,12 +289,12 @@ Distinct visual lockup: "LSL Calculator" as the primary mark in Montserrat Semib
 - [ ] Lighthouse (or equivalent) accessibility score ≥ 95 on `/`.
 
 ### 8.5 E6.5 — Report pipeline foundation
-- [ ] PDF generation produces an A4 single-page test report with letterhead, body, and footer.
-- [ ] Letterhead block: sub-brand wordmark + APA lockup + report title + generated-at timestamp.
-- [ ] Methodology footer block: **full** version on page 1 (calc methodology version + state-engine version + data-as-at date + "calculated, not advice" + APA contact); **short** version on pages 2+ (state-engine version + "calculated, not advice" + APA URL). (OQ-10)
-- [ ] Page X of Y footer renders on every page of multi-page test report.
-- [ ] Print stylesheet renders the same report cleanly from browser print.
-- [ ] No draft / preview watermarks anywhere.
+- [x] PDF generation produces an A4 single-page test report with letterhead, body, and footer.
+- [x] Letterhead block: sub-brand wordmark + APA lockup + report title + generated-at timestamp.
+- [x] Methodology footer block: **full** version on page 1 (calc methodology version + state-engine version + data-as-at date + "calculated, not advice" + APA contact); **short** version on pages 2+ (state-engine version + "calculated, not advice" + APA URL). (OQ-10)
+- [x] Page X of Y footer renders on every page of multi-page test report.
+- [x] Print stylesheet renders the same report cleanly from browser print.
+- [x] No draft / preview watermarks anywhere.
 
 ### 8.6 E6.6 — Report templates per family
 - [ ] **Single-employee** template wraps existing public-calc result + citation; PDF download CTA visible on result screen.
