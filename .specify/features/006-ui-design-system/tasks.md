@@ -124,7 +124,7 @@
 **Acceptance Criteria** (AC §8.2 + OQ-3):
 - [ ] `docs/qa/e6-baseline-metrics.md` committed with pre-change FCP / CLS numbers + measurement methodology
 - [ ] `website/public/fonts/montserrat-{light,regular,semibold}.woff2` committed
-- [ ] `website/public/fonts/source-sans-pro-{light,regular,semibold}.woff2` committed
+- [ ] `website/public/fonts/source-sans-3-{light,regular,semibold}.woff2` committed (spec v0.5 substitution — Adobe rebranded Source Sans Pro → Source Sans 3 in 2021; same family)
 - [ ] `app/layout.tsx` uses `next/font/local` for both families
 - [ ] No external font CDN request appears in network panel
 - [ ] Post-change Lighthouse FCP / CLS within ±5% of baseline or strictly better; numbers appended to `docs/qa/e6-baseline-metrics.md`
@@ -346,7 +346,7 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Source: Spec §5.2 (OQ-9) · impl-plan §1.1 decision 4 · Resolves G-2**
 
 **Acceptance Criteria** (Spec §5.2 + impl-plan §1.1):
-- [x] `website/lib/auth/session-claims.ts` committed with the `SessionCookieClaims` interface: `{ activeTenantId: string; homeTenantId: string; membershipCount: number; claimIssuer: 'supabase-e5.1' }`
+- [x] `website/src/lib/auth/session-claims.ts` committed with the `SessionCookieClaims` interface: `{ activeTenantId: string; homeTenantId: string; membershipCount: number; claimIssuer: 'supabase-e5.1' }`
 - [x] File header documents the claim-issuer expectation (Supabase JWT signed by service role) and the consumer expectations (E6.3 reads as source of truth on hard refresh)
 - [x] Type is exported and consumable from both `lib/tenant-context.tsx` (E6.3) and the E5.1 auth module (cross-reference noted in inline comment)
 - [x] No runtime code — type-only contract; if E5.1 amends the cookie shape, this file is the single place both epics edit
@@ -380,7 +380,7 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 - [x] Switcher hidden for single-org users
 - [x] Switcher renders for users with ≥ 2 memberships
 - [x] ActingAsBanner visible whenever active ≠ home
-- [x] Banner uses `colors.brand.gold` token, contrast verified WCAG 2.2 AA
+- [x] Banner uses `colors.brand.gold` background with `colors.brand.charcoal` text — measured 5.65:1, **PASSES** WCAG 2.2 AA. **Spec note (recorded 2026-06-01):** navy-on-gold (the visually intuitive pairing) measures 2.80:1 and FAILS AA; charcoal-on-gold is the canonical WCAG-passing pairing for this surface and should be used wherever the banner palette is referenced. (PR #113 Task 3.4 QA flagged this; v0.6 amend.)
 
 **Effort**: M
 **Dependencies**: Task 3.3
@@ -411,7 +411,7 @@ Wave deliverables, each in line with E6.2 conventions established by Tasks 2.5 /
 **Acceptance Criteria** (AC §8.3):
 - [x] Breadcrumbs render on every `/app/*` page
 - [x] Route labels are human-friendly (sentence case)
-- [x] Keyboard-navigable (each crumb is a real anchor)
+- [x] Keyboard-navigable — each **non-terminal** crumb is a real anchor; the terminal current-page crumb is a `<span aria-current="page">` per W3C ARIA APG breadcrumb pattern (the current page is not navigable from itself). (Spec wording amended 2026-06-01 from "each crumb is a real anchor" — PR #124 Task 3.6 dev correctly interpreted the W3C-canonical form; v0.6 amend.)
 
 **Effort**: S
 **Dependencies**: Task 3.1
