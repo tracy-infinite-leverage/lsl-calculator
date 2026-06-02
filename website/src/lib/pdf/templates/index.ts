@@ -24,3 +24,10 @@ export type {
   SingleEmployeePayload,
   SingleEmployeeProps,
 } from './SingleEmployee';
+
+export { BulkSummary } from './BulkSummary';
+export type {
+  BulkSummaryAggregates,
+  BulkSummaryPayload,
+  BulkSummaryProps,
+} from './BulkSummary';
