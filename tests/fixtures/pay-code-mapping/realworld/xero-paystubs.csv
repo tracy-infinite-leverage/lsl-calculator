@@ -1,0 +1,13 @@
+Employee Number,Employee Name,Pay Item,Pay Item Type,Hours,Rate,Amount,Pay Period End,State
+E001,REDACTED,Ordinary Hours,Earning,76.00,35.00,2660.00,2026-01-15,NSW
+E001,REDACTED,Overtime (1.5),Earning,4.00,52.50,210.00,2026-01-15,NSW
+E001,REDACTED,Saturday Penalty Loading,Earning,8.00,17.50,140.00,2026-01-15,NSW
+E001,REDACTED,Annual Leave Taken,Leave,8.00,35.00,280.00,2026-01-15,NSW
+E002,REDACTED,Ordinary Hours,Earning,38.00,42.00,1596.00,2026-01-15,VIC
+E002,REDACTED,Personal Leave,Leave,7.60,42.00,319.20,2026-01-15,VIC
+E002,REDACTED,Long Service Leave,Leave,15.20,42.00,638.40,2026-01-15,VIC
+E003,REDACTED,Ordinary Hours,Earning,76.00,28.00,2128.00,2026-01-15,QLD
+E003,REDACTED,Sunday Penalty Loading,Earning,8.00,28.00,224.00,2026-01-15,QLD
+E003,REDACTED,Public Holiday Worked,Earning,8.00,70.00,560.00,2026-01-15,QLD
+E003,REDACTED,Casual Loading 25%,Earning,76.00,7.00,532.00,2026-01-15,QLD
+E003,REDACTED,Commission,Earning,0.00,0.00,250.00,2026-01-15,QLD

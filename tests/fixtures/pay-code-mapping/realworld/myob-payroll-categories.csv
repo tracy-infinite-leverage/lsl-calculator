@@ -1,0 +1,15 @@
+Card ID,Employee,Payroll Category,Category Type,WagesCategory,Hours,Amount,PayDate,Work State
+EMP-1001,REDACTED,Base Hourly,Wages,Hourly,76.00,2660.00,2026-01-31,WA
+EMP-1001,REDACTED,Overtime 1.5x,Wages,Hourly,2.00,52.50,2026-01-31,WA
+EMP-1001,REDACTED,Overtime 2.0x,Wages,Hourly,1.00,70.00,2026-01-31,WA
+EMP-1001,REDACTED,Saturday Penalty,Wages,Hourly,6.00,17.50,2026-01-31,WA
+EMP-1001,REDACTED,Public Holiday Pay,Wages,Hourly,8.00,35.00,2026-01-31,WA
+EMP-1001,REDACTED,Annual Leave,Entitlement,Annual,0.00,0.00,2026-01-31,WA
+EMP-1001,REDACTED,Personal Leave,Entitlement,Personal,0.00,0.00,2026-01-31,WA
+EMP-1001,REDACTED,Long Service Leave,Entitlement,LSL,0.00,0.00,2026-01-31,WA
+EMP-1002,REDACTED,Base Salary,Wages,Salary,76.00,3800.00,2026-01-31,SA
+EMP-1002,REDACTED,Bonus - Q4,Wages,Salary,0.00,2500.00,2026-01-31,SA
+EMP-1002,REDACTED,Car Allowance,Wages,Allowance,0.00,150.00,2026-01-31,SA
+EMP-1002,REDACTED,Meal Allowance,Wages,Allowance,0.00,45.00,2026-01-31,SA
+EMP-1003,REDACTED,Casual Hours,Wages,Hourly,32.00,1280.00,2026-01-31,ACT
+EMP-1003,REDACTED,Casual Loading 25%,Wages,Hourly,32.00,320.00,2026-01-31,ACT
