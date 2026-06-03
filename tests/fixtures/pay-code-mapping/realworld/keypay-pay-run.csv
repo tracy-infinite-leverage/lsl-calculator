@@ -1,0 +1,17 @@
+External ID,Employee,Code,Description,Hours,Rate,Amount,Pay Run Date,Pay Period Ending,State,Employment Type
+KP-001,REDACTED,ORD,Ordinary Hours,76.00,32.00,2432.00,2026-02-15,2026-02-13,New South Wales,Full Time
+KP-001,REDACTED,OT15,Overtime 1.5x,4.00,48.00,192.00,2026-02-15,2026-02-13,New South Wales,Full Time
+KP-001,REDACTED,PEN-SAT,Saturday Penalty,6.00,16.00,96.00,2026-02-15,2026-02-13,New South Wales,Full Time
+KP-001,REDACTED,ALV,Annual Leave Taken,0.00,32.00,0.00,2026-02-15,2026-02-13,New South Wales,Full Time
+KP-002,REDACTED,ORD,Ordinary Hours,38.00,28.50,1083.00,2026-02-15,2026-02-13,Queensland,Part Time
+KP-002,REDACTED,PUBHOL,Public Holiday Worked,7.60,57.00,433.20,2026-02-15,2026-02-13,Queensland,Part Time
+KP-002,REDACTED,COMM,Commission,0.00,0.00,500.00,2026-02-15,2026-02-13,Queensland,Part Time
+KP-003,REDACTED,CASHRS,Casual Hours,32.00,38.00,1216.00,2026-02-15,2026-02-13,Tasmania,Casual
+KP-003,REDACTED,CASLOAD,Casual Loading 25%,32.00,9.50,304.00,2026-02-15,2026-02-13,Tasmania,Casual
+KP-003,REDACTED,SUNPEN,Sunday Penalty,8.00,38.00,304.00,2026-02-15,2026-02-13,Tasmania,Casual
+KP-004,REDACTED,ORD,Ordinary Hours,76.00,40.00,3040.00,2026-02-15,2026-02-13,Victoria,Full Time
+KP-004,REDACTED,LSL,Long Service Leave Taken,76.00,40.00,3040.00,2026-02-15,2026-02-13,Victoria,Full Time
+KP-004,REDACTED,BON,Bonus,0.00,0.00,1000.00,2026-02-15,2026-02-13,Victoria,Full Time
+KP-005,REDACTED,ORD,Ordinary Hours,76.00,35.00,2660.00,2026-02-15,2026-02-13,Western Australia,Full Time
+KP-005,REDACTED,ALLOW-CAR,Car Allowance,0.00,0.00,250.00,2026-02-15,2026-02-13,Western Australia,Full Time
+KP-005,REDACTED,ALLOW-MEAL,Meal Allowance,0.00,0.00,45.00,2026-02-15,2026-02-13,Western Australia,Full Time

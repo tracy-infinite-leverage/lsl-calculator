@@ -13,20 +13,20 @@
 
 ## Phase 0 — Pre-work + fixture assembly
 
-### T0.1 — Confirm E5.2 schema final · S
+### T0.1 — Confirm E5.2 schema final · S ✅ [x] (2026-06-02 — Phase 1 all 7 migrations live in prod; schema FK target available)
 **Acceptance:** E5.2 PR #105 merged or schema confirmed stable; `employees` table columns `external_id` + RLS pattern available as FK target. Block Phase 1 until done.
 **AC:** Foundation for AC-MAP-3 / AC-MAP-11.
 **Owner:** Developer (10 min schema check).
 
-### T0.2 — Stage Virtus fixtures · S [P]
+### T0.2 — Stage Virtus fixtures · S [P] ✅ [x] (2026-06-02 — committed `273ec2d`; 5 fixture files anonymised + staged under `tests/fixtures/pay-code-mapping/virtus/`)
 **Acceptance:** Files copied from `~/Downloads/Virtus Health - LSL calculation/Sample run/` into `tests/fixtures/pay-code-mapping/virtus/`. Includes 3-sheet `.xlsx` + 3 relational CSVs. Anonymised review pass (assert no obvious PII leaks survive — Virtus is a real customer).
 **AC:** AC-MAP-13 + AC-MAP-14 + AC-MAP-15 fixture readiness.
 
-### T0.3 — Assemble 10-fixture real-world set · M [P]
+### T0.3 — Assemble 10-fixture real-world set · M [P] ✅ [x] (2026-06-02 — committed `273ec2d`; 10 synthetic-but-representative fixtures spanning Xero/MYOB/KeyPay/ADP/Employment Hero shapes)
 **Acceptance:** 10 representative payroll exports under `tests/fixtures/pay-code-mapping/realworld/` covering Xero / MYOB / KeyPay / ADP / Employment Hero shapes. PM-curated.
 **AC:** AC-MAP-1 (≥ 90% accuracy threshold target).
 
-### T0.4 — Define paired-fixture test harness · S [P]
+### T0.4 — Define paired-fixture test harness · S [P] ✅ [x] (2026-06-02 — committed `273ec2d`; skeleton at `tests/lsl/mapping/llm-paired.test.ts`, assertions land Phase 3)
 **Acceptance:** `tests/lsl/mapping/llm-paired.test.ts` skeleton that loads the same fixture twice — once with `ANTHROPIC_API_KEY` env set, once with it cleared — asserts proposal-set divergence. Skeleton only; real assertions land with Phase 3.
 **AC:** AC-MAP-16 readiness.
 
@@ -34,7 +34,7 @@
 
 ## Phase 1 — Data layer + seeds (foundation; blocks Phase 2+)
 
-### T1.1 — Migration: `pay_code_mappings` + `pay_code_mapping_versions` · M
+### T1.1 — Migration: `pay_code_mappings` + `pay_code_mapping_versions` · M ✅ [x] (2026-06-02 — committed `9b41b78`; applied to Supabase branch `oahgcmqlqdfeqfibsfej` v`20260602021051`; advisors clean — zero new security lints)
 **Acceptance:**
 - Tables created per spec §4.1 + §4.2.
 - RLS policies enabled: `org_id = (auth.jwt() ->> 'org_id')::uuid` on SELECT / INSERT / UPDATE.
@@ -44,21 +44,21 @@
 **AC:** AC-MAP-5, AC-MAP-7, AC-MAP-11.
 **Depends:** T0.1.
 
-### T1.2 — Migration: `pay_code_aliases` + system seed · M [P after T1.1]
+### T1.2 — Migration: `pay_code_aliases` + system seed · M [P after T1.1] ✅ [x] (2026-06-02 — committed `bb74d78`; applied v`20260602021306`; 71-row system seed loaded; advisors clean)
 **Acceptance:**
 - Table created per spec §4.3 (read-only RLS — `pay_code_aliases` is globally readable; INSERT/UPDATE denied at policy level).
 - Seed migration `pay_code_aliases_seed.sql` with ~60 rows covering: ordinary (`ORD*`, `ORDINARY*`), overtime (`OT*`, `*-OT`), penalty (`PEN*`, `*PEN*`), commission (`COMM*`), bonus (`BON*`), leave (`LSL*`, `WC*`, `PARENTAL*`, `ANN_LV*`, `PERS_LV*`), casual loading (`CAS_LOAD`, `25_LOAD`), termination (`TERM*`, `ETP_*`), PII-strip patterns (`TFN`, `TAX_FILE*`, `BSB`, `BANK_ACC*`, `SUPER_MEMBER*`).
 - Each row carries `confidence` 0.6–0.95 calibrated against the 10-fixture set.
 **AC:** AC-MAP-2, AC-MAP-12.
 
-### T1.3 — Migration: `value_normalisation_aliases` + `value_normalisation_aliases_versions` · M [P after T1.1]
+### T1.3 — Migration: `value_normalisation_aliases` + `value_normalisation_aliases_versions` · M [P after T1.1] ✅ [x] (2026-06-02 — committed `1f497ca`; applied v`20260602021511`; both tables created with versioning trigger mirroring T1.1 pattern; advisors clean)
 **Acceptance:**
 - Tables created per spec §4.4. Versioning via parallel `_versions` table (NOT shared with `pay_code_mapping_versions`).
 - RLS: org-scoped rows visible to that org only; system rows (`org_id IS NULL`) read-only globally.
 - Versioning trigger mirrors T1.1 pattern.
 **AC:** AC-MAP-15 foundation.
 
-### T1.4 — Seed `value_normalisation_aliases` system rows · M [P after T1.3]
+### T1.4 — Seed `value_normalisation_aliases` system rows · M [P after T1.3] ✅ [x] (2026-06-02 — committed `be8b312`; applied v`20260602045645`; 66 system rows seeded — 26 jurisdictions + 27 employment-type prefixes + 13 pay-frequency words at confidence 0.95/0.90; advisors clean)
 **Acceptance:** Seed migration with rows for:
 - **States** (`target_field = 'work_jurisdiction'`): 8 jurisdictions × `{long-form, short-form, common typo}` ≈ 28 rows. Examples: `Tasmania` → `TAS`, `Tas` → `TAS`, `TAS` → `TAS`, `Tasmainia` → `TAS`.
 - **Employment types** (`target_field = 'employment_type'`): ~30 rows. Prefixed: `CA - Casual` → `casual`, `FP - Full Time Salaried` → `full_time`, `FT - Full Time` → `full_time`, `PT - Part Time` → `part_time`, `PT - Part-time Salary` → `part_time`. Hyphenless variants for each.
@@ -66,7 +66,7 @@
 - All rows ship at `confidence = 0.95`, `source = 'system_seed'`.
 **AC:** AC-MAP-15.
 
-### T1.5 — Migration: extend `imports` with wizard state columns · S [P after T1.1]
+### T1.5 — Migration: extend `imports` with wizard state columns · S [P after T1.1] ⏸ [DEFERRED 2026-06-02 to E5.4 Phase 1] — the `imports` table is owned by E5.4 and does not yet exist on the Supabase branch. T1.5 will land alongside E5.4 Phase 1 imports-table creation (E5.4 builds the table WITH these E5.3 columns from the start) rather than E5.3 stubbing the table. T1.5's columns are not needed by E5.3 Phase 2 (auto-detection Pass 1) so the deferral is non-blocking.
 **Acceptance:**
 - Add columns to `imports` (defined in E5.4 §4.1 — additive, no breaking change):
   - `wizard_state JSONB DEFAULT '{}'::jsonb`
@@ -77,15 +77,15 @@
 - Migration noted as cross-spec — E5.4 references this row but E5.3 owns these particular columns.
 **AC:** AC-MAP-13 + AC-MAP-14 persistence layer.
 
-### T1.6 — Migration: `orgs.llm_assist_enabled` opt-out toggle · S [P after T1.1]
+### T1.6 — Migration: `orgs.llm_assist_enabled` opt-out toggle · S [P after T1.1] ✅ [x] (2026-06-02 — committed `59a0692`; applied as `orgs_llm_assist_enabled`; single additive ALTER TABLE; advisors clean)
 **Acceptance:** `ALTER TABLE organisations ADD COLUMN llm_assist_enabled BOOLEAN NOT NULL DEFAULT true`. Org admin UI surface added in Phase 4.
 **AC:** AC-MAP-16 + OQ-MAP-5 lock (default-on with opt-out).
 
-### T1.7 — Regenerate TypeScript types + export from `website/src/lib/db/types.ts` · S
+### T1.7 — Regenerate TypeScript types + export from `website/src/lib/db/types.ts` · S ✅ [x] (2026-06-02 — committed `6dee75c`; first Database-typed file in project; 756 lines incl. convenience aliases `MappingRow`/`MappingVersionRow`/`PayCodeAliasRow`/`ValueNormaliseAliasRow`/`ValueNormaliseAliasVersionRow` + E5.2 re-exports)
 **Acceptance:** `mcp__supabase__generate_typescript_types` run after T1.1–T1.6 land. Resulting `Database` type exported. Imports of `MappingRow` / `MappingVersionRow` / `ValueNormaliseAliasRow` available across `website/src/lib/`.
 **Depends:** T1.1, T1.2, T1.3, T1.4, T1.5, T1.6.
 
-### T1.8 — Cross-tenant RLS test suite · M [P]
+### T1.8 — Cross-tenant RLS test suite · M [P] ✅ [x] (2026-06-02 — committed `5a353c8`; suite at `website/src/__tests__/db-rls/pay-code-mapping.test.ts` covers all 4 org-scoped E5.3 tables × SELECT/INSERT/UPDATE cross-tenant assertions; `pay_code_aliases` excluded as system-managed read-only; runs against remote lsl-platform per E5.1 DEV-AUTH-4 precedent)
 **Acceptance:** `tests/db/rls/pay-code-mapping.test.ts` — for each new table, paired test asserts Org A user CANNOT SELECT/INSERT/UPDATE Org B rows. Test suite runs in CI on every push.
 **AC:** AC-MAP-11.
 **Depends:** T1.7.

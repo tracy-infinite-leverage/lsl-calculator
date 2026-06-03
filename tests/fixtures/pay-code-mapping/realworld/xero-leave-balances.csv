@@ -1,0 +1,9 @@
+Employee Number,Leave Type,Accrued Hours,Taken Hours,Balance Hours,As At Date
+E001,Annual Leave,152.00,40.00,112.00,2026-01-15
+E001,Personal Leave,76.00,8.00,68.00,2026-01-15
+E001,Long Service Leave,228.00,0.00,228.00,2026-01-15
+E002,Annual Leave,114.00,76.00,38.00,2026-01-15
+E002,Personal Leave,57.00,15.20,41.80,2026-01-15
+E002,Long Service Leave,0.00,0.00,0.00,2026-01-15
+E003,Annual Leave,76.00,38.00,38.00,2026-01-15
+E003,Long Service Leave,114.00,0.00,114.00,2026-01-15

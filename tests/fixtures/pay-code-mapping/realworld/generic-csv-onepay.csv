@@ -1,0 +1,11 @@
+Employee ID,Pay Code,Description,Hours,Amount,Period End
+G-001,ORD,Ordinary Time,76,2660.00,2026-01-31
+G-001,OT15,Overtime 1.5x,4,210.00,2026-01-31
+G-001,LSL,Long Service Leave,0,0.00,2026-01-31
+G-002,ORD,Ordinary Time,38,1330.00,2026-01-31
+G-002,CASLOAD,Casual Loading,38,332.50,2026-01-31
+G-002,SAT-PEN,Saturday Penalty,8,140.00,2026-01-31
+G-003,ORD,Ordinary Time,76,3040.00,2026-01-31
+G-003,ALV-TAKEN,Annual Leave Taken,0,0.00,2026-01-31
+G-003,PERS-LV,Personal Leave,0,0.00,2026-01-31
+G-003,BON,Bonus,0,500.00,2026-01-31
