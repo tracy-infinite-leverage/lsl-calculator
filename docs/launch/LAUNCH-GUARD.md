@@ -18,6 +18,26 @@ this guard first. No exceptions.
 
 The dev agent does not touch Vercel env vars (per `~/.claude/rules/global-engineering.md` — Vercel MCP / CLI is read-only). Removing the leftover variable is operator-owned.
 
+---
+
+## Reinstatement flagged — `ANTHROPIC_API_KEY` REQUIRED before E5.3 Phase 3 ships
+
+**STATUS 2026-06-01 — SOFT-REQUIRED dependency for upcoming E5.3 Phase 3.** E5.3 (Pay-Code Mapping) Phase 3 introduces LLM-assist pass for unresolved pay codes per operator decision OQ-MAP-5 (LLM default-on with per-org opt-out; $0.05 cap; 10s budget; fail-soft when `ANTHROPIC_API_KEY` unset). The `organisations.llm_assist_enabled BOOLEAN NOT NULL DEFAULT true` column shipped in E5.3 Phase 1 (PR #144 commit `59a0692`). The LLM call site itself ships in E5.3 Phase 3.
+
+**Not a hard gate today.** Phase 1 (data layer + RLS) shipped without the key. The fail-soft contract means the LLM-assist pass becomes a no-op if the key is absent — pay-code mapping still runs via the deterministic Phase 2 auto-detect Pass 1. Customers get the deterministic mapping experience; LLM upside is gated behind the key.
+
+**Operator follow-up before E5.3 Phase 3 dispatch** (one-time, dashboard-only):
+
+1. Vercel → `lsl-calculator` → Settings → Environment Variables.
+2. Re-add `ANTHROPIC_API_KEY` to Production, Preview, and Development scopes.
+3. Confirm Anthropic ZDR posture for the project (privacy notice already covers standard commercial terms — no further docs change required unless ZDR is enabled).
+
+The PDF Removal closure above (2026-05-27) reflected the state when no consumer existed. E5.3 Phase 3 brings a consumer back. Dev agent does not touch Vercel env vars; this is operator-owned.
+
+**When the key is reinstated**, also flip a corresponding note in `.specify/features/008-bulk-import-data-schema/pay-code-mapping.md` §3.8 (LAUNCH-GUARD update task) to record the reinstatement date + scope coverage.
+
+---
+
 **Historical context retained below.** Original gate text from before the deletion is kept for audit purposes only.
 
 ---
