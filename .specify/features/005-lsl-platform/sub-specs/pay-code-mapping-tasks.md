@@ -141,7 +141,7 @@
 **AC:** AC-MAP-2.
 **Depends:** T2.1, T1.2.
 
-### T2.6 — Calibration sweep + threshold validation · S
+### T2.6 — Calibration sweep + threshold validation · S ✅ [x] (2026-06-05 — calibration test runs detectColumns + detectPayCodes + detectValueNormalisations against the 10-fixture set + threshold invariant assertions; AC-MAP-1 verified at 90% exact (9/10 pay-code columns resolved — single acceptable miss is KeyPay's bare `Code`); AC-MAP-2 verified at 100% on 11 representative bucket codes; threshold constants pinned at 0.7 (header) / 0.6 (value) per spec §5.2; AC-MAP-15 6/8 jurisdictions on trimmed seed (production seed covers all 8); NO seed-tuning migration required; 7/7 tests pass)
 **Acceptance:** Run all detect modules against the 10-fixture set; assert AC-MAP-1 (≥ 90% pay-code column accuracy). If below, tune seed `confidence` values in `pay_code_aliases` (NOT thresholds — thresholds are pinned per spec §5).
 **AC:** AC-MAP-1.
 **Depends:** T2.2, T2.3, T2.4, T2.5.
