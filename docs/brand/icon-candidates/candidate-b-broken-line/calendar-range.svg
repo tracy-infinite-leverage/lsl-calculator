@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate B — Broken-Line Detail
+  Icon: CalendarRange (sidebar Pay history)
+  Stroke: 1.5px navy #48608a primary. The "range" itself is a dashed
+  grey-blue rule between two endpoint dots — this is the cleanest semantic
+  reading of "calendar range" (start → … → end) of the three candidates.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     fill="none" stroke="#48608a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     role="img" aria-label="Calendar range">
+  <!-- Calendar body -->
+  <rect x="3.25" y="5" width="17.5" height="15.5" rx="2"/>
+  <line x1="3.25" y1="9.5" x2="20.75" y2="9.5"/>
+  <line x1="7.5" y1="3.25" x2="7.5" y2="6.5"/>
+  <line x1="16.5" y1="3.25" x2="16.5" y2="6.5"/>
+  <!-- Range: endpoint dots in navy, dashed connector in grey-blue -->
+  <circle cx="7.5" cy="15" r="1.1" fill="#48608a" stroke="none"/>
+  <circle cx="16.5" cy="15" r="1.1" fill="#48608a" stroke="none"/>
+  <line x1="8.75" y1="15" x2="15.25" y2="15"
+        stroke="#a0aec1" stroke-width="1.25" stroke-dasharray="2.5 2.5"/>
+</svg>

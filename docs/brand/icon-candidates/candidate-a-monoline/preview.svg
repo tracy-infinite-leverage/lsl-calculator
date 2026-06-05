@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate A — Monoline preview board.
+  Shows the 6 representative icons at 24×24, 32×32 and 48×48 reference sizes,
+  against white and navy backgrounds. Each row is a size; each column is an
+  icon. The top half uses a white field (default UI background); the bottom
+  half uses the navy field (#48608a) with the icon re-coloured to white —
+  this is the canonical "on navy" treatment from direction §4.2 / §4.3.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760"
+     font-family="'Source Sans 3','Source Sans Pro','Helvetica Neue',Arial,sans-serif">
+  <!-- Backgrounds -->
+  <rect width="1200" height="380" fill="#ffffff"/>
+  <rect y="380" width="1200" height="380" fill="#48608a"/>
+
+  <!-- Titles -->
+  <text x="40" y="36" font-size="22" font-weight="600" fill="#48608a">Candidate A — Monoline · on white</text>
+  <text x="40" y="416" font-size="22" font-weight="600" fill="#ffffff">Candidate A — Monoline · on navy (white-stroke recolour)</text>
+
+  <!-- Column labels (icon names) — top -->
+  <g font-size="13" fill="#a0aec1">
+    <text x="120" y="64" text-anchor="middle">Users</text>
+    <text x="290" y="64" text-anchor="middle">Calculator</text>
+    <text x="460" y="64" text-anchor="middle">Bell</text>
+    <text x="630" y="64" text-anchor="middle">CalendarRange</text>
+    <text x="800" y="64" text-anchor="middle">Scale</text>
+    <text x="970" y="64" text-anchor="middle">ChevronDown</text>
+  </g>
+  <!-- Column labels — bottom -->
+  <g font-size="13" fill="#a0aec1">
+    <text x="120" y="444" text-anchor="middle">Users</text>
+    <text x="290" y="444" text-anchor="middle">Calculator</text>
+    <text x="460" y="444" text-anchor="middle">Bell</text>
+    <text x="630" y="444" text-anchor="middle">CalendarRange</text>
+    <text x="800" y="444" text-anchor="middle">Scale</text>
+    <text x="970" y="444" text-anchor="middle">ChevronDown</text>
+  </g>
+
+  <!-- Size labels -->
+  <g font-size="12" fill="#a0aec1" font-weight="600">
+    <text x="40" y="115">24</text><text x="40" y="195">32</text><text x="40" y="295">48</text>
+    <text x="40" y="495" fill="#a0aec1">24</text><text x="40" y="575" fill="#a0aec1">32</text><text x="40" y="675" fill="#a0aec1">48</text>
+  </g>
+
+  <!-- ============================================================
+       TOP HALF — icons on white. Pure navy 1.5px stroke as authored.
+       Each icon centred at columns 120/290/460/630/800/970.
+       Row Y-centres: 110 (24), 190 (32), 290 (48).
+       ============================================================ -->
+  <g stroke="#48608a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- ROW 1 (24px) -->
+    <!-- Users @ 24 -->
+    <g transform="translate(108 98)">
+      <circle cx="9" cy="8" r="3.25"/>
+      <path d="M3.5 19.5 a5.5 5.5 0 0 1 11 0"/>
+      <path d="M15 5.5 a3 3 0 0 1 0 5"/>
+      <path d="M16.5 13 a4.5 4.5 0 0 1 4 6.5"/>
+    </g>
+    <!-- Calculator @ 24 -->
+    <g transform="translate(278 98)">
+      <rect x="4" y="2.5" width="16" height="19" rx="2"/>
+      <rect x="6.5" y="5" width="11" height="4" rx="0.75"/>
+      <line x1="7" y1="13" x2="7" y2="13"/><line x1="12" y1="13" x2="12" y2="13"/><line x1="17" y1="13" x2="17" y2="13"/>
+      <line x1="7" y1="16" x2="7" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="17" y1="16" x2="17" y2="16"/>
+      <line x1="7" y1="19" x2="7" y2="19"/><line x1="12" y1="19" x2="12" y2="19"/><line x1="17" y1="19" x2="17" y2="19"/>
+    </g>
+    <!-- Bell @ 24 -->
+    <g transform="translate(448 98)">
+      <path d="M12 3.25 v1.5"/>
+      <path d="M5.75 17.25 V11 a6.25 6.25 0 0 1 12.5 0 v6.25"/>
+      <line x1="4" y1="17.25" x2="20" y2="17.25"/>
+      <path d="M10.25 20.25 a1.75 1.75 0 0 0 3.5 0"/>
+    </g>
+    <!-- CalendarRange @ 24 -->
+    <g transform="translate(618 98)">
+      <rect x="3.25" y="5" width="17.5" height="15.5" rx="2"/>
+      <line x1="3.25" y1="9.5" x2="20.75" y2="9.5"/>
+      <line x1="7.5" y1="3.25" x2="7.5" y2="6.5"/>
+      <line x1="16.5" y1="3.25" x2="16.5" y2="6.5"/>
+      <line x1="7.5" y1="15" x2="16.5" y2="15"/>
+      <circle cx="7.5" cy="15" r="0.9" fill="#48608a" stroke="none"/>
+      <circle cx="16.5" cy="15" r="0.9" fill="#48608a" stroke="none"/>
+    </g>
+    <!-- Scale @ 24 -->
+    <g transform="translate(788 98)">
+      <line x1="12" y1="4" x2="12" y2="20"/>
+      <line x1="9" y1="20" x2="15" y2="20"/>
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="5.5" y1="7" x2="4" y2="11"/><line x1="5.5" y1="7" x2="7" y2="11"/>
+      <line x1="18.5" y1="7" x2="17" y2="11"/><line x1="18.5" y1="7" x2="20" y2="11"/>
+      <path d="M3.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <path d="M16.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <circle cx="12" cy="4" r="0.9" fill="#48608a" stroke="none"/>
+    </g>
+    <!-- ChevronDown @ 24 -->
+    <g transform="translate(958 98)">
+      <polyline points="6 9.5 12 15.5 18 9.5"/>
+    </g>
+
+    <!-- ROW 2 (32px = scale 32/24 = 1.333) -->
+    <g transform="translate(104 174) scale(1.333)">
+      <circle cx="9" cy="8" r="3.25"/>
+      <path d="M3.5 19.5 a5.5 5.5 0 0 1 11 0"/>
+      <path d="M15 5.5 a3 3 0 0 1 0 5"/>
+      <path d="M16.5 13 a4.5 4.5 0 0 1 4 6.5"/>
+    </g>
+    <g transform="translate(274 174) scale(1.333)">
+      <rect x="4" y="2.5" width="16" height="19" rx="2"/>
+      <rect x="6.5" y="5" width="11" height="4" rx="0.75"/>
+      <line x1="7" y1="13" x2="7" y2="13"/><line x1="12" y1="13" x2="12" y2="13"/><line x1="17" y1="13" x2="17" y2="13"/>
+      <line x1="7" y1="16" x2="7" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="17" y1="16" x2="17" y2="16"/>
+      <line x1="7" y1="19" x2="7" y2="19"/><line x1="12" y1="19" x2="12" y2="19"/><line x1="17" y1="19" x2="17" y2="19"/>
+    </g>
+    <g transform="translate(444 174) scale(1.333)">
+      <path d="M12 3.25 v1.5"/>
+      <path d="M5.75 17.25 V11 a6.25 6.25 0 0 1 12.5 0 v6.25"/>
+      <line x1="4" y1="17.25" x2="20" y2="17.25"/>
+      <path d="M10.25 20.25 a1.75 1.75 0 0 0 3.5 0"/>
+    </g>
+    <g transform="translate(614 174) scale(1.333)">
+      <rect x="3.25" y="5" width="17.5" height="15.5" rx="2"/>
+      <line x1="3.25" y1="9.5" x2="20.75" y2="9.5"/>
+      <line x1="7.5" y1="3.25" x2="7.5" y2="6.5"/>
+      <line x1="16.5" y1="3.25" x2="16.5" y2="6.5"/>
+      <line x1="7.5" y1="15" x2="16.5" y2="15"/>
+      <circle cx="7.5" cy="15" r="0.9" fill="#48608a" stroke="none"/>
+      <circle cx="16.5" cy="15" r="0.9" fill="#48608a" stroke="none"/>
+    </g>
+    <g transform="translate(784 174) scale(1.333)">
+      <line x1="12" y1="4" x2="12" y2="20"/>
+      <line x1="9" y1="20" x2="15" y2="20"/>
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="5.5" y1="7" x2="4" y2="11"/><line x1="5.5" y1="7" x2="7" y2="11"/>
+      <line x1="18.5" y1="7" x2="17" y2="11"/><line x1="18.5" y1="7" x2="20" y2="11"/>
+      <path d="M3.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <path d="M16.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <circle cx="12" cy="4" r="0.9" fill="#48608a" stroke="none"/>
+    </g>
+    <g transform="translate(954 174) scale(1.333)">
+      <polyline points="6 9.5 12 15.5 18 9.5"/>
+    </g>
+
+    <!-- ROW 3 (48px = scale 2) -->
+    <g transform="translate(96 266) scale(2)">
+      <circle cx="9" cy="8" r="3.25"/>
+      <path d="M3.5 19.5 a5.5 5.5 0 0 1 11 0"/>
+      <path d="M15 5.5 a3 3 0 0 1 0 5"/>
+      <path d="M16.5 13 a4.5 4.5 0 0 1 4 6.5"/>
+    </g>
+    <g transform="translate(266 266) scale(2)">
+      <rect x="4" y="2.5" width="16" height="19" rx="2"/>
+      <rect x="6.5" y="5" width="11" height="4" rx="0.75"/>
+      <line x1="7" y1="13" x2="7" y2="13"/><line x1="12" y1="13" x2="12" y2="13"/><line x1="17" y1="13" x2="17" y2="13"/>
+      <line x1="7" y1="16" x2="7" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="17" y1="16" x2="17" y2="16"/>
+      <line x1="7" y1="19" x2="7" y2="19"/><line x1="12" y1="19" x2="12" y2="19"/><line x1="17" y1="19" x2="17" y2="19"/>
+    </g>
+    <g transform="translate(436 266) scale(2)">
+      <path d="M12 3.25 v1.5"/>
+      <path d="M5.75 17.25 V11 a6.25 6.25 0 0 1 12.5 0 v6.25"/>
+      <line x1="4" y1="17.25" x2="20" y2="17.25"/>
+      <path d="M10.25 20.25 a1.75 1.75 0 0 0 3.5 0"/>
+    </g>
+    <g transform="translate(606 266) scale(2)">
+      <rect x="3.25" y="5" width="17.5" height="15.5" rx="2"/>
+      <line x1="3.25" y1="9.5" x2="20.75" y2="9.5"/>
+      <line x1="7.5" y1="3.25" x2="7.5" y2="6.5"/>
+      <line x1="16.5" y1="3.25" x2="16.5" y2="6.5"/>
+      <line x1="7.5" y1="15" x2="16.5" y2="15"/>
+      <circle cx="7.5" cy="15" r="0.9" fill="#48608a" stroke="none"/>
+      <circle cx="16.5" cy="15" r="0.9" fill="#48608a" stroke="none"/>
+    </g>
+    <g transform="translate(776 266) scale(2)">
+      <line x1="12" y1="4" x2="12" y2="20"/>
+      <line x1="9" y1="20" x2="15" y2="20"/>
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="5.5" y1="7" x2="4" y2="11"/><line x1="5.5" y1="7" x2="7" y2="11"/>
+      <line x1="18.5" y1="7" x2="17" y2="11"/><line x1="18.5" y1="7" x2="20" y2="11"/>
+      <path d="M3.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <path d="M16.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <circle cx="12" cy="4" r="0.9" fill="#48608a" stroke="none"/>
+    </g>
+    <g transform="translate(946 266) scale(2)">
+      <polyline points="6 9.5 12 15.5 18 9.5"/>
+    </g>
+  </g>
+
+  <!-- ============================================================
+       BOTTOM HALF — icons on navy, white stroke recolour.
+       Same icon geometry; stroke flipped to white. The inline fill
+       dots flip to white too.
+       Row Y-centres: 478 (24), 558 (32), 658 (48).
+       ============================================================ -->
+  <g stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- ROW 1 (24px) -->
+    <g transform="translate(108 478)">
+      <circle cx="9" cy="8" r="3.25"/>
+      <path d="M3.5 19.5 a5.5 5.5 0 0 1 11 0"/>
+      <path d="M15 5.5 a3 3 0 0 1 0 5"/>
+      <path d="M16.5 13 a4.5 4.5 0 0 1 4 6.5"/>
+    </g>
+    <g transform="translate(278 478)">
+      <rect x="4" y="2.5" width="16" height="19" rx="2"/>
+      <rect x="6.5" y="5" width="11" height="4" rx="0.75"/>
+      <line x1="7" y1="13" x2="7" y2="13"/><line x1="12" y1="13" x2="12" y2="13"/><line x1="17" y1="13" x2="17" y2="13"/>
+      <line x1="7" y1="16" x2="7" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="17" y1="16" x2="17" y2="16"/>
+      <line x1="7" y1="19" x2="7" y2="19"/><line x1="12" y1="19" x2="12" y2="19"/><line x1="17" y1="19" x2="17" y2="19"/>
+    </g>
+    <g transform="translate(448 478)">
+      <path d="M12 3.25 v1.5"/>
+      <path d="M5.75 17.25 V11 a6.25 6.25 0 0 1 12.5 0 v6.25"/>
+      <line x1="4" y1="17.25" x2="20" y2="17.25"/>
+      <path d="M10.25 20.25 a1.75 1.75 0 0 0 3.5 0"/>
+    </g>
+    <g transform="translate(618 478)">
+      <rect x="3.25" y="5" width="17.5" height="15.5" rx="2"/>
+      <line x1="3.25" y1="9.5" x2="20.75" y2="9.5"/>
+      <line x1="7.5" y1="3.25" x2="7.5" y2="6.5"/>
+      <line x1="16.5" y1="3.25" x2="16.5" y2="6.5"/>
+      <line x1="7.5" y1="15" x2="16.5" y2="15"/>
+      <circle cx="7.5" cy="15" r="0.9" fill="#ffffff" stroke="none"/>
+      <circle cx="16.5" cy="15" r="0.9" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(788 478)">
+      <line x1="12" y1="4" x2="12" y2="20"/>
+      <line x1="9" y1="20" x2="15" y2="20"/>
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="5.5" y1="7" x2="4" y2="11"/><line x1="5.5" y1="7" x2="7" y2="11"/>
+      <line x1="18.5" y1="7" x2="17" y2="11"/><line x1="18.5" y1="7" x2="20" y2="11"/>
+      <path d="M3.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <path d="M16.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <circle cx="12" cy="4" r="0.9" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(958 478)">
+      <polyline points="6 9.5 12 15.5 18 9.5"/>
+    </g>
+
+    <!-- ROW 2 (32px) -->
+    <g transform="translate(104 554) scale(1.333)">
+      <circle cx="9" cy="8" r="3.25"/>
+      <path d="M3.5 19.5 a5.5 5.5 0 0 1 11 0"/>
+      <path d="M15 5.5 a3 3 0 0 1 0 5"/>
+      <path d="M16.5 13 a4.5 4.5 0 0 1 4 6.5"/>
+    </g>
+    <g transform="translate(274 554) scale(1.333)">
+      <rect x="4" y="2.5" width="16" height="19" rx="2"/>
+      <rect x="6.5" y="5" width="11" height="4" rx="0.75"/>
+      <line x1="7" y1="13" x2="7" y2="13"/><line x1="12" y1="13" x2="12" y2="13"/><line x1="17" y1="13" x2="17" y2="13"/>
+      <line x1="7" y1="16" x2="7" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="17" y1="16" x2="17" y2="16"/>
+      <line x1="7" y1="19" x2="7" y2="19"/><line x1="12" y1="19" x2="12" y2="19"/><line x1="17" y1="19" x2="17" y2="19"/>
+    </g>
+    <g transform="translate(444 554) scale(1.333)">
+      <path d="M12 3.25 v1.5"/>
+      <path d="M5.75 17.25 V11 a6.25 6.25 0 0 1 12.5 0 v6.25"/>
+      <line x1="4" y1="17.25" x2="20" y2="17.25"/>
+      <path d="M10.25 20.25 a1.75 1.75 0 0 0 3.5 0"/>
+    </g>
+    <g transform="translate(614 554) scale(1.333)">
+      <rect x="3.25" y="5" width="17.5" height="15.5" rx="2"/>
+      <line x1="3.25" y1="9.5" x2="20.75" y2="9.5"/>
+      <line x1="7.5" y1="3.25" x2="7.5" y2="6.5"/>
+      <line x1="16.5" y1="3.25" x2="16.5" y2="6.5"/>
+      <line x1="7.5" y1="15" x2="16.5" y2="15"/>
+      <circle cx="7.5" cy="15" r="0.9" fill="#ffffff" stroke="none"/>
+      <circle cx="16.5" cy="15" r="0.9" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(784 554) scale(1.333)">
+      <line x1="12" y1="4" x2="12" y2="20"/>
+      <line x1="9" y1="20" x2="15" y2="20"/>
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="5.5" y1="7" x2="4" y2="11"/><line x1="5.5" y1="7" x2="7" y2="11"/>
+      <line x1="18.5" y1="7" x2="17" y2="11"/><line x1="18.5" y1="7" x2="20" y2="11"/>
+      <path d="M3.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <path d="M16.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <circle cx="12" cy="4" r="0.9" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(954 554) scale(1.333)">
+      <polyline points="6 9.5 12 15.5 18 9.5"/>
+    </g>
+
+    <!-- ROW 3 (48px) -->
+    <g transform="translate(96 642) scale(2)">
+      <circle cx="9" cy="8" r="3.25"/>
+      <path d="M3.5 19.5 a5.5 5.5 0 0 1 11 0"/>
+      <path d="M15 5.5 a3 3 0 0 1 0 5"/>
+      <path d="M16.5 13 a4.5 4.5 0 0 1 4 6.5"/>
+    </g>
+    <g transform="translate(266 642) scale(2)">
+      <rect x="4" y="2.5" width="16" height="19" rx="2"/>
+      <rect x="6.5" y="5" width="11" height="4" rx="0.75"/>
+      <line x1="7" y1="13" x2="7" y2="13"/><line x1="12" y1="13" x2="12" y2="13"/><line x1="17" y1="13" x2="17" y2="13"/>
+      <line x1="7" y1="16" x2="7" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="17" y1="16" x2="17" y2="16"/>
+      <line x1="7" y1="19" x2="7" y2="19"/><line x1="12" y1="19" x2="12" y2="19"/><line x1="17" y1="19" x2="17" y2="19"/>
+    </g>
+    <g transform="translate(436 642) scale(2)">
+      <path d="M12 3.25 v1.5"/>
+      <path d="M5.75 17.25 V11 a6.25 6.25 0 0 1 12.5 0 v6.25"/>
+      <line x1="4" y1="17.25" x2="20" y2="17.25"/>
+      <path d="M10.25 20.25 a1.75 1.75 0 0 0 3.5 0"/>
+    </g>
+    <g transform="translate(606 642) scale(2)">
+      <rect x="3.25" y="5" width="17.5" height="15.5" rx="2"/>
+      <line x1="3.25" y1="9.5" x2="20.75" y2="9.5"/>
+      <line x1="7.5" y1="3.25" x2="7.5" y2="6.5"/>
+      <line x1="16.5" y1="3.25" x2="16.5" y2="6.5"/>
+      <line x1="7.5" y1="15" x2="16.5" y2="15"/>
+      <circle cx="7.5" cy="15" r="0.9" fill="#ffffff" stroke="none"/>
+      <circle cx="16.5" cy="15" r="0.9" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(776 642) scale(2)">
+      <line x1="12" y1="4" x2="12" y2="20"/>
+      <line x1="9" y1="20" x2="15" y2="20"/>
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="5.5" y1="7" x2="4" y2="11"/><line x1="5.5" y1="7" x2="7" y2="11"/>
+      <line x1="18.5" y1="7" x2="17" y2="11"/><line x1="18.5" y1="7" x2="20" y2="11"/>
+      <path d="M3.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <path d="M16.5 11 a2.5 2.5 0 0 0 4 0"/>
+      <circle cx="12" cy="4" r="0.9" fill="#ffffff" stroke="none"/>
+    </g>
+    <g transform="translate(946 642) scale(2)">
+      <polyline points="6 9.5 12 15.5 18 9.5"/>
+    </g>
+  </g>
+</svg>

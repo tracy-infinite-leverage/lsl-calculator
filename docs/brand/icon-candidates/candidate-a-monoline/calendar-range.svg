@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate A — Monoline
+  Icon: CalendarRange (sidebar Pay history)
+  Stroke: 1.5px navy #48608a. Restraint variant: no gold "today" marker in
+  default state — per direction §3 the gold "today" square is reserved for
+  the active-state variant. The default Pay-history nav icon is unmarked.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     fill="none" stroke="#48608a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     role="img" aria-label="Calendar range">
+  <!-- Calendar body -->
+  <rect x="3.25" y="5" width="17.5" height="15.5" rx="2"/>
+  <!-- Header rule -->
+  <line x1="3.25" y1="9.5" x2="20.75" y2="9.5"/>
+  <!-- Tabs -->
+  <line x1="7.5" y1="3.25" x2="7.5" y2="6.5"/>
+  <line x1="16.5" y1="3.25" x2="16.5" y2="6.5"/>
+  <!-- Range bar (the "range" mark — two dates with a connecting rule) -->
+  <line x1="7.5" y1="15" x2="16.5" y2="15"/>
+  <circle cx="7.5" cy="15" r="0.9" fill="#48608a" stroke="none"/>
+  <circle cx="16.5" cy="15" r="0.9" fill="#48608a" stroke="none"/>
+</svg>

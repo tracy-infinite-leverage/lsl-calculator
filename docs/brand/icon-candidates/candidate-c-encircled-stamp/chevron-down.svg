@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate C — Encircled Stamp
+  Icon: ChevronDown
+  Container: navy #48608a filled disc.
+  Glyph: white #ffffff stroke, 2px (slightly heavier than 1.5 — small
+  inline glyph needs a touch more weight to read inside the disc).
+  Design caveat: ChevronDown is the candidate's stress test — does an
+  encircled treatment make sense for a tiny dropdown arrow? See README
+  trade-off. The "encircled by default" rule can have an exception
+  carve-out for purely-directional micro-icons.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     role="img" aria-label="Chevron down">
+  <circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <polyline points="7 10 12 15 17 10"
+            fill="none" stroke="#ffffff" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
