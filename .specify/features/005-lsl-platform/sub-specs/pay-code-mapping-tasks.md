@@ -94,7 +94,7 @@
 
 ## Phase 2 — Auto-detection Pass 1 (deterministic; blocks E5.4 ingestion wire-up)
 
-### T2.1 — Scaffold `website/src/lib/lsl/mapping/detect/` · S
+### T2.1 — Scaffold `website/src/lib/lsl/mapping/detect/` · S ✅ [x] (2026-06-05 — scaffolded `website/src/lib/lsl/mapping/detect/` with barrel `index.ts`, 4 module skeletons (`file-shape.ts`, `columns.ts`, `value-normalise.ts`, `pay-codes.ts`), and `thresholds.ts` carrying spec §5.2 pinned constants; each module exports typed pure-function signatures that throw `not implemented` placeholders for T2.2–T2.5)
 **Acceptance:** Folder + barrel exports + module skeletons (`file-shape.ts`, `columns.ts`, `value-normalise.ts`, `pay-codes.ts`). Each exports a typed pure function signature.
 **Depends:** T1.7.
 
