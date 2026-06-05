@@ -107,7 +107,7 @@
 **AC:** AC-MAP-13, AC-MAP-14.
 **Depends:** T2.1, T0.2.
 
-### T2.3 — Implement column auto-detection · M [P]
+### T2.3 — Implement column auto-detection · M [P] ✅ [x] (2026-06-05 — pure `detectColumns(headers, sampleRows, aliases)` returns typed ColumnRefs for payCode/amount/units/employeeId/periodEnd/jurisdiction/frequency with per-column confidence; payCode driven by DB `pay_code_aliases` `header_name` rows, other kinds by built-in vocabulary; cardinality tie-break gated by `[PAY_CODE_CARDINALITY_MIN, _MAX]`; threshold-gated at 0.7 per spec §5.2; AC-MAP-1 verified — 9/10 fixtures correct = 90% exact; 17/17 unit tests pass)
 **Acceptance:**
 - `detectColumns(headers, sampleRows, aliases) → { payCode?: ColumnRef, amount?, units?, employeeId?, periodEnd?, jurisdiction?, frequency? }` each with `confidence`.
 - Tie-break via value-cardinality heuristic (pay-code columns have 10–50 distinct values per period).
