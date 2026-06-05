@@ -51,9 +51,7 @@ create table public.pay_code_aliases (
   ),
   constraint pay_code_aliases_confidence_range check (
     confidence >= 0.0 and confidence <= 1.0
-  ),
-  -- A given (kind, pattern) pair should only appear once in the system seed.
-  constraint pay_code_aliases_kind_pattern_unique unique (pattern_kind, lower(pattern))
+  )
 );
 
 comment on table  public.pay_code_aliases is
@@ -63,6 +61,14 @@ comment on column public.pay_code_aliases.pattern      is 'Literal string or sim
 comment on column public.pay_code_aliases.bucket       is 'Suggested LSL bucket. Special value pii_strip flags patterns the service layer must refuse to ingest (TFN/BSB/BANK_ACC headers).';
 comment on column public.pay_code_aliases.confidence   is '0.0–1.0. Drives ranking when multiple patterns match. ≥0.7 for column-header propose; ≥0.6 for code-value propose (spec §5).';
 comment on column public.pay_code_aliases.source       is 'system_seed (shipped via migration) or usage_learned (reserved for v1.x).';
+
+-- Uniqueness on (pattern_kind, lower(pattern)) — implemented as a UNIQUE INDEX
+-- rather than an inline table constraint. Postgres only accepts expression-based
+-- uniqueness through CREATE UNIQUE INDEX; inline `UNIQUE (... lower(pattern))`
+-- in the CREATE TABLE syntax was rejected on production (2026-06-03).
+-- Functionally equivalent — a given (kind, pattern) pair only appears once.
+create unique index pay_code_aliases_kind_pattern_unique
+  on public.pay_code_aliases (pattern_kind, lower(pattern));
 
 -- Indexes for the detection-time query (Phase 2 T2.3, T2.5)
 create index pay_code_aliases_pattern_kind_idx on public.pay_code_aliases (pattern_kind);

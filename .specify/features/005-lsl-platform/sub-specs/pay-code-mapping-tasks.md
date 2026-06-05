@@ -121,9 +121,13 @@
 - `detectValueNormalisations(column, aliases) → ProposalRow[]`.
 - For state / employment-type / pay-frequency columns: scan unique surface forms.
 - Org-scoped rows shadow system rows (per spec §4.4).
-- **OQ-MAP-9 lock implementation**: when the column is identified as a `Cohort` / multi-state column (header pattern matches `cohort` or value forms include hyphenated state pairs like `VIC-TAS`), the detector splits on `-` and normalises each side against state aliases. Returns `states: ['VIC', 'TAS']` as the canonical value (an array, not a scalar). Document this branch in the function's JSDoc.
+- **OQ-ING-9 / OQ-MAP-9 lock implementation [REVISED 2026-06-01 post PR #105 schema verification]**: Cohort is **derived at runtime** from per-pay-period `work_jurisdiction` values — NOT stored as a `states[]` array on the employee row. When the detector encounters a column whose header pattern matches `cohort` or whose values contain hyphenated state pairs like `VIC-TAS`, it:
+  1. Splits on `-` and validates each side against the state aliases (for parsing-confidence scoring + early ingestion-time validation of cross-jurisdiction employees).
+  2. Returns the cohort label as a **`crossJurisdictionFlag`** annotation on the employee row — flagging the system to expect work_jurisdiction values from each parsed state in subsequent pay-period ingestion.
+  3. Does NOT return a `states: ['VIC', 'TAS']` array as a target field on `employees` — the merged schema has singular `default_work_jurisdiction`, and `pay_periods.work_jurisdiction` is the authoritative per-period state at valuation time. The canonical distinct-jurisdictions set per employee is derived from their pay-period rows at valuation time (E5.5 engine input).
+  4. Document this branch in the function's JSDoc — explicit reference to OQ-ING-9 / OQ-MAP-9 lock + the PR #105 verified architecture.
 - Unit tests: Virtus state values (`Tasmania`, `Victoria`, etc.) resolve to canonical 8-code enum. Virtus employment types (`CA - Casual`, `FP - Full Time Salaried`, etc.) resolve to masterfile enum.
-- **OQ-MAP-9 test**: `Cohort` column with value `VIC-TAS` returns canonical `states = ['VIC', 'TAS']`.
+- **OQ-ING-9 / OQ-MAP-9 test**: `Cohort` column with value `VIC-TAS` returns a proposal row carrying `{ crossJurisdictionFlag: true, hintedJurisdictions: ['VIC', 'TAS'] }` — NOT a stored `states` array. The hinted jurisdictions are used by Phase 2 ingestion to validate that subsequent pay-period work_jurisdiction values for this employee fall within the hinted set; downstream they are not persisted as an employee-level field.
 **AC:** AC-MAP-15.
 **Depends:** T2.1, T1.4.
 
