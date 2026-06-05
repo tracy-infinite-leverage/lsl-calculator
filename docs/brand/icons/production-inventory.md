@@ -1,0 +1,97 @@
+# OQ-2 Production Icon Inventory
+
+> **Direction:** Candidate C — Encircled Stamp (selected 2026-06-05, recorded in `docs/brand/icon-candidates/README.md` DECISION header).
+> **Surface:** every name re-exported by `website/src/components/brand/Icon.tsx` (the canonical brand `<Icon>` barrel — per E6.2 Task 2.5, every consumer in `website/src/` imports through this single file).
+> **Counts:** **42 icons** × **3 states** (default / active / disabled) = **126 SVGs**.
+
+## How to read this table
+
+Each row corresponds to one named export from `Icon.tsx`. The **filename** column maps the kebab-case SVG filename in this folder to the PascalCase TypeScript export name. The **gold accent** column flags the semantic where the default variant carries a selective gold mark (per `docs/brand/icon-direction.md` §3 restraint rule — gold appears on at-most ~3 of every 10 icons in the set). The **consumer** column lists every file under `website/src/` that currently imports this icon through the brand barrel; "—" means no current consumer (brand-v1 minimum from direction §5, present for OQ-2 surface parity).
+
+## Inventory
+
+| Filename | Export | Family | Semantic role | Gold accent in default? | Consumer (every importer in `website/src/`) |
+|---|---|---|---|---|---|
+| `calculator.svg` | `Calculator` | Calculator / measurement | Public-calc landing CTA, sidebar Valuations, empty-state Valuations | No — restraint per direction §5 ("no active state for a brand affordance") | `app/(calculator)/calculator/single/_components/single-mode-form.tsx`, `components/ui/button.stories.tsx`, `components/app-shell/sidebar-routes.ts`, `components/empty-states/ValuationsEmptyState.tsx` |
+| `user.svg` | `User` | People / tenancy | Singular person — UserMenu avatar, signed-in indicator | No | `components/app-shell/UserMenu.tsx` |
+| `users.svg` | `Users` | People / tenancy | Roster, sidebar Employees, tenant header | No (gold dot earned only in active variant) | `app/page.tsx`, `components/app-shell/sidebar-routes.ts`, `components/empty-states/EmployeesEmptyState.tsx` |
+| `building-2.svg` | `Building2` | People / tenancy | Tenant switcher, "Acting as" context — per direction §5 use Building2 NOT ArrowLeftRight | No | `components/app-shell/TenantSwitcher.tsx` |
+| `log-out.svg` | `LogOut` | People / tenancy | Sign-out action in UserMenu | No | `components/app-shell/UserMenu.tsx` |
+| `check-circle-2.svg` | `CheckCircle2` | Status / signals | "Calculated" affordance — the signature LSL Calculator success mark | Yes — gold tick (per direction §5 "navy ring + gold tick" — signature of the family) | `components/brand/Icon.tsx` (re-export only — no direct consumer yet) |
+| `alert-circle.svg` | `AlertCircle` | Status / signals | Inline error in bulk form | No | `app/(calculator)/calculator/bulk/_components/bulk-mode-form.tsx` |
+| `alert-triangle.svg` | `AlertTriangle` | Status / signals | Advisory warning, error page anchor, ActingAs banner | Yes — gold "!" stem (per direction §5 — brand's signature advisory mark) | `app/(calculator)/error.tsx`, `app/(calculator)/calculator/single/_components/single-mode-form.tsx`, `components/ui/alert.stories.tsx`, `components/lsl/result-panel.tsx`, `components/app-shell/ActingAsBanner.tsx` |
+| `info.svg` | `Info` | Status / signals | Methodology footer, info callouts | No | `components/ui/alert.stories.tsx`, `components/lsl/result-panel.tsx` |
+| `help-circle.svg` | `HelpCircle` | Status / signals | Help footer link to spec sources | No | `components/ui/alert.stories.tsx` |
+| `file-warning.svg` | `FileWarning` | Status / signals | Wage-history upload warnings, textarea hint | Yes — gold "!" dot (warning class — same semantic class as alert-triangle) | `components/ui/textarea.stories.tsx`, `components/lsl/result-panel.tsx` |
+| `lock.svg` | `Lock` | Status / signals | Bulk-mode jurisdiction lock, results-table locked rows | No | `app/(calculator)/calculator/bulk/_components/unblock-jurisdiction-modal.tsx`, `app/(calculator)/calculator/bulk/_components/bulk-results-table.tsx` |
+| `unlock.svg` | `Unlock` | Status / signals | Results-table unlocked rows | No | `app/(calculator)/calculator/bulk/_components/bulk-results-table.tsx` |
+| `bell.svg` | `Bell` | Status / signals | TopNav notification anchor — canonical "important" semantic | Yes — gold unread dot (per Candidate C reference and direction §3) | `components/app-shell/TopNav.tsx` |
+| `arrow-right.svg` | `ArrowRight` | Navigation / motion | Public-calc CTA, button leading icon | No | `app/page.tsx`, `components/ui/button.stories.tsx` |
+| `arrow-up-down.svg` | `ArrowUpDown` | Navigation / motion | Sortable column header indicator | No (gold arrowhead earned only in active sort variant) | `app/(calculator)/calculator/bulk/_components/bulk-results-table.tsx` |
+| `chevron-down.svg` | `ChevronDown` | Navigation / motion | Dropdown / accordion trigger, TenantSwitcher caret, results-row expand | No (see README §"ChevronDown stress test") | `app/(calculator)/calculator/bulk/_components/bulk-results-table.tsx`, `app/(calculator)/calculator/bulk/_components/bulk-preview-table.tsx`, `components/app-shell/UserMenu.tsx`, `components/app-shell/TenantSwitcher.tsx` |
+| `chevron-right.svg` | `ChevronRight` | Navigation / motion | Breadcrumb separator, results-row collapsed indicator | No | `app/(calculator)/calculator/bulk/_components/bulk-results-table.tsx`, `app/(calculator)/calculator/bulk/_components/bulk-preview-table.tsx`, `components/app-shell/Breadcrumbs.tsx` |
+| `rotate-ccw.svg` | `RotateCcw` | Navigation / motion | "Reset / start over" affordance on single-mode form | No | `app/(calculator)/calculator/single/_components/single-mode-form.tsx` |
+| `menu.svg` | `Menu` | Navigation / motion | Mobile hamburger (TopNav at narrow viewports) | No | `components/brand/Icon.tsx` (re-export only — no direct consumer yet) |
+| `plus.svg` | `Plus` | Editing / IO | Add row, add continuous-service segment, empty-state CTA | No (gold-stroke variant is the empty-state CTA only — per direction §5) | `app/(calculator)/calculator/single/_components/single-mode-form.tsx`, `components/lsl/continuous-service-list.tsx` |
+| `x.svg` | `X` | Editing / IO | Dismiss / close modal / clear field | No | `components/brand/Icon.tsx` (re-export only — see `components/ui/dialog.tsx` for the consumer via shadcn pattern) |
+| `trash-2.svg` | `Trash2` | Editing / IO | Delete row, destructive action | No — destructive uses red `#a23a3a` token at consume-time, never gold (per direction §5) | `app/(calculator)/calculator/bulk/_components/bulk-mode-form.tsx`, `components/ui/button.stories.tsx` |
+| `check.svg` | `Check` | Editing / IO | Selected radio / checked checkbox / dropdown selection | No (the inner check token; gold tick lives on `check-circle-2`) | `components/app-shell/TenantSwitcher.tsx` |
+| `circle.svg` | `Circle` | Editing / IO | Radio-button blank, generic dot | No | `components/brand/Icon.tsx` (re-export only — used by shadcn `components/ui/radio-group.tsx` internally) |
+| `file-text.svg` | `FileText` | Files / reports | PDF download CTA, wage-history upload preview, public-calc landing tile | No | `app/page.tsx`, `components/lsl/wage-history-upload.tsx` |
+| `file-up.svg` | `FileUp` | Files / reports | CSV upload affordance on bulk form | No | `app/(calculator)/calculator/bulk/_components/bulk-mode-form.tsx` |
+| `download.svg` | `Download` | Files / reports | PDF download, CSV download | No | `app/(calculator)/calculator/bulk/_components/bulk-mode-form.tsx`, `components/ui/button.stories.tsx`, `components/lsl/result-panel.tsx` |
+| `upload.svg` | `Upload` | Files / reports | Generic upload affordance | No | `components/lsl/wage-history-upload.tsx` |
+| `book-open.svg` | `BookOpen` | Files / reports | Citation block — opens to legislation reference. The "PDF-fidelity book glyph" called out in dispatch. | No (designed with extra weight on inner pages so it reads at print scale — see README §"Special icons") | `components/lsl/citation-block.tsx` |
+| `play.svg` | `Play` | Process | "Run bulk calculation" button | No — solid white triangle, no gold (process-trigger semantic, not "important") | `app/(calculator)/calculator/bulk/_components/bulk-mode-form.tsx` |
+| `loader-2.svg` | `Loader2` | Process | Inline spinner / button-loading state | No — per direction §9 spinner spec (no gold flair on loading) | `app/(calculator)/calculator/bulk/_components/bulk-mode-form.tsx`, `components/ui/spinner.tsx`, `components/lsl/result-panel.tsx` |
+| `scale.svg` | `Scale` | Process | Sidebar Liability, empty-state Liability — balance / weighting | Yes — gold hook anchor dot (per Candidate C reference) | `components/app-shell/sidebar-routes.ts`, `components/empty-states/LiabilityEmptyState.tsx` |
+| `trending-down.svg` | `TrendingDown` | Process | Negative-variance indicator in result panel | No (gold reserved for "anchored" semantics, not for trend direction) | `components/lsl/result-panel.tsx` |
+| `trending-up.svg` | `TrendingUp` | Process | Positive-variance indicator in result panel | No | `components/lsl/result-panel.tsx` |
+| `git-compare-arrows.svg` | `GitCompareArrows` | Process | Sidebar Reconciliation, empty-state Reconciliation | Yes — gold dot at the diverge/merge join point (per direction §3 "anchored value") | `components/app-shell/sidebar-routes.ts`, `components/empty-states/ReconciliationEmptyState.tsx` |
+| `tag.svg` | `Tag` | Taxonomy | Sidebar Pay codes, empty-state Pay codes | No | `components/app-shell/sidebar-routes.ts`, `components/empty-states/PayCodesEmptyState.tsx` |
+| `calendar-range.svg` | `CalendarRange` | Brand-v1 §5 minimum | Sidebar Pay history, empty-state Pay history, date-range pickers | Yes — gold "today" filled square (per direction §5 canonical example) | `components/app-shell/sidebar-routes.ts`, `components/empty-states/PayHistoryEmptyState.tsx` |
+| `dollar-sign.svg` | `DollarSign` | Brand-v1 §5 minimum | Currency callouts, pay-codes detail screens | No — restraint demo (per direction §5: "no gold even though it's a 'money' icon") | `components/brand/Icon.tsx` (no consumer on `main` yet) |
+| `settings.svg` | `Settings` | Brand-v1 §5 minimum | Sidebar Settings | No (uses disabled variant when org has no admin role) | `components/app-shell/sidebar-routes.ts` |
+| `search.svg` | `Search` | Brand-v1 §5 minimum | Input search affordance, table column search | No | `components/ui/input.stories.tsx` |
+| `filter.svg` | `Filter` | Brand-v1 §5 minimum | Table filter trigger | No (gold dot on funnel mouth earned only in active filter variant) | `components/brand/Icon.tsx` (no consumer on `main` yet) |
+
+## Surface-by-surface roll-up
+
+This restates the table from the consumer side so a reader can scan "which icons does this UI surface use?"
+
+| UI surface | Icons consumed |
+|---|---|
+| Sidebar (`sidebar-routes.ts`) | Users, Calculator, Tag, CalendarRange, Scale, GitCompareArrows, Settings |
+| TopNav (`TopNav.tsx`) | Bell |
+| UserMenu | User, LogOut, ChevronDown |
+| TenantSwitcher | Building2, Check, ChevronDown |
+| Breadcrumbs | ChevronRight |
+| ActingAsBanner | AlertTriangle |
+| Calculator (single mode form) | AlertTriangle, Calculator, Plus, RotateCcw |
+| Calculator (bulk mode form) | AlertCircle, Download, FileUp, Loader2, Play, Trash2 |
+| Calculator (bulk preview / results tables) | ArrowUpDown, ChevronDown, ChevronRight, Lock, Unlock |
+| Calculator (jurisdiction unblock modal) | Lock |
+| Result panel | AlertTriangle, Download, FileWarning, Info, Loader2, TrendingDown, TrendingUp |
+| Citation block (used in `SingleEmployee.tsx` PDF) | BookOpen |
+| Continuous service list | Plus |
+| Wage-history upload | FileText, Upload |
+| Empty states (6 surfaces) | Users, Tag, CalendarRange, Calculator, Scale, GitCompareArrows |
+| Calculator error page | AlertTriangle |
+| Public-calc landing (`app/page.tsx`) | ArrowRight, FileText, Users |
+| `components/ui/*` Storybook stories | ArrowRight, Calculator, Download, Trash2, Search, AlertTriangle, HelpCircle, Info, FileWarning |
+| Spinner | Loader2 |
+
+## State variants — what changes between default / active / disabled
+
+| State | Disc fill | Glyph stroke / fill | Gold accents (e.g. Bell unread, Calendar today, Scale hook, GitCompareArrows merge, CheckCircle2 tick, AlertTriangle "!" stem, FileWarning "!" dot) |
+|---|---|---|---|
+| **default** | navy `#48608a` | white `#ffffff` | gold `#d9a428` |
+| **active** | gold `#d9a428` | navy `#48608a` | flip to navy `#48608a` (gold-on-gold would be invisible) |
+| **disabled** | grey-blue `#a0aec1` | white `#ffffff` at 60% opacity (via wrapping `<g opacity="0.6">`) | flip to white `#ffffff` (then muted to 60% along with the rest of the glyph — disabled is monochromatic) |
+
+## What this inventory is NOT
+
+- Not the `Icon.tsx` barrel swap. The follow-up PR rewires the barrel to read from these SVGs (see README §"Barrel swap strategy").
+- Not the eslint-rule allow-list change. That ships with the barrel-swap PR.
+- Not the v1.1 commission for ~35 custom icons. The OQ-2 production-round bundle satisfies the OQ-2 hard deadline directly — the v1.1 commission is no longer needed because the in-house designer agent has produced the set.
+- Not the empty-state illustration set. Those live at `docs/brand/empty-states/` and are produced by a separate dispatch (per direction §10).
