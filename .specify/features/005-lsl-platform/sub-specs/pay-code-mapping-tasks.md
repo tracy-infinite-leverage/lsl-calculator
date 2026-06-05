@@ -94,7 +94,7 @@
 
 ## Phase 2 — Auto-detection Pass 1 (deterministic; blocks E5.4 ingestion wire-up)
 
-### T2.1 — Scaffold `website/src/lib/lsl/mapping/detect/` · S
+### T2.1 — Scaffold `website/src/lib/lsl/mapping/detect/` · S ✅ [x] (2026-06-05 — folder + barrel exports + four typed pure-function skeletons + `types.ts` + `scaffold.test.ts` smoke test; tsc/eslint/test/build all clean; T2.2–T2.5 will fill bodies behind these contracts)
 **Acceptance:** Folder + barrel exports + module skeletons (`file-shape.ts`, `columns.ts`, `value-normalise.ts`, `pay-codes.ts`). Each exports a typed pure function signature.
 **Depends:** T1.7.
 
