@@ -98,7 +98,7 @@
 **Acceptance:** Folder + barrel exports + module skeletons (`file-shape.ts`, `columns.ts`, `value-normalise.ts`, `pay-codes.ts`). Each exports a typed pure function signature.
 **Depends:** T1.7.
 
-### T2.2 — Implement file-shape detection · M
+### T2.2 — Implement file-shape detection · M ✅ [x] (2026-06-05 — pure `detectFileShape(files, aliases)` classifies into `csv` / `excel-single` / `excel-multi` / `multi-file-relational`; sheet-signature scoring uses DB `pay_code_aliases` `header_name` rows + built-in structural-column vocabulary; multi-file join-key resolution finds shared `Employee ID` etc with confidence; 9/9 unit tests pass)
 **Acceptance:**
 - `detectFileShape(files) → { shape: 'csv'|'excel-single'|'excel-multi'|'multi-file-relational', sheets?: SheetInfo[], proposedSheet?: string, fileRelationship?: { joinKey, primary, companions } }`.
 - Sheet-signature scoring against `pay_code_aliases` `pattern_kind = 'header_name'`.
