@@ -46,25 +46,133 @@ export interface PayCodeProposal {
   matchedAliasKind?: string;
 }
 
+/** Lower-case a string for case-insensitive matching. */
+function lc(s: string): string {
+  return s.toLowerCase();
+}
+
+/**
+ * Score one raw code against one alias row. Returns the alias's stored
+ * confidence on a match, or 0 on no-match.
+ *
+ * Match semantics per spec §4.3 + §5.4:
+ *   - `code_value`  → equality on case-folded full string.
+ *   - `code_prefix` → case-folded raw code starts-with the pattern.
+ *   - `code_suffix` → case-folded raw code ends-with the pattern.
+ */
+function scoreAlias(rawCode: string, alias: PayCodeAliasRow): number {
+  const rc = lc(rawCode);
+  const p = lc(alias.pattern);
+  switch (alias.pattern_kind) {
+    case "code_value":
+      return rc === p ? alias.confidence : 0;
+    case "code_prefix":
+      return rc.startsWith(p) ? alias.confidence : 0;
+    case "code_suffix":
+      return rc.endsWith(p) ? alias.confidence : 0;
+    default:
+      // header_name aliases never apply to value detection.
+      return 0;
+  }
+}
+
 /**
  * Detect bucket proposals for a set of distinct raw pay codes.
- * Implementation lands in T2.5.
  *
  * @param distinctCodes Distinct raw code values seen in the import.
  * @param orgMappings The org's existing live `pay_code_mappings` rows.
  *   Used for silent resolution of already-mapped codes (highest priority).
+ *   Pass `[]` for first-import flow.
  * @param aliases System-level `pay_code_aliases` rows with
  *   `pattern_kind ∈ (code_value, code_prefix, code_suffix)`. The caller
- *   pre-filters and passes them in.
+ *   pre-filters and passes them in. `header_name` rows are ignored if
+ *   passed, so callers can safely pass the full alias set.
  */
 export function detectPayCodes(
   distinctCodes: string[],
   orgMappings: MappingRow[],
   aliases: PayCodeAliasRow[],
 ): PayCodeProposal[] {
-  void distinctCodes;
-  void orgMappings;
-  void aliases;
-  void PAY_CODE_VALUE_PROPOSE_THRESHOLD;
-  throw new Error("detectPayCodes not implemented — lands in T2.5");
+  // Build the historical lookup: lower(raw_code) → bucket. Ignores
+  // archived rows (spec §4.1 — archived codes don't shadow new ones).
+  const historical = new Map<string, MappingRow>();
+  for (const m of orgMappings) {
+    if (m.archived_at !== null) continue;
+    historical.set(lc(m.raw_code), m);
+  }
+
+  // Pre-filter aliases once.
+  const valueAliases = aliases.filter(
+    (a) =>
+      a.pattern_kind === "code_value" ||
+      a.pattern_kind === "code_prefix" ||
+      a.pattern_kind === "code_suffix",
+  );
+
+  const proposals: PayCodeProposal[] = [];
+  const emitted = new Set<string>();
+
+  for (const raw of distinctCodes) {
+    const trimmed = (raw ?? "").trim();
+    if (!trimmed) continue;
+    const dedupKey = lc(trimmed);
+    if (emitted.has(dedupKey)) continue;
+    emitted.add(dedupKey);
+
+    // ─── 1. Historical match (silent). Spec §5.4 step 7a. ────────────
+    const hist = historical.get(dedupKey);
+    if (hist) {
+      proposals.push({
+        rawCode: trimmed,
+        bucket: hist.bucket,
+        confidence: 1.0,
+        source: "historical",
+      });
+      continue;
+    }
+
+    // ─── 2. Score against value/prefix/suffix aliases. ───────────────
+    let best: { score: number; alias: PayCodeAliasRow } | null = null;
+    for (const a of valueAliases) {
+      const s = scoreAlias(trimmed, a);
+      if (s > 0 && (!best || s > best.score)) {
+        best = { score: s, alias: a };
+      } else if (s > 0 && best && s === best.score) {
+        // Tie-break: prefer the more-specific kind. code_value > code_prefix > code_suffix.
+        const order = (k: string) =>
+          k === "code_value" ? 3 : k === "code_prefix" ? 2 : 1;
+        if (order(a.pattern_kind) > order(best.alias.pattern_kind)) {
+          best = { score: s, alias: a };
+        } else if (
+          order(a.pattern_kind) === order(best.alias.pattern_kind) &&
+          a.pattern.length > best.alias.pattern.length
+        ) {
+          // Same kind, same score — prefer the LONGER pattern (more specific).
+          best = { score: s, alias: a };
+        }
+      }
+    }
+
+    // ─── 3. Threshold-gate. Spec §5.4 step 7c. ───────────────────────
+    if (best && best.score >= PAY_CODE_VALUE_PROPOSE_THRESHOLD) {
+      proposals.push({
+        rawCode: trimmed,
+        bucket: best.alias.bucket,
+        confidence: best.score,
+        source: "auto_mapped",
+        matchedAliasPattern: best.alias.pattern,
+        matchedAliasKind: best.alias.pattern_kind,
+      });
+      continue;
+    }
+
+    proposals.push({
+      rawCode: trimmed,
+      bucket: null,
+      confidence: 0,
+      source: "needs_review",
+    });
+  }
+
+  return proposals;
 }

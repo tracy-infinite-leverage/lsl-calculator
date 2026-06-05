@@ -131,7 +131,7 @@
 **AC:** AC-MAP-15.
 **Depends:** T2.1, T1.4.
 
-### T2.5 — Implement pay-code value-pattern detection · M [P]
+### T2.5 — Implement pay-code value-pattern detection · M [P] ✅ [x] (2026-06-05 — pure `detectPayCodes(distinctCodes, orgMappings, aliases)` returns PayCodeProposal[] with `historical` → `auto_mapped` → `needs_review` precedence; historical mapping silent override; archived mappings explicitly do NOT shadow; code_value > code_prefix > code_suffix tie-break + longer-pattern-wins within kind; threshold-gated at 0.6 per spec §5.4; 16/16 unit tests pass)
 **Acceptance:**
 - `detectPayCodes(distinctCodes, orgMappings, aliases) → ProposalRow[]`.
 - Existing-org-mapping match → silent resolution (status `historical`).
