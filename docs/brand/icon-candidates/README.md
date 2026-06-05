@@ -1,6 +1,22 @@
 # LSL Calculator — Custom Icon Set Candidates (OQ-2 / E6.1+)
 
-> **Status:** awaiting operator selection.
+> ## ✅ DECISION: Candidate C — Encircled Stamp — APPROVED
+>
+> **Approved by:** Tracy Angwin (operator)
+> **Approved on:** 2026-06-05
+> **Rationale:** elevates the icon set from utility to load-bearing brand asset, in the same posture as the wordmark and app icon. Production cost (~2× SVG count vs Candidate A) and surface density (encircled discs stacking visually in data-table-heavy E5.5/E5.6 surfaces) accepted as worthwhile trade-offs given the calculator's identity is "serious payroll-compliance tool first, polished SaaS surface second".
+>
+> **Downstream impact:**
+> - Production round dispatched 2026-06-05 against the Candidate C direction: full ~30 SVG set covering sidebar (Users / Tag / CalendarRange / Calculator / Scale / GitCompareArrows / Settings), TopNav (Bell, User, ChevronDown), and ~15 utility icons used by forms / result panel / PDF templates.
+> - Six empty-state illustrations re-rendered against the encircled-stamp direction in the same round.
+> - Single follow-up PR flips the `website/src/components/brand/Icon.tsx` barrel + updates the shadcn-eslint allow-list. Lands before E5.6 ships (~5-6 weeks per critical-path).
+> - Candidates A and B are kept in this folder for traceability but are NOT used downstream.
+>
+> **What stays on Lucide today:** every icon import path in `website/src/`. The barrel swap is the load-bearing change; nothing visible in the public-calc / `/app/*` shell renderings changes until the production round merges + the barrel flips in a single follow-up PR.
+
+---
+
+> **Status:** ✅ selected (Candidate C — Encircled Stamp).
 > **Author:** designer agent.
 > **Date:** 2026-06-05.
 > **Direction document:** [`../icon-direction.md`](../icon-direction.md) (approved 2026-05-28).
