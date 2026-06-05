@@ -1,0 +1,310 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 908 924" width="908" height="924">
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<defs>
+<symbol id="i-calculator" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6.5" y="4.75" width="11" height="14.5" rx="1.5"/>
+    <rect x="8" y="6.5" width="8" height="3" rx="0.5"/>
+    <line x1="9" y1="12" x2="9" y2="12"/>
+    <line x1="12" y1="12" x2="12" y2="12"/>
+    <line x1="15" y1="12" x2="15" y2="12"/>
+    <line x1="9" y1="14.5" x2="9" y2="14.5"/>
+    <line x1="12" y1="14.5" x2="12" y2="14.5"/>
+    <line x1="15" y1="14.5" x2="15" y2="14.5"/>
+    <line x1="9" y1="17" x2="9" y2="17"/>
+    <line x1="12" y1="17" x2="12" y2="17"/>
+    <line x1="15" y1="17" x2="15" y2="17"/>
+  </g></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="10" cy="10.25" r="2.25"/>
+    <path d="M5.75 17 a4.25 4.25 0 0 1 8.5 0"/>
+    <path d="M14.75 8 a2 2 0 0 1 0 3.75"/>
+    <path d="M16 13.5 a3.5 3.5 0 0 1 2.5 4.5"/>
+  </g></symbol>
+<symbol id="i-calendar-range" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="7.25" width="12" height="11" rx="1.25"/>
+    <line x1="6" y1="10.5" x2="18" y2="10.5"/>
+    <line x1="9" y1="5.5" x2="9" y2="8.5"/>
+    <line x1="15" y1="5.5" x2="15" y2="8.5"/>
+    <line x1="8.5" y1="14.25" x2="15.5" y2="14.25"/>
+  </g>
+  <rect x="10.75" y="13" width="2.5" height="2.5" rx="0.4" fill="#d9a428"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5.5 v1"/>
+    <path d="M7.5 16 V11.5 a4.5 4.5 0 0 1 9 0 V16"/>
+    <line x1="6.5" y1="16" x2="17.5" y2="16"/>
+    <path d="M10.5 18 a1.5 1.5 0 0 0 3 0"/>
+  </g>
+  <circle cx="16.5" cy="7.5" r="2" fill="#d9a428"/></symbol>
+<symbol id="i-scale" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="6.5" x2="12" y2="18"/>
+    <line x1="9.5" y1="18" x2="14.5" y2="18"/>
+    <line x1="5.5" y1="9" x2="18.5" y2="9"/>
+    <line x1="7" y1="9" x2="6" y2="12"/>
+    <line x1="7" y1="9" x2="8" y2="12"/>
+    <line x1="17" y1="9" x2="16" y2="12"/>
+    <line x1="17" y1="9" x2="18" y2="12"/>
+    <path d="M5.5 12 a1.75 1.75 0 0 0 3 0"/>
+    <path d="M15.5 12 a1.75 1.75 0 0 0 3 0"/>
+  </g>
+  <circle cx="12" cy="6.5" r="1.2" fill="#d9a428"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <polyline points="7 10 12 15 17 10" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5.5 L13.25 7 H14.75 L15.5 8.5 L17 9.25 V10.75 L18.5 12 L17 13.25 V14.75 L15.5 15.5 L14.75 17 H13.25 L12 18.5 L10.75 17 H9.25 L8.5 15.5 L7 14.75 V13.25 L5.5 12 L7 10.75 V9.25 L8.5 8.5 L9.25 7 H10.75 Z"/>
+    <circle cx="12" cy="12" r="2.5"/>
+  </g></symbol>
+<symbol id="i-git-compare-arrows" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="7" cy="7" r="1.5"/>
+    <circle cx="17" cy="17" r="1.5"/>
+    <path d="M7 8.5 V14 a2 2 0 0 0 2 2 H14.75"/>
+    <polyline points="13 14 15 16 13 18"/>
+    <path d="M17 15.5 V10 a2 2 0 0 0 -2 -2 H9.25"/>
+    <polyline points="11 10 9 8 11 6"/>
+  </g>
+  <circle cx="12" cy="12" r="1.1" fill="#d9a428"/></symbol>
+<symbol id="i-alert-triangle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 6 L18 17 H6 Z"/>
+  </g>
+  <line x1="12" y1="10.5" x2="12" y2="13.5" stroke="#d9a428" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="12" y1="15.25" x2="12" y2="15.25" stroke="#d9a428" stroke-width="1.75" stroke-linecap="round"/></symbol>
+<symbol id="i-check-circle-2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="6"/>
+  </g>
+  <polyline points="9 12 11.25 14.25 15.25 10.25" fill="none" stroke="#d9a428" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-file-text" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 5 H13.5 L17 8.5 V18 a1 1 0 0 1 -1 1 H8 a1 1 0 0 1 -1 -1 V6 a1 1 0 0 1 1 -1 Z"/>
+    <path d="M13.5 5 V8.5 H17"/>
+    <line x1="9.25" y1="12" x2="14.75" y2="12"/>
+    <line x1="9.25" y1="14.5" x2="14.75" y2="14.5"/>
+    <line x1="9.25" y1="17" x2="13" y2="17"/>
+  </g></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="4"/>
+    <line x1="14" y1="14" x2="17" y2="17"/>
+  </g></symbol>
+</defs>
+<text x="20" y="30" font-family="ui-sans-serif" font-size="16" fill="#0f1f3a" font-weight="700">Scale-fidelity check — 16 / 24 / 32 / 48 px on white and navy</text>
+<text x="188" y="52" font-family="ui-sans-serif" font-size="10" fill="#48608a" text-anchor="middle">16 (white)</text>
+<text x="284" y="52" font-family="ui-sans-serif" font-size="10" fill="#48608a" text-anchor="middle">16 (navy)</text>
+<text x="380" y="52" font-family="ui-sans-serif" font-size="10" fill="#48608a" text-anchor="middle">24 (white)</text>
+<text x="476" y="52" font-family="ui-sans-serif" font-size="10" fill="#48608a" text-anchor="middle">24 (navy)</text>
+<text x="572" y="52" font-family="ui-sans-serif" font-size="10" fill="#48608a" text-anchor="middle">32 (white)</text>
+<text x="668" y="52" font-family="ui-sans-serif" font-size="10" fill="#48608a" text-anchor="middle">32 (navy)</text>
+<text x="764" y="52" font-family="ui-sans-serif" font-size="10" fill="#48608a" text-anchor="middle">48 (white)</text>
+<text x="860" y="52" font-family="ui-sans-serif" font-size="10" fill="#48608a" text-anchor="middle">48 (navy)</text>
+<text x="20" y="100.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">calculator</text>
+<rect x="140" y="60" width="96" height="72" fill="#ffffff"/>
+<use href="#i-calculator" x="180.0" y="88.0" width="16" height="16"/>
+<rect x="236" y="60" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-calculator" x="276.0" y="88.0" width="16" height="16"/>
+<rect x="332" y="60" width="96" height="72" fill="#ffffff"/>
+<use href="#i-calculator" x="368.0" y="84.0" width="24" height="24"/>
+<rect x="428" y="60" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-calculator" x="464.0" y="84.0" width="24" height="24"/>
+<rect x="524" y="60" width="96" height="72" fill="#ffffff"/>
+<use href="#i-calculator" x="556.0" y="80.0" width="32" height="32"/>
+<rect x="620" y="60" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-calculator" x="652.0" y="80.0" width="32" height="32"/>
+<rect x="716" y="60" width="96" height="72" fill="#ffffff"/>
+<use href="#i-calculator" x="740.0" y="72.0" width="48" height="48"/>
+<rect x="812" y="60" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-calculator" x="836.0" y="72.0" width="48" height="48"/>
+<text x="20" y="172.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">users</text>
+<rect x="140" y="132" width="96" height="72" fill="#ffffff"/>
+<use href="#i-users" x="180.0" y="160.0" width="16" height="16"/>
+<rect x="236" y="132" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-users" x="276.0" y="160.0" width="16" height="16"/>
+<rect x="332" y="132" width="96" height="72" fill="#ffffff"/>
+<use href="#i-users" x="368.0" y="156.0" width="24" height="24"/>
+<rect x="428" y="132" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-users" x="464.0" y="156.0" width="24" height="24"/>
+<rect x="524" y="132" width="96" height="72" fill="#ffffff"/>
+<use href="#i-users" x="556.0" y="152.0" width="32" height="32"/>
+<rect x="620" y="132" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-users" x="652.0" y="152.0" width="32" height="32"/>
+<rect x="716" y="132" width="96" height="72" fill="#ffffff"/>
+<use href="#i-users" x="740.0" y="144.0" width="48" height="48"/>
+<rect x="812" y="132" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-users" x="836.0" y="144.0" width="48" height="48"/>
+<text x="20" y="244.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">calendar-range</text>
+<rect x="140" y="204" width="96" height="72" fill="#ffffff"/>
+<use href="#i-calendar-range" x="180.0" y="232.0" width="16" height="16"/>
+<rect x="236" y="204" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-calendar-range" x="276.0" y="232.0" width="16" height="16"/>
+<rect x="332" y="204" width="96" height="72" fill="#ffffff"/>
+<use href="#i-calendar-range" x="368.0" y="228.0" width="24" height="24"/>
+<rect x="428" y="204" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-calendar-range" x="464.0" y="228.0" width="24" height="24"/>
+<rect x="524" y="204" width="96" height="72" fill="#ffffff"/>
+<use href="#i-calendar-range" x="556.0" y="224.0" width="32" height="32"/>
+<rect x="620" y="204" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-calendar-range" x="652.0" y="224.0" width="32" height="32"/>
+<rect x="716" y="204" width="96" height="72" fill="#ffffff"/>
+<use href="#i-calendar-range" x="740.0" y="216.0" width="48" height="48"/>
+<rect x="812" y="204" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-calendar-range" x="836.0" y="216.0" width="48" height="48"/>
+<text x="20" y="316.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">bell</text>
+<rect x="140" y="276" width="96" height="72" fill="#ffffff"/>
+<use href="#i-bell" x="180.0" y="304.0" width="16" height="16"/>
+<rect x="236" y="276" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-bell" x="276.0" y="304.0" width="16" height="16"/>
+<rect x="332" y="276" width="96" height="72" fill="#ffffff"/>
+<use href="#i-bell" x="368.0" y="300.0" width="24" height="24"/>
+<rect x="428" y="276" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-bell" x="464.0" y="300.0" width="24" height="24"/>
+<rect x="524" y="276" width="96" height="72" fill="#ffffff"/>
+<use href="#i-bell" x="556.0" y="296.0" width="32" height="32"/>
+<rect x="620" y="276" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-bell" x="652.0" y="296.0" width="32" height="32"/>
+<rect x="716" y="276" width="96" height="72" fill="#ffffff"/>
+<use href="#i-bell" x="740.0" y="288.0" width="48" height="48"/>
+<rect x="812" y="276" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-bell" x="836.0" y="288.0" width="48" height="48"/>
+<text x="20" y="388.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">scale</text>
+<rect x="140" y="348" width="96" height="72" fill="#ffffff"/>
+<use href="#i-scale" x="180.0" y="376.0" width="16" height="16"/>
+<rect x="236" y="348" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-scale" x="276.0" y="376.0" width="16" height="16"/>
+<rect x="332" y="348" width="96" height="72" fill="#ffffff"/>
+<use href="#i-scale" x="368.0" y="372.0" width="24" height="24"/>
+<rect x="428" y="348" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-scale" x="464.0" y="372.0" width="24" height="24"/>
+<rect x="524" y="348" width="96" height="72" fill="#ffffff"/>
+<use href="#i-scale" x="556.0" y="368.0" width="32" height="32"/>
+<rect x="620" y="348" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-scale" x="652.0" y="368.0" width="32" height="32"/>
+<rect x="716" y="348" width="96" height="72" fill="#ffffff"/>
+<use href="#i-scale" x="740.0" y="360.0" width="48" height="48"/>
+<rect x="812" y="348" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-scale" x="836.0" y="360.0" width="48" height="48"/>
+<text x="20" y="460.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">chevron-down</text>
+<rect x="140" y="420" width="96" height="72" fill="#ffffff"/>
+<use href="#i-chevron-down" x="180.0" y="448.0" width="16" height="16"/>
+<rect x="236" y="420" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-chevron-down" x="276.0" y="448.0" width="16" height="16"/>
+<rect x="332" y="420" width="96" height="72" fill="#ffffff"/>
+<use href="#i-chevron-down" x="368.0" y="444.0" width="24" height="24"/>
+<rect x="428" y="420" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-chevron-down" x="464.0" y="444.0" width="24" height="24"/>
+<rect x="524" y="420" width="96" height="72" fill="#ffffff"/>
+<use href="#i-chevron-down" x="556.0" y="440.0" width="32" height="32"/>
+<rect x="620" y="420" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-chevron-down" x="652.0" y="440.0" width="32" height="32"/>
+<rect x="716" y="420" width="96" height="72" fill="#ffffff"/>
+<use href="#i-chevron-down" x="740.0" y="432.0" width="48" height="48"/>
+<rect x="812" y="420" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-chevron-down" x="836.0" y="432.0" width="48" height="48"/>
+<text x="20" y="532.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">settings</text>
+<rect x="140" y="492" width="96" height="72" fill="#ffffff"/>
+<use href="#i-settings" x="180.0" y="520.0" width="16" height="16"/>
+<rect x="236" y="492" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-settings" x="276.0" y="520.0" width="16" height="16"/>
+<rect x="332" y="492" width="96" height="72" fill="#ffffff"/>
+<use href="#i-settings" x="368.0" y="516.0" width="24" height="24"/>
+<rect x="428" y="492" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-settings" x="464.0" y="516.0" width="24" height="24"/>
+<rect x="524" y="492" width="96" height="72" fill="#ffffff"/>
+<use href="#i-settings" x="556.0" y="512.0" width="32" height="32"/>
+<rect x="620" y="492" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-settings" x="652.0" y="512.0" width="32" height="32"/>
+<rect x="716" y="492" width="96" height="72" fill="#ffffff"/>
+<use href="#i-settings" x="740.0" y="504.0" width="48" height="48"/>
+<rect x="812" y="492" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-settings" x="836.0" y="504.0" width="48" height="48"/>
+<text x="20" y="604.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">git-compare-arrows</text>
+<rect x="140" y="564" width="96" height="72" fill="#ffffff"/>
+<use href="#i-git-compare-arrows" x="180.0" y="592.0" width="16" height="16"/>
+<rect x="236" y="564" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-git-compare-arrows" x="276.0" y="592.0" width="16" height="16"/>
+<rect x="332" y="564" width="96" height="72" fill="#ffffff"/>
+<use href="#i-git-compare-arrows" x="368.0" y="588.0" width="24" height="24"/>
+<rect x="428" y="564" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-git-compare-arrows" x="464.0" y="588.0" width="24" height="24"/>
+<rect x="524" y="564" width="96" height="72" fill="#ffffff"/>
+<use href="#i-git-compare-arrows" x="556.0" y="584.0" width="32" height="32"/>
+<rect x="620" y="564" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-git-compare-arrows" x="652.0" y="584.0" width="32" height="32"/>
+<rect x="716" y="564" width="96" height="72" fill="#ffffff"/>
+<use href="#i-git-compare-arrows" x="740.0" y="576.0" width="48" height="48"/>
+<rect x="812" y="564" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-git-compare-arrows" x="836.0" y="576.0" width="48" height="48"/>
+<text x="20" y="676.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">alert-triangle</text>
+<rect x="140" y="636" width="96" height="72" fill="#ffffff"/>
+<use href="#i-alert-triangle" x="180.0" y="664.0" width="16" height="16"/>
+<rect x="236" y="636" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-alert-triangle" x="276.0" y="664.0" width="16" height="16"/>
+<rect x="332" y="636" width="96" height="72" fill="#ffffff"/>
+<use href="#i-alert-triangle" x="368.0" y="660.0" width="24" height="24"/>
+<rect x="428" y="636" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-alert-triangle" x="464.0" y="660.0" width="24" height="24"/>
+<rect x="524" y="636" width="96" height="72" fill="#ffffff"/>
+<use href="#i-alert-triangle" x="556.0" y="656.0" width="32" height="32"/>
+<rect x="620" y="636" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-alert-triangle" x="652.0" y="656.0" width="32" height="32"/>
+<rect x="716" y="636" width="96" height="72" fill="#ffffff"/>
+<use href="#i-alert-triangle" x="740.0" y="648.0" width="48" height="48"/>
+<rect x="812" y="636" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-alert-triangle" x="836.0" y="648.0" width="48" height="48"/>
+<text x="20" y="748.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">check-circle-2</text>
+<rect x="140" y="708" width="96" height="72" fill="#ffffff"/>
+<use href="#i-check-circle-2" x="180.0" y="736.0" width="16" height="16"/>
+<rect x="236" y="708" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-check-circle-2" x="276.0" y="736.0" width="16" height="16"/>
+<rect x="332" y="708" width="96" height="72" fill="#ffffff"/>
+<use href="#i-check-circle-2" x="368.0" y="732.0" width="24" height="24"/>
+<rect x="428" y="708" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-check-circle-2" x="464.0" y="732.0" width="24" height="24"/>
+<rect x="524" y="708" width="96" height="72" fill="#ffffff"/>
+<use href="#i-check-circle-2" x="556.0" y="728.0" width="32" height="32"/>
+<rect x="620" y="708" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-check-circle-2" x="652.0" y="728.0" width="32" height="32"/>
+<rect x="716" y="708" width="96" height="72" fill="#ffffff"/>
+<use href="#i-check-circle-2" x="740.0" y="720.0" width="48" height="48"/>
+<rect x="812" y="708" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-check-circle-2" x="836.0" y="720.0" width="48" height="48"/>
+<text x="20" y="820.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">file-text</text>
+<rect x="140" y="780" width="96" height="72" fill="#ffffff"/>
+<use href="#i-file-text" x="180.0" y="808.0" width="16" height="16"/>
+<rect x="236" y="780" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-file-text" x="276.0" y="808.0" width="16" height="16"/>
+<rect x="332" y="780" width="96" height="72" fill="#ffffff"/>
+<use href="#i-file-text" x="368.0" y="804.0" width="24" height="24"/>
+<rect x="428" y="780" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-file-text" x="464.0" y="804.0" width="24" height="24"/>
+<rect x="524" y="780" width="96" height="72" fill="#ffffff"/>
+<use href="#i-file-text" x="556.0" y="800.0" width="32" height="32"/>
+<rect x="620" y="780" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-file-text" x="652.0" y="800.0" width="32" height="32"/>
+<rect x="716" y="780" width="96" height="72" fill="#ffffff"/>
+<use href="#i-file-text" x="740.0" y="792.0" width="48" height="48"/>
+<rect x="812" y="780" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-file-text" x="836.0" y="792.0" width="48" height="48"/>
+<text x="20" y="892.0" font-family="ui-sans-serif" font-size="11" fill="#0f1f3a">search</text>
+<rect x="140" y="852" width="96" height="72" fill="#ffffff"/>
+<use href="#i-search" x="180.0" y="880.0" width="16" height="16"/>
+<rect x="236" y="852" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-search" x="276.0" y="880.0" width="16" height="16"/>
+<rect x="332" y="852" width="96" height="72" fill="#ffffff"/>
+<use href="#i-search" x="368.0" y="876.0" width="24" height="24"/>
+<rect x="428" y="852" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-search" x="464.0" y="876.0" width="24" height="24"/>
+<rect x="524" y="852" width="96" height="72" fill="#ffffff"/>
+<use href="#i-search" x="556.0" y="872.0" width="32" height="32"/>
+<rect x="620" y="852" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-search" x="652.0" y="872.0" width="32" height="32"/>
+<rect x="716" y="852" width="96" height="72" fill="#ffffff"/>
+<use href="#i-search" x="740.0" y="864.0" width="48" height="48"/>
+<rect x="812" y="852" width="96" height="72" fill="#0f1f3a"/>
+<use href="#i-search" x="836.0" y="864.0" width="48" height="48"/>
+</svg>
