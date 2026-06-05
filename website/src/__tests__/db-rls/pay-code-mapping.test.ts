@@ -205,21 +205,47 @@ describe.skipIf(!supabaseEnvConfigured())(
         const orgAId = await getOrgIdForUser(userA.id);
         const orgBId = await getOrgIdForUser(userB.id);
 
-        // Insert a mapping for each org and capture its current_version_id
-        // — the trigger that maintains exactly-one-current-row writes a
-        // versions row implicitly. Read it back as admin.
+        // Insert a mapping row AND its corresponding versions row for each
+        // org. Per the v0.2 schema, there is no DB trigger that auto-creates
+        // a versions row when a mapping inserts — the service layer is
+        // responsible for writing both inside a single transaction (spec
+        // §4.2 "Versioning model"). We mirror that pattern here via admin.
         const { data: mapA } = await admin
           .from('pay_code_mappings')
           .insert({ org_id: orgAId, raw_code: 'PCV_A', bucket: 'ordinary_time' })
-          .select('id, current_version_id')
+          .select('id')
           .single();
         const { data: mapB } = await admin
           .from('pay_code_mappings')
           .insert({ org_id: orgBId, raw_code: 'PCV_B', bucket: 'ordinary_time' })
-          .select('id, current_version_id')
+          .select('id')
           .single();
-        expect(mapA?.current_version_id).toBeDefined();
-        expect(mapB?.current_version_id).toBeDefined();
+        expect(mapA?.id).toBeDefined();
+        expect(mapB?.id).toBeDefined();
+
+        // Write the matching versions row for each org (admin bypasses RLS).
+        const { error: verAInsErr } = await admin
+          .from('pay_code_mapping_versions')
+          .insert({
+            mapping_id: mapA!.id,
+            org_id: orgAId,
+            raw_code: 'PCV_A',
+            bucket: 'ordinary_time',
+            source: 'admin_edit',
+            created_by: userA.id,
+          });
+        expect(verAInsErr).toBeNull();
+        const { error: verBInsErr } = await admin
+          .from('pay_code_mapping_versions')
+          .insert({
+            mapping_id: mapB!.id,
+            org_id: orgBId,
+            raw_code: 'PCV_B',
+            bucket: 'ordinary_time',
+            source: 'admin_edit',
+            created_by: userB.id,
+          });
+        expect(verBInsErr).toBeNull();
 
         const sessionA = await signInAsUser(userA.email, userA.password);
 
@@ -239,7 +265,7 @@ describe.skipIf(!supabaseEnvConfigured())(
             org_id: orgBId,
             raw_code: 'PCV_B',
             bucket: 'overtime_regular',
-            source: 'manual',
+            source: 'admin_edit',
             created_by: userA.id,
           });
         expect(crossInsErr).not.toBeNull();
@@ -274,7 +300,7 @@ describe.skipIf(!supabaseEnvConfigured())(
             surface_form: 'A-PT - Part Time',
             canonical_value: 'part_time',
             confidence: 0.95,
-            source: 'org_manual',
+            source: 'admin_edit',
             created_by: userA.id,
           });
         expect(insAErr).toBeNull();
@@ -286,7 +312,7 @@ describe.skipIf(!supabaseEnvConfigured())(
             surface_form: 'B-PT - Part Time',
             canonical_value: 'part_time',
             confidence: 0.95,
-            source: 'org_manual',
+            source: 'admin_edit',
             created_by: userB.id,
           });
         expect(insBErr).toBeNull();
@@ -312,7 +338,7 @@ describe.skipIf(!supabaseEnvConfigured())(
             surface_form: 'B-HIJACK',
             canonical_value: 'casual',
             confidence: 0.95,
-            source: 'org_manual',
+            source: 'admin_edit',
             created_by: userA.id,
           });
         expect(crossInsErr).not.toBeNull();
@@ -347,8 +373,11 @@ describe.skipIf(!supabaseEnvConfigured())(
         const orgAId = await getOrgIdForUser(userA.id);
         const orgBId = await getOrgIdForUser(userB.id);
 
-        // Seed an ORG-SCOPED alias for each org; the maintenance trigger
-        // writes a corresponding versions row.
+        // Seed an ORG-SCOPED alias for each org AND its corresponding
+        // versions row. Per v0.2 schema there is no auto-trigger from the
+        // live-view INSERT to the versions table — the service layer is
+        // responsible for both writes in one transaction (mirror of the
+        // pay-code-mapping pattern). Admin does the same here.
         const { data: aliasA } = await admin
           .from('value_normalisation_aliases')
           .insert({
@@ -357,10 +386,10 @@ describe.skipIf(!supabaseEnvConfigured())(
             surface_form: 'VNAV_A',
             canonical_value: 'part_time',
             confidence: 0.95,
-            source: 'org_manual',
+            source: 'admin_edit',
             created_by: userA.id,
           })
-          .select('id, current_version_id')
+          .select('id')
           .single();
         const { data: aliasB } = await admin
           .from('value_normalisation_aliases')
@@ -370,13 +399,41 @@ describe.skipIf(!supabaseEnvConfigured())(
             surface_form: 'VNAV_B',
             canonical_value: 'part_time',
             confidence: 0.95,
-            source: 'org_manual',
+            source: 'admin_edit',
             created_by: userB.id,
           })
-          .select('id, current_version_id')
+          .select('id')
           .single();
-        expect(aliasA?.current_version_id).toBeDefined();
-        expect(aliasB?.current_version_id).toBeDefined();
+        expect(aliasA?.id).toBeDefined();
+        expect(aliasB?.id).toBeDefined();
+
+        // Write matching versions rows.
+        const { error: verAInsErr } = await admin
+          .from('value_normalisation_aliases_versions')
+          .insert({
+            alias_id: aliasA!.id,
+            org_id: orgAId,
+            target_field: 'employment_type',
+            surface_form: 'VNAV_A',
+            canonical_value: 'part_time',
+            confidence: 0.95,
+            source: 'admin_edit',
+            created_by: userA.id,
+          });
+        expect(verAInsErr).toBeNull();
+        const { error: verBInsErr } = await admin
+          .from('value_normalisation_aliases_versions')
+          .insert({
+            alias_id: aliasB!.id,
+            org_id: orgBId,
+            target_field: 'employment_type',
+            surface_form: 'VNAV_B',
+            canonical_value: 'part_time',
+            confidence: 0.95,
+            source: 'admin_edit',
+            created_by: userB.id,
+          });
+        expect(verBInsErr).toBeNull();
 
         const sessionA = await signInAsUser(userA.email, userA.password);
 
@@ -398,7 +455,7 @@ describe.skipIf(!supabaseEnvConfigured())(
             surface_form: 'VNAV_B_HIJACK',
             canonical_value: 'casual',
             confidence: 0.95,
-            source: 'org_manual',
+            source: 'admin_edit',
             created_by: userA.id,
           });
         expect(crossInsErr).not.toBeNull();
