@@ -116,7 +116,7 @@
 **AC:** AC-MAP-1.
 **Depends:** T2.1, T0.3.
 
-### T2.4 — Implement value-normalisation detection · M [P]
+### T2.4 — Implement value-normalisation detection · M [P] ✅ [x] (2026-06-05 — pure `detectValueNormalisations(targetField, surfaceForms, aliases)` resolves states/employment-types/pay-frequencies; org-scoped rows shadow system rows per spec §4.4 via lookup-overwrite; OQ-ING-9 / OQ-MAP-9 lock implemented — `VIC-TAS` returns `{ crossJurisdictionFlag: true, hintedJurisdictions: ['VIC','TAS'], canonicalValue: null }`, NOT a stored states[] array; falls back through hyphen-preserving + loose normaliser before needs_review; 15/15 unit tests pass including the AC-MAP-15 8-state set + Virtus employment-type prefixes + cohort hard-invariant test)
 **Acceptance:**
 - `detectValueNormalisations(column, aliases) → ProposalRow[]`.
 - For state / employment-type / pay-frequency columns: scan unique surface forms.
