@@ -34,8 +34,10 @@ describe('E5.3 T2.1 — Pass 1 detector scaffold', () => {
     expect(VALUE_PATTERN_PROPOSE_THRESHOLD).toBe(0.6);
   });
 
-  it('detectFileShape stub throws not_implemented (lands in T2.2)', () => {
-    expect(() => detectFileShape([], [])).toThrow(/not_implemented/);
+  it('detectFileShape implementation landed in T2.2 — empty input now throws a validation error', () => {
+    // T2.2 supersedes the original `not_implemented` stub. Empty input is now
+    // a caller-bug guard; see `file-shape.test.ts` for full behaviour coverage.
+    expect(() => detectFileShape([], [])).toThrow(/at least one input file/);
   });
 
   it('detectColumns stub throws not_implemented (lands in T2.3)', () => {

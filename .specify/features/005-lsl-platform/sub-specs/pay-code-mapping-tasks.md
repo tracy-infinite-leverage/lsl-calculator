@@ -98,7 +98,7 @@
 **Acceptance:** Folder + barrel exports + module skeletons (`file-shape.ts`, `columns.ts`, `value-normalise.ts`, `pay-codes.ts`). Each exports a typed pure function signature.
 **Depends:** T1.7.
 
-### T2.2 — Implement file-shape detection · M
+### T2.2 — Implement file-shape detection · M ✅ [x] (2026-06-05 — pure-function detector against `DetectorFileInput[]`; classifies all 4 shapes; Virtus 3-sheet → `excel-multi` with `proposedSheet = 'Sheet3'`; Virtus 3-CSV → `multi-file-relational` with `joinKey = 'Employee ID'`; 19 fresh unit tests + the T2.1 sentinel updated to reflect the live contract; tsc/eslint/test/build all clean; no new dependencies)
 **Acceptance:**
 - `detectFileShape(files) → { shape: 'csv'|'excel-single'|'excel-multi'|'multi-file-relational', sheets?: SheetInfo[], proposedSheet?: string, fileRelationship?: { joinKey, primary, companions } }`.
 - Sheet-signature scoring against `pay_code_aliases` `pattern_kind = 'header_name'`.
