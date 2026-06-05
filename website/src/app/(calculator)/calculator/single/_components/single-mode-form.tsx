@@ -40,6 +40,7 @@ import {
   saveToStorage,
   clearStorage,
 } from './form-to-engine';
+import { buildReportContext } from '@/lib/pdf/report-context';
 
 export function SingleModeForm() {
   const [state, setState] = React.useState<FormState>(emptyFormState);
@@ -208,38 +209,34 @@ export function SingleModeForm() {
     if (!result) return;
     setPdfDownloading(true);
     try {
-      const res = await fetch('/api/export-pdf', {
+      // E6.6a Task 6.3 — swap from the legacy `/api/export-pdf` shape
+      // (flat, pre-stringified payload) to the canonical Phase 5a endpoint
+      // `/api/reports/single-employee` with the `{ context, payload }`
+      // contract. The legacy endpoint is being retired in a follow-up
+      // cleanup; we no longer call it.
+      //
+      // The engine `Result` carries `decimal.js` Decimal instances on numeric
+      // outputs / diagnostics. `JSON.stringify` serialises Decimals to
+      // strings via the library's `toJSON()`; the route handler rehydrates
+      // strings back into Decimals before invoking the SingleEmployee
+      // template (see `rehydrateResult` in
+      // `app/api/reports/[family]/route.ts`). The CTA therefore sends the
+      // raw `result` verbatim — no pre-stringification needed.
+      const context = buildReportContext({
+        reportTitle: 'Long Service Leave report',
+      });
+      const res = await fetch('/api/reports/single-employee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          legalName: state.legalName || null,
-          externalEmployeeId: state.externalEmployeeId || null,
-          startDate: state.startDate,
-          trigger: result.trigger,
-          category: result.category,
-          outputs: {
-            valueOfWeek: result.outputs?.valueOfWeek.display,
-            valueOfDay: result.outputs?.valueOfDay.display,
-            totalEntitlementWeeks: result.outputs?.totalEntitlement.weeks.display,
-            totalEntitlementDollars: result.outputs?.totalEntitlement.dollars.display,
-            systemFormula: result.outputs?.systemFormula,
-          },
-          warnings: result.warnings,
-          diagnostics: result.diagnostics
-            ? {
-                yearsOfContinuousService:
-                  result.diagnostics.yearsOfContinuousService.toFixed(4),
-                daysOfContinuousService: result.diagnostics.daysOfContinuousService,
-                weeklyAvg12mo: result.diagnostics.weeklyAvg12mo.toFixed(2),
-                weeklyAvg5yr: result.diagnostics.weeklyAvg5yr.toFixed(2),
-                serviceStartUsed: result.diagnostics.serviceStartUsed,
-              }
-            : null,
-          citations: {
-            valueOfWeek: result.outputs?.valueOfWeek.citations ?? [],
-            valueOfDay: result.outputs?.valueOfDay.citations ?? [],
-            weeks: result.outputs?.totalEntitlement.weeks.citations ?? [],
-            dollars: result.outputs?.totalEntitlement.dollars.citations ?? [],
+          context,
+          payload: {
+            result,
+            identity: {
+              legalName: state.legalName || undefined,
+              externalEmployeeId: state.externalEmployeeId || undefined,
+              startDate: state.startDate || undefined,
+            },
           },
         }),
       });
@@ -260,7 +257,10 @@ export function SingleModeForm() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      {/* Print-only screen chrome — input cards below are hidden via
+       * `print:hidden` (E6.5 Task 5.6). Browser Cmd+P on this page should
+       * print only the result block at the bottom. */}
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Employee details</CardTitle>
         </CardHeader>
@@ -363,7 +363,7 @@ export function SingleModeForm() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Jurisdiction</CardTitle>
         </CardHeader>
@@ -433,7 +433,7 @@ export function SingleModeForm() {
           field here entirely. */}
       {(state.statesOfService.includes('TAS') ||
         state.governingJurisdiction === 'TAS') && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle>Tasmania-specific inputs</CardTitle>
           </CardHeader>
@@ -612,7 +612,7 @@ export function SingleModeForm() {
           website/src/lib/lsl/states/nt/extra-inputs.ts. */}
       {(state.statesOfService.includes('NT') ||
         state.governingJurisdiction === 'NT') && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle>Northern Territory-specific inputs</CardTitle>
           </CardHeader>
@@ -867,7 +867,7 @@ export function SingleModeForm() {
         </Card>
       )}
 
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Wage history</CardTitle>
         </CardHeader>
@@ -879,7 +879,7 @@ export function SingleModeForm() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Continuous service</CardTitle>
         </CardHeader>
@@ -892,7 +892,7 @@ export function SingleModeForm() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>Trigger</CardTitle>
         </CardHeader>
@@ -1044,7 +1044,7 @@ export function SingleModeForm() {
       </Card>
 
       {generalErrors.length > 0 && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="print:hidden">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Fix these before calculating</AlertTitle>
           <AlertDescription>
@@ -1057,7 +1057,7 @@ export function SingleModeForm() {
         </Alert>
       )}
 
-      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 print:hidden">
         <Button variant="ghost" onClick={reset} type="button">
           <RotateCcw className="h-4 w-4 mr-1" /> Clear calculation
         </Button>
@@ -1068,11 +1068,36 @@ export function SingleModeForm() {
 
       {result && (
         <div ref={resultRef}>
+          {/* Print-only letterhead — DOM-level fallback for browsers that
+           * don't honour @page margin boxes (E6.5 Task 5.6). Renders only
+           * in print mode; hidden on screen. Single-source-of-truth wording
+           * matches the @page @top-center rule in globals.css. */}
+          <div className="hidden print:block print-letterhead">
+            <div className="print-wordmark">LSL Calculator by APA</div>
+            <div className="print-generated-at">
+              Calculation generated {new Date().toLocaleDateString('en-AU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </div>
+          </div>
+
           <ResultPanel
             result={result}
             onDownloadPDF={downloadPDF}
             pdfDownloading={pdfDownloading}
           />
+
+          {/* Print-only methodology footer — byte-identical "Calculated, not
+           * advice." voice with MethodologyFooter.tsx::DISCLOSURE_PHRASE.
+           * Rendered at the end of the print document; the per-page
+           * @bottom-left margin-box rule covers repetition in browsers that
+           * support it. */}
+          <div className="hidden print:block print-methodology">
+            <div>www.austpayroll.com.au · Australian Payroll Association</div>
+            <div className="print-disclosure">Calculated, not advice.</div>
+          </div>
         </div>
       )}
 

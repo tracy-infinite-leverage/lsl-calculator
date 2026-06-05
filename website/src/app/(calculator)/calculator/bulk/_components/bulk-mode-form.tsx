@@ -22,6 +22,7 @@ import { UnblockJurisdictionModal } from './unblock-jurisdiction-modal';
 import { saveBulkState, loadBulkState, clearBulkState } from './bulk-storage';
 import { track, bucketElapsed } from '@/lib/observability/track';
 import { isBulkPdfDownloadEnabled } from '@/lib/feature-flags';
+import { buildReportContext } from '@/lib/pdf/report-context';
 
 type Stage =
   | { kind: 'idle' }
@@ -49,27 +50,43 @@ export function BulkModeForm() {
 
   /**
    * Bulk-summary PDF download. Gated behind `NEXT_PUBLIC_PDF_DOWNLOAD_ENABLED`
-   * per Task 4.6 G-5 (feature-flag path). When the flag is `false` (default),
-   * the CTA does not render and this function is never called. When Phase 5a
-   * (E6.6 templates) ships `/api/export-bulk-pdf` and flips the flag to
-   * `'true'`, this handler wires the click to that endpoint with no further
-   * client change required.
+   * per Task 4.6 G-5 (feature-flag path). When the flag is `false`, the CTA
+   * does not render and this function is never called.
    *
-   * Payload mirrors the single-employee shape (see single-mode-form's
-   * `downloadPDF`) but sends the full results array. The Phase 5a endpoint
-   * contract is owned by E6.6; this is the conservative client-side payload.
+   * E6.6a Task 6.3 — flipped from the pre-Phase-5a `/api/export-bulk-pdf`
+   * placeholder URL to the canonical `/api/reports/bulk-summary` endpoint
+   * (the public family registered in `lib/pdf/families.ts`).
+   *
+   * Payload contract (matches `BulkSummaryPayload` in
+   * `lib/pdf/templates/BulkSummary.tsx`):
+   *
+   *   { context: ReportContext,
+   *     payload: { results: Result[], namesById?: ..., summary?: ... } }
+   *
+   * The engine `Result[]` carries `decimal.js` Decimal instances on numeric
+   * outputs — `JSON.stringify` serialises Decimals to strings via the
+   * library's `toJSON()`. The route handler rehydrates strings back into
+   * Decimals before invoking the template (see `rehydrateResult` in the
+   * route file) so the BulkSummary template's `sumComputedEntitlement` can
+   * still call `.plus()` + `.toFixed()`.
    */
   async function downloadBulkPdf() {
     if (stage.kind !== 'done') return;
     setPdfDownloading(true);
     try {
-      const res = await fetch('/api/export-bulk-pdf', {
+      const context = buildReportContext({
+        reportTitle: 'Bulk LSL summary',
+      });
+      const res = await fetch('/api/reports/bulk-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          results: stage.results,
-          parsed: stage.parsed,
-          summary: stage.summary,
+          context,
+          payload: {
+            results: stage.results,
+            namesById,
+            summary: stage.summary,
+          },
         }),
       });
       if (!res.ok) throw new Error(`Bulk PDF export failed (HTTP ${res.status})`);
@@ -246,7 +263,7 @@ export function BulkModeForm() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <CardTitle>1. Upload your CSV</CardTitle>
           <CardDescription>
@@ -347,7 +364,7 @@ export function BulkModeForm() {
       </Card>
 
       {stage.kind === 'preview' && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle>2. Review extracted employees</CardTitle>
             <CardDescription>
@@ -402,7 +419,7 @@ export function BulkModeForm() {
       )}
 
       {stage.kind === 'running' && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -426,6 +443,20 @@ export function BulkModeForm() {
       )}
 
       {stage.kind === 'done' && (
+        <>
+          {/* Print-only letterhead — DOM-level fallback for browsers that
+           * don't honour @page margin boxes (E6.5 Task 5.6). */}
+          <div className="hidden print:block print-letterhead">
+            <div className="print-wordmark">LSL Calculator by APA</div>
+            <div className="print-generated-at">
+              Bulk summary generated {new Date().toLocaleDateString('en-AU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </div>
+          </div>
+
         <Card>
           <CardHeader>
             <CardTitle>3. Results</CardTitle>
@@ -453,8 +484,8 @@ export function BulkModeForm() {
               onUnblock={(employeeId) => setUnblockTarget(employeeId)}
             />
 
-            <Separator />
-            <div className="flex flex-wrap gap-2">
+            <Separator className="print:hidden" />
+            <div className="flex flex-wrap gap-2 print:hidden">
               <Button variant="outline" type="button" onClick={reset}>
                 <Trash2 className="h-4 w-4 mr-1" /> Start over
               </Button>
@@ -471,10 +502,18 @@ export function BulkModeForm() {
             </div>
           </CardContent>
         </Card>
+
+          {/* Print-only methodology footer — byte-identical
+           * "Calculated, not advice." voice with MethodologyFooter.tsx. */}
+          <div className="hidden print:block print-methodology">
+            <div>www.austpayroll.com.au · Australian Payroll Association</div>
+            <div className="print-disclosure">Calculated, not advice.</div>
+          </div>
+        </>
       )}
 
       {stage.kind === 'idle' && (
-        <Card className="bg-muted/30">
+        <Card className="bg-muted/30 print:hidden">
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground flex items-center gap-2">
               <FileUp className="h-4 w-4" />

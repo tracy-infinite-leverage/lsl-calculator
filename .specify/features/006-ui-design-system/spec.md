@@ -2,7 +2,7 @@
 
 **Slug:** `ui-design-system`
 **Feature number:** 006
-**Status:** v0.5 — 2026-05-31 (post-E6.2 audit pass — Source Sans 3 substitution recorded; live MUST clauses re-named from "Source Sans Pro". Historical OQ-3 resolution preserved verbatim.) · v0.4 — 2026-05-27 (operator sign-off pass complete; all open questions resolved; ready for developer handoff)
+**Status:** v0.6 — 2026-06-01 (post-E6-v1-shipped follow-ups — four drift fixes in tasks.md: Source Sans 3 font-path AC, `src/lib/auth/session-claims.ts` path, charcoal-on-gold WCAG-passing pairing, W3C-canonical breadcrumb-anchor wording). · v0.5 — 2026-05-31 (post-E6.2 audit pass — Source Sans 3 substitution recorded; live MUST clauses re-named from "Source Sans Pro". Historical OQ-3 resolution preserved verbatim.) · v0.4 — 2026-05-27 (operator sign-off pass complete; all open questions resolved; ready for developer handoff)
 **Author:** Product Manager (drafted from operator-confirmed discovery brief 2026-05-27)
 **Owner:** Tracy Angwin (tracy@austpayroll.com.au)
 **Depends on:** E1 (NSW) shipped · E2 (8-of-8 states) shipped · E5.1 auth slice ships unstyled (this epic does NOT re-skin E5.1)
@@ -289,21 +289,21 @@ Distinct visual lockup: "LSL Calculator" as the primary mark in Montserrat Semib
 - [ ] Lighthouse (or equivalent) accessibility score ≥ 95 on `/`.
 
 ### 8.5 E6.5 — Report pipeline foundation
-- [ ] PDF generation produces an A4 single-page test report with letterhead, body, and footer.
-- [ ] Letterhead block: sub-brand wordmark + APA lockup + report title + generated-at timestamp.
-- [ ] Methodology footer block: **full** version on page 1 (calc methodology version + state-engine version + data-as-at date + "calculated, not advice" + APA contact); **short** version on pages 2+ (state-engine version + "calculated, not advice" + APA URL). (OQ-10)
-- [ ] Page X of Y footer renders on every page of multi-page test report.
-- [ ] Print stylesheet renders the same report cleanly from browser print.
-- [ ] No draft / preview watermarks anywhere.
+- [x] PDF generation produces an A4 single-page test report with letterhead, body, and footer.
+- [x] Letterhead block: sub-brand wordmark + APA lockup + report title + generated-at timestamp.
+- [x] Methodology footer block: **full** version on page 1 (calc methodology version + state-engine version + data-as-at date + "calculated, not advice" + APA contact); **short** version on pages 2+ (state-engine version + "calculated, not advice" + APA URL). (OQ-10)
+- [x] Page X of Y footer renders on every page of multi-page test report.
+- [x] Print stylesheet renders the same report cleanly from browser print.
+- [x] No draft / preview watermarks anywhere.
 
 ### 8.6 E6.6 — Report templates per family
-- [ ] **Single-employee** template wraps existing public-calc result + citation; PDF download CTA visible on result screen.
-- [ ] **Bulk-summary** template wraps existing public-calc multi-employee summary; PDF download CTA visible on result screen.
+- [x] **Single-employee** template wraps existing public-calc result + citation; PDF download CTA visible on result screen.
+- [x] **Bulk-summary** template wraps existing public-calc multi-employee summary; PDF download CTA visible on result screen.
 - [ ] **E5.5 liability** template ships once E5.5 valuations + liability features land; one-page executive summary at top leading with a **3-column at-a-glance** (employees / total accrued weeks / total accrued $). (OQ-5 + OQ-11)
 - [ ] **E5.6 reconciliation** template ships once E5.6 reconciliation feature lands; one-page executive summary at top leading with a **single headline number** (total variance $); per-row variance verdict table follows. (OQ-5 + OQ-11)
-- [ ] Single-employee + bulk-summary templates do NOT carry a separate exec summary (OQ-5).
-- [ ] All four templates inherit letterhead + methodology footer + page numbering from E6.5 foundation.
-- [ ] Each template renders cleanly in print preview as well as PDF download.
+- [x] Single-employee + bulk-summary templates do NOT carry a separate exec summary (OQ-5).
+- [x] All four templates inherit letterhead + methodology footer + page numbering from E6.5 foundation. *(Phase 5a: single-employee + bulk-summary verified via `<A4Page>` composition; liability + reconciliation pending Phase 5b templates.)*
+- [x] Each template renders cleanly in print preview as well as PDF download. *(Phase 5a: single-employee + bulk-summary verified — PDF via dispatcher, browser print via `globals.css @media print` block + DOM fallback; liability + reconciliation pending Phase 5b templates.)*
 
 ---
 
@@ -370,6 +370,29 @@ OQ-13 (E6.1, business / resourcing): **Designer engagement** — the spec acknow
 ---
 
 ## Clarification Summary
+
+### v0.6 — 2026-06-01 (post-E6-v1-shipped follow-ups)
+
+**Source:** E6 v1 shipped on `main` 2026-06-01 (final PR #142 acceptance gate). Four cosmetic drift items surfaced during E6.3 / E6.5 QA passes that didn't block individual PR merges but are worth recording in the canonical spec/tasks before any v1.1 work picks them up.
+
+**Drift amendments (all in `.specify/features/006-ui-design-system/tasks.md`; no `spec.md` body changes — this v0.6 entry IS the spec record):**
+
+1. **Task 2.2 AC bullet path drift** — was `website/public/fonts/source-sans-pro-{...}.woff2`; the file shipped at `source-sans-3-{...}.woff2` per the v0.5 substitution. AC bullet now uses the v0.5-canonical filename + inline note about the Adobe 2021 rebrand.
+
+2. **Task 3.3-bis AC bullet path drift** — was `website/lib/auth/session-claims.ts` (missing `src/` segment); the file shipped at `website/src/lib/auth/session-claims.ts` per repo convention. AC bullet now uses the actual path. Flagged in PR #98 QA report.
+
+3. **Task 3.4 AC bullet — WCAG-passing pairing recorded** — original AC said only "Banner uses `colors.brand.gold` token, contrast verified WCAG 2.2 AA". PR #113 dev measured navy-on-gold at **2.80:1 (FAILS AA)** and substituted charcoal-on-gold at **5.65:1 (PASSES AA)**. AC bullet now records charcoal-on-gold as the canonical WCAG-passing pairing for the ActingAsBanner surface, with the navy-on-gold failure documented inline so future contributors don't re-introduce the AA-failing combination.
+
+4. **Task 3.6 AC bullet — W3C-canonical breadcrumb anchor wording** — original AC said "Keyboard-navigable (each crumb is a real anchor)". PR #124 dev correctly interpreted the W3C ARIA APG breadcrumb pattern: each **non-terminal** crumb is a real anchor, while the terminal current-page crumb is a `<span aria-current="page">` (the current page is not navigable from itself). AC bullet now reflects the W3C-canonical form.
+
+**Deferred / not amended (intentional):**
+- `/app/account` route in `AUTH_SHELL_BYPASS` (PR #100 finding) — handled when account UI lands.
+- PR #137 HANDOFF doc-drift (`print:break-inside-avoid` vs `print:hidden` wording) — closed-PR history; v1.1 polish if the doc surfaces again.
+- PR #138 HANDOFF SHA typo (`f2057e8` vs `f2025e8`) — closed-PR history; immutable.
+- PR #142 minor nits (line-number drift on 2 print-block citations, e2e test pointed at legacy `/api/export-pdf`, parenthetical added to 2 §8.6 bullets) — closed-PR history; v1.1 if a follow-up wants to address them.
+- Sidebar Title-Case → sentence-case drift (Task 3.6 QA finding) — already shipped via PR #125, no further spec amend needed.
+
+**Status:** v0.6 amendments closed. No new open questions. v0.4 + v0.5 OQ resolutions remain authoritative.
 
 ### v0.5 — 2026-05-31 (post-E6.2 audit pass — Source Sans 3 substitution)
 

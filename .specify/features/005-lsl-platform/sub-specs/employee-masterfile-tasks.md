@@ -192,21 +192,21 @@ Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 - **Implementation:** `updateOrgSetup(supabase, orgId, payload)`. Uses Zod schema. Mutates `organisations` columns from Task 1.1.
 - **Acceptance:** Tests pass. **[x] Done 2026-05-31 via PR #118 — `getOrgSetup` + `saveOrgSetup` + `validateOrgSetup` shipped; 52 Vitest cases (Hand-wave summary: required-field validation, ABN format + check-digit soft warning, jurisdiction enum (8 codes), pay-frequency enum, opening-balances-method enum, trading name, getOrgSetup error paths, saveOrgSetup happy + 11 error paths); two architectural decisions surfaced for ratification — narrow `ServiceError` discriminants (`invalid_jurisdiction` / `invalid_pay_frequency`) extending the Task 2.2 taxonomy; PostgREST `23514` (CHECK violation) → `validation_failed` (defence-in-depth).**
 
-### Task 2.6 · Employee CRUD service — `employees.ts` + tests (TDD)
+### Task 2.6 · Employee CRUD service — `employees.ts` + tests (TDD) ✅ [x]
 
 - **Size:** L
 - **Cites:** AC-EMP-3, AC-EMP-4, AC-EMP-6, AC-EMP-8, AC-EMP-10, AC-EMP-11
 - **Test first** (`employees.test.ts`): create / read / update (effective-dated branching) / archive / reactivate / list. `23P01` (EXCLUDE violation from Task 1.9) is caught and translated. `23505` (UNIQUE violation on `(org_id, lower(employee_external_id))`) caught and translated to `duplicate_external_id`. `scheme != 'state_lsl'` rejected at v1 validator.
 - **Implementation:** Full CRUD + soft-delete + reactivate. Calls Task 2.7 (`recordEffectiveDatedChange`) when an effective-dated field changes.
-- **Acceptance:** Tests pass; AC-EMP-3, AC-EMP-4, AC-EMP-6, AC-EMP-8, AC-EMP-11 verified.
+- **Acceptance:** Tests pass; AC-EMP-3, AC-EMP-4, AC-EMP-6, AC-EMP-8, AC-EMP-11 verified. **[x] Done 2026-06-01 via PR #121 (Wave B) — `createEmployee` / `updateEmployee` / `getEmployee` / `listEmployees` / `archiveEmployee` / `reactivateEmployee` + scope-trim absorption of `getOpeningBalance` / `clearOpeningBalance` from Task 2.8; 57 / 57 Vitest cases; `23505` → `duplicate_external_id` and `42501` → `rls_denied` and `23P01` → `history_overlap` translation paths asserted; AC-EMP-3, -4, -6, -8, -10, -11 unit-level verified; policy-column-driven opening-balance write gate per PR #119 (`opening_balances_method` → `setup_wizard`/`csv_field`/`both`/`none`); `EmployeeWriteWarning` channel ratified for non-error signals (`tas_missing_sex`, `nt_missing_dob`, `csv_value_overwritten`, `csv_opening_balance_skipped_per_policy`, `wizard_opening_balance_skipped_per_policy`). See `docs/engineering/changes/2026-05-31-E5.2-phase-2-service-layer/COMPLETION.md` + `WAVE-B-HANDOFF.md`.**
 
-### Task 2.7 · Effective-dated history service — `history.ts` + tests (TDD)
+### Task 2.7 · Effective-dated history service — `history.ts` + tests (TDD) ✅ [x]
 
 - **Size:** M
 - **Cites:** AC-EMP-5
 - **Test first** (`history.test.ts`): `recordEffectiveDatedChange` closes the open segment and opens a new one in a single transaction; overlap rejection; cascade on archive.
 - **Implementation:** Per impl-plan §1.4, 4-step pattern wrapped in `BEGIN ... COMMIT`. Uses Supabase RPC or `pg_transaction` pattern as documented in the Supabase client library version.
-- **Acceptance:** Tests pass; AC-EMP-5 verified.
+- **Acceptance:** Tests pass; AC-EMP-5 verified. **[x] Done 2026-06-01 via PR #121 (Wave B) — `appendHistorySegment` (close-old-open-new), `getHistory` (with `asOf` filter), `getCurrentSegment`; 31 / 31 Vitest cases; `23P01` → `history_overlap` translation asserted; AC-EMP-5 unit-level verified. **RPC-vs-PostgREST decision:** v1 keeps PostgREST atomic (two non-atomic calls UPDATE→INSERT; EXCLUDE GIST constraint is the safety net) per WAVE-B-HANDOFF.md §"RPC-vs-PostgREST decision"; v1.1 RPC refactor candidate (mechanical call-site refactor; requires one migration).**
 
 ### Task 2.8 · Opening-balance reconciliation — `opening-balance.ts` + tests (TDD) ✅ [x]
 
@@ -216,20 +216,20 @@ Pure functions, Vitest unit tests, Zod schemas. **L (16–20 hrs)**.
 - **Implementation:** `reconcileOpeningBalance(csvValue, wizardValue)`.
 - **Acceptance:** Tests pass; AC-EMP-12 verified at unit level. **[x] Done 2026-05-31 via PR #117 — pure reconciler shipped, policy-agnostic (both candidates pass in); 28 Vitest cases. Two scope-trims absorbed into Task 2.6 per operator ratification 2026-05-31: `getOpeningBalance(employeeId)` + `clearOpeningBalance(employeeId)` (need Supabase + employee-row lifecycle that Task 2.6 owns). One design decision ratified via PR #119 spec amend: `organisations.opening_balances_method` promoted from "reporting aid" to **load-bearing** — drives collision resolution at the Task 2.6 call site (four behavioural states: `setup_wizard` / `csv_field` / `both` / `none`).**
 
-### Task 2.8b · Tags dictionary service — `tags.ts` + tests (TDD) *(added 2026-05-31 — v1 scope amendment; refined 2026-05-31 per PR #94 review Q5)*
+### Task 2.8b · Tags dictionary service — `tags.ts` + tests (TDD) ✅ [x] *(added 2026-05-31 — v1 scope amendment; refined 2026-05-31 per PR #94 review Q5)*
 
 - **Size:** M
 - **Cites:** Spec §4.4; AC-EMP-14; OQ-LIA-1 resolution
 - **Test first** (`tags.test.ts`): (a) create tag — succeeds + dictionary row present; (b) create duplicate within org — fails with `duplicate_tag_name` ServiceError; (c) create same name in different org — succeeds (RLS-isolated); (d) rename tag — verify cascade trigger updated all referencing `employees.tags` arrays; (e) hard-delete tag — verify cascade trigger removed it from all `employees.tags` arrays; (f) list tags for org — returns sorted-by-name **with usage counts computed on demand via `cardinality(employees.tags)`** (Q5 resolution 2026-05-31 — no denormalised cache); (g) bulk-create-from-import — accepts an array of names + an `import_audit_log_id`, auto-creates absent names, returns the canonical id-by-name map.
 - **Implementation:** `tags.ts` exports `createTag(orgId, name, userId)`, `renameTag(orgId, tagId, newName, userId)`, `deleteTag(orgId, tagId, userId)`, `listTags(orgId)` — the list path joins `tags` with an aggregate over `employees.tags` using `cardinality()` / `unnest()` to compute per-tag usage counts at query time, and `bulkCreateFromImport(orgId, names, userId, importAuditLogId)`. The bulk path is called by Task 2.4's CSV parser when it encounters unknown tags in a `tags` CSV column.
 - **Note on the dropped `usage_count_cached` (Q5, 2026-05-31):** the prior amend specified a denormalised counter column maintained by a row-level trigger on every `employees.tags` write. PR #94 review surfaced row-lock contention against `tags` rows on a 5k-employee bulk import. Resolution: drop the cache; compute counts on demand at the org-settings tag-edit page (low-traffic, sub-second cost acceptable). The bulk import path no longer touches `tags` rows during the row-write loop.
-- **Acceptance:** Tests pass; AC-EMP-14 cascade behaviour verified at integration level (Task 1.6b smoke); list-tags usage counts match `cardinality(employees.tags)` ground truth.
+- **Acceptance:** Tests pass; AC-EMP-14 cascade behaviour verified at integration level (Task 1.6b smoke); list-tags usage counts match `cardinality(employees.tags)` ground truth. **[x] Done 2026-06-01 via PR #123 (Wave C) — `createTag` / `getTag` / `listTags` / `renameTag` / `deleteTag` / `getTagUsageCount` / `normaliseTagName` shipped; 40 / 40 Vitest cases; `23505` → `duplicate_tag_name` translation asserted; service layer relies on Migration 7 cascade triggers (`tg_cascade_tag_rename_on_tags`, `tg_cascade_tag_delete_on_tags`) — does NOT touch `employees.tags` from rename/delete paths; `getTagUsageCount` uses GIN-index-supported `.contains('tags', [name])` with `count: 'exact'` HEAD request (Q5 pattern preserved); cascade behaviour re-verified live on Supabase test branch (3 / 3 assertions passed). See `TASK-2.8b-FINDINGS.md`.**
 
-### Task 2.9 · Phase 2 verification gate
+### Task 2.9 · Phase 2 verification gate ✅ [x]
 
 - **Size:** S
 - **Output:** All service-layer tests green; coverage report shows ≥ 90% on the new `website/src/lib/data/employee/` directory.
-- **Acceptance:** PR for Phase 2 opens, decoupled from Phase 3 for review.
+- **Acceptance:** PR for Phase 2 opens, decoupled from Phase 3 for review. **[x] Done 2026-06-01 (Wave D — this dispatch). Test surface re-run: 284 / 284 Phase 2 unit tests pass (pii-strip 40, masterfile-csv 36, org-setup 52, opening-balance 28, employees 57, history 31, tags 40); full repo Vitest 3026 passed / 32 skipped / 0 failed; `tsc --noEmit` clean; `eslint src/lib/data/employee` clean. AC-EMP-* coverage: 12 / 14 fully covered at unit level; AC-EMP-9 partial (RLS translation paths asserted; full HTTP cross-tenant deferred to Phase 3 Task 3.2); AC-EMP-13 DB-layer verified at Migration 4 + 5 apply (route-level deferred to Phase 3 Task 3.2). Two architectural patterns ratified for Phase 3: (a) narrow `ServiceError` discriminants per field (`invalid_jurisdiction` / `invalid_pay_frequency` / `duplicate_external_id` / `history_overlap` / `duplicate_tag_name` extending Task 2.2's 13-variant union; HTTP mapping table in HANDOFF-PHASE-3.md §3); (b) `EmployeeWriteWarning` channel for non-error signals (rides on per-success `warnings: []` field; route handlers pass through to Phase 4 Toast). Supabase advisors clean (0 new security; 4 new INFO unused-index lints expected — will clear in Phase 3 integration tests). Production main UNTOUCHED. See `docs/engineering/changes/2026-05-31-E5.2-phase-2-service-layer/COMPLETION.md` + `HANDOFF-PHASE-3.md`.**
 
 ---
 

@@ -50,10 +50,66 @@ function createAdminClient(): SupabaseClient | null {
 }
 
 /**
+ * Delete the `organisations` row that the `handle_new_user` SECURITY DEFINER
+ * trigger auto-provisioned for this user, if any.
+ *
+ * Why this exists: the trigger inserts one `public.organisations` row per
+ * `auth.users` insert. Deleting `auth.users` cascades to `org_members` (via
+ * `org_members.user_id` FK), but `organisations` has no FK to `auth.users` —
+ * so without this step the org row leaks forever. Across CI runs that
+ * accumulates fast (see `docs/engineering/changes/2026-06-01-orphan-orgs-cleanup`).
+ *
+ * Order of operations: delete the organisation FIRST (cascades to org_members
+ * via `org_members.org_id` FK), then the caller deletes the auth.users row.
+ *
+ * Best-effort — logs and continues on any failure.
+ */
+async function deleteOrganisationForUser(
+  admin: SupabaseClient,
+  userId: string,
+  label: string
+): Promise<void> {
+  try {
+    const { data: memberships, error: selectError } = await admin
+      .from('org_members')
+      .select('org_id')
+      .eq('user_id', userId);
+    if (selectError) {
+      console.warn(
+        `[e2e cleanup] org_members lookup failed for ${label}: ${selectError.message}`
+      );
+      return;
+    }
+    if (!memberships || memberships.length === 0) {
+      // No membership row → trigger didn't fire, or already cleaned. Fine.
+      return;
+    }
+    const orgIds = memberships.map((m) => m.org_id);
+    const { error: deleteError } = await admin
+      .from('organisations')
+      .delete()
+      .in('id', orgIds);
+    if (deleteError) {
+      console.warn(
+        `[e2e cleanup] organisations delete failed for ${label}: ${deleteError.message}`
+      );
+    }
+  } catch (err) {
+    console.warn(
+      `[e2e cleanup] threw deleting organisation for ${label}:`,
+      err instanceof Error ? err.message : String(err)
+    );
+  }
+}
+
+/**
  * Delete an auth.users row by email. Best-effort — logs and continues on any
- * failure. Cascade deletes the `org_members` row; `organisations` row is left
- * for the scheduled purge job to handle (its `delete_scheduled_at` policy
- * lives in Phase 7 land).
+ * failure. Also deletes the `organisations` row that the `handle_new_user`
+ * trigger auto-provisioned for this user (which cascades to `org_members`
+ * via `org_members.org_id` FK). Deleting the auth user separately cascades
+ * the `org_members` row via the `org_members.user_id` FK — but that FK does
+ * NOT cover `organisations`, so without the explicit org-delete the org row
+ * would leak. See `docs/engineering/changes/2026-06-01-orphan-orgs-cleanup`.
  */
 export async function cleanupUserByEmail(email: string): Promise<void> {
   const admin = createAdminClient();
@@ -81,6 +137,10 @@ export async function cleanupUserByEmail(email: string): Promise<void> {
       // Already gone — fine.
       return;
     }
+    // Delete the trigger-provisioned organisation first (cascades to
+    // org_members), then the auth user. If the org-delete fails, we still
+    // try the auth-user delete so we don't leak the auth row too.
+    await deleteOrganisationForUser(admin, user.id, email);
     const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
     if (deleteError) {
       console.warn(
@@ -155,6 +215,10 @@ export async function createUnverifiedE2eUser(
  * Delete a test user by id. Best-effort — logs and continues on any failure.
  * Preferred over {@link cleanupUserByEmail} when the caller already has the
  * user id (avoids the `listUsers` round-trip + pagination edge cases).
+ *
+ * Also deletes the `organisations` row that the `handle_new_user` trigger
+ * auto-provisioned for this user — see {@link deleteOrganisationForUser} for
+ * the reasoning.
  */
 export async function deleteE2eUserById(userId: string): Promise<void> {
   const admin = createAdminClient();
@@ -165,6 +229,9 @@ export async function deleteE2eUserById(userId: string): Promise<void> {
     return;
   }
   try {
+    // Delete the trigger-provisioned organisation first (cascades to
+    // org_members), then the auth user.
+    await deleteOrganisationForUser(admin, userId, userId);
     const { error } = await admin.auth.admin.deleteUser(userId);
     if (error) {
       console.warn(

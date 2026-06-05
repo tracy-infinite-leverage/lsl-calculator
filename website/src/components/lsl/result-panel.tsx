@@ -235,6 +235,7 @@ export function ResultPanel({ result, onDownloadPDF, pdfDownloading }: ResultPan
               size="sm"
               onClick={onDownloadPDF}
               disabled={pdfDownloading}
+              className="print:hidden"
             >
               <Download className="h-4 w-4 mr-1" />
               {pdfDownloading ? 'Generating…' : 'Download PDF report'}

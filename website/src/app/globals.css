@@ -306,3 +306,217 @@ body {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
+
+/* ---------------------------------------------------------------------------
+ * @media print — browser-print parity with PDF output (E6.5 Task 5.6)
+ * ---------------------------------------------------------------------------
+ *
+ * Goal (spec §5.4, tasks.md 705-712):
+ *   Cmd+P on the public-calc result screen and the bulk-summary screen
+ *   produces a deliverable that mirrors the future PDF download — letterhead
+ *   on every page, methodology / page-number footer on every page, A4 page
+ *   breaks, and zero screen-only chrome.
+ *
+ * Architecture: single source of truth here, in globals.css. Component-level
+ * `print:hidden` Tailwind modifiers handle "hide this specific screen-only
+ * UI element when printing"; the structural printing contract (page size,
+ * margins, headers/footers, page-break rules) lives entirely in this block
+ * so an auditor can review it in one place.
+ *
+ * Browser support note: `@page` margin boxes (@top-center, @bottom-left,
+ * @bottom-right) are well-supported in Chromium-based browsers (Chrome,
+ * Edge, Brave) and acceptable in current Safari. Firefox renders them
+ * less reliably — when a margin-box rule is dropped, the corresponding
+ * header/footer text simply doesn't appear and the rest of the print
+ * remains usable. This is an acceptable v1 degradation per dispatch
+ * guidance: "ship a minimal print stylesheet ... the fancy @page counter-
+ * page footer is nice-to-have". The DOM-level `.print-letterhead` and
+ * `.print-methodology` blocks (rendered via `print:block hidden` Tailwind
+ * classes on the result and bulk-summary pages) provide a fallback
+ * "letterhead at top + methodology disclosure at bottom" that shows
+ * regardless of margin-box support — but only on the FIRST printed page
+ * (they're document-flow elements, not @page margin boxes), which is
+ * acceptable for a v1 ship.
+ *
+ * "Calculated, not advice." voice contract: the disclosure phrase in
+ * @bottom-left and in .print-methodology is BYTE-IDENTICAL to
+ * `website/src/lib/pdf/MethodologyFooter.tsx::DISCLOSURE_PHRASE` — single
+ * voice across PDF + print + web shell footer.
+ */
+@media print {
+  /* A4 page setup with 18mm margins per spec §5.4 letterhead band sizing.
+   * Margin boxes carry the per-page brand chrome — letterhead text at top,
+   * disclosure + page numbers at bottom. */
+  @page {
+    size: A4;
+    margin: 18mm;
+
+    @top-center {
+      content: "LSL Calculator by APA";
+      font-family: var(--font-source-sans), system-ui, sans-serif;
+      font-size: 9pt;
+      color: #48608a; /* brand-navy hex — CSS vars don't reliably resolve in @page contexts */
+      vertical-align: bottom;
+    }
+
+    @bottom-left {
+      /* Byte-identical disclosure phrase — matches MethodologyFooter.tsx
+       * DISCLOSURE_PHRASE and the web shell footer line. */
+      content: "Calculated, not advice. · www.austpayroll.com.au";
+      font-family: var(--font-source-sans), system-ui, sans-serif;
+      font-size: 8pt;
+      color: #333232; /* brand-charcoal */
+      vertical-align: top;
+    }
+
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-family: var(--font-source-sans), system-ui, sans-serif;
+      font-size: 8pt;
+      color: #808897; /* brand-grey */
+      vertical-align: top;
+    }
+  }
+
+  /* Reset surfaces for print — pure-white background, no dark-mode override,
+   * no soft shadows / decorative gradients (ink-wasteful + low-contrast on
+   * paper). */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #333232 !important;
+    -webkit-print-color-adjust: economy;
+    print-color-adjust: economy;
+  }
+
+  /* Hide the screen shell (header nav + footer) — the @page margin boxes
+   * carry the brand chrome on the printed page. The shell's <header> and
+   * <footer> elements are screen-only on print.
+   *
+   * We target the calculator layout's top-level <header> and <footer>
+   * (direct children of <body> after React fragment flattening), AND any
+   * element carrying the ARIA landmark roles, as a belt-and-braces match.
+   * NOTE: `<header>` inside a Card (e.g. the bulk-mode CardHeader, which
+   * uses <CardHeader> -> <div>, not <header>) is unaffected — only
+   * semantic <header> / <footer> tags are hidden. The bulk page's
+   * <header> wrapper for h1+intro is already explicitly print:hidden
+   * at the component level. */
+  body > header,
+  body > footer,
+  header[role="banner"],
+  footer[role="contentinfo"],
+  /* Sonner Toaster portals are appended to body; never print toasts */
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  /* Hide ad-hoc screen chrome via the `.print-hide` global class. Use this
+   * for elements that don't fit a `print:hidden` Tailwind path (e.g. inside
+   * a third-party component). */
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Default <main> layout for print — remove the max-width clamp and
+   * horizontal padding so content uses the full @page printable width. */
+  main {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Page-break rules — keep meaningful blocks intact across page boundaries.
+   * Cards / Alerts / Tables / Citation blocks / Numeric tiles each represent
+   * a single semantic unit that reads badly when split.
+   *
+   * `[class*="rounded"]` covers shadcn cards, alerts, numeric tiles, and the
+   * inline citation blocks — they all use rounded-* utility classes as their
+   * structural marker. Belt-and-braces with the explicit element selectors
+   * below. */
+  .card,
+  [data-slot="card"],
+  [role="alert"],
+  table,
+  tr,
+  details,
+  /* CitationBlock surface */
+  blockquote {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Allow tables (esp. wage-history previews + bulk-results) to flow across
+   * pages, but keep individual ROWS intact. Overrides the table-level rule
+   * above when the table is the entire result. */
+  table {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+
+  /* Headings stay with their following content — no orphaned headings at
+   * the bottom of a page. */
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Force <details> open so collapsed diagnostics print in full. The result
+   * screen collapses diagnostics + TAS per-day breakdown behind a
+   * <summary>; on print the operator wants the full record. The :not([open])
+   * + reveal-children approach is robust across Chromium and WebKit. */
+  details > * {
+    display: revert !important;
+  }
+  details > summary {
+    list-style: none;
+    cursor: default;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Print-only DOM-level brand chrome (fallback for browsers without @page
+   * margin-box support). The result + bulk-summary pages render these via
+   * `<div className="hidden print:block print-letterhead">…` and
+   * `<div className="hidden print:block print-methodology">…`. Page-1 only
+   * — these are document-flow elements, not repeated per page. */
+  .print-letterhead {
+    border-bottom: 0.5pt solid #808897;
+    padding-bottom: 4pt;
+    margin-bottom: 12pt;
+  }
+  .print-letterhead .print-wordmark {
+    font-family: var(--font-montserrat), system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14pt;
+    color: #48608a; /* brand-navy */
+    letter-spacing: 0.01em;
+  }
+  .print-letterhead .print-generated-at {
+    font-family: var(--font-source-sans), system-ui, sans-serif;
+    font-size: 8pt;
+    color: #808897; /* brand-grey */
+    margin-top: 2pt;
+  }
+  .print-methodology {
+    border-top: 0.5pt solid #808897;
+    padding-top: 6pt;
+    margin-top: 18pt;
+    font-family: var(--font-source-sans), system-ui, sans-serif;
+    font-size: 8pt;
+    color: #808897; /* brand-grey */
+    line-height: 1.3;
+  }
+  .print-methodology .print-disclosure {
+    color: #333232; /* brand-charcoal — disclosure line pops */
+    margin-top: 2pt;
+  }
+}
