@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate C — Encircled Stamp
+  Icon: CalendarRange (sidebar Pay history)
+  Container: navy #48608a filled disc.
+  Glyph: white #ffffff stroke, 1.5px.
+  Accent: gold #d9a428 small filled square as the "today" marker per
+  direction §5 CalendarRange row — the canonical example of restrained
+  gold use in the brand vocabulary.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     role="img" aria-label="Calendar range">
+  <circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5"
+     stroke-linecap="round" stroke-linejoin="round">
+    <!-- Calendar body -->
+    <rect x="6" y="7.25" width="12" height="11" rx="1.25"/>
+    <line x1="6" y1="10.5" x2="18" y2="10.5"/>
+    <line x1="9" y1="5.5" x2="9" y2="8.5"/>
+    <line x1="15" y1="5.5" x2="15" y2="8.5"/>
+    <!-- Range bar -->
+    <line x1="8.5" y1="14.25" x2="15.5" y2="14.25"/>
+  </g>
+  <!-- Gold "today" square -->
+  <rect x="10.75" y="13" width="2.5" height="2.5" rx="0.4" fill="#d9a428"/>
+</svg>

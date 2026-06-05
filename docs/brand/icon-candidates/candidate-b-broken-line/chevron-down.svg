@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate B — Broken-Line Detail
+  Icon: ChevronDown (dropdowns, accordion, select trigger, UserMenu)
+  Stroke: 1.5px navy #48608a. ChevronDown is too small + too purely
+  functional to carry a broken-line accent — adding dashes here would
+  make it visually noisy at body scale. So this candidate degrades
+  gracefully to a pure monoline for the tiniest icons. (Design decision
+  documented in the README — "broken-line where it adds meaning, plain
+  monoline where it doesn't".)
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     fill="none" stroke="#48608a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     role="img" aria-label="Chevron down">
+  <polyline points="6 9.5 12 15.5 18 9.5"/>
+</svg>

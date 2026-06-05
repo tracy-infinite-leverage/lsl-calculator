@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate A — Monoline
+  Icon: Bell (TopNav notifications)
+  Stroke: 1.5px navy #48608a. No accent dot in the default state — the
+  "unread" affordance is layered separately by the consumer (TopNav already
+  uses a gold/navy dot positioned absolutely; the icon itself stays neutral).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     fill="none" stroke="#48608a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     role="img" aria-label="Bell">
+  <!-- Bell body: dome + clapper crown + base ring -->
+  <path d="M12 3.25 v1.5"/>
+  <path d="M5.75 17.25 V11 a6.25 6.25 0 0 1 12.5 0 v6.25"/>
+  <line x1="4" y1="17.25" x2="20" y2="17.25"/>
+  <!-- Clapper -->
+  <path d="M10.25 20.25 a1.75 1.75 0 0 0 3.5 0"/>
+</svg>

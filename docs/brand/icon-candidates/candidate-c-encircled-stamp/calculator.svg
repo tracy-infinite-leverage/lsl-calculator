@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate C — Encircled Stamp
+  Icon: Calculator (sidebar Valuations, public-calc CTA)
+  Container: navy #48608a filled disc.
+  Glyph: white #ffffff stroke, 1.5px. No gold per direction §5 Calculator
+  ("no 'active' state for a brand affordance") — restraint upheld.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     role="img" aria-label="Calculator">
+  <circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5"
+     stroke-linecap="round" stroke-linejoin="round">
+    <!-- Body -->
+    <rect x="6.5" y="4.75" width="11" height="14.5" rx="1.5"/>
+    <!-- Display -->
+    <rect x="8" y="6.5" width="8" height="3" rx="0.5"/>
+    <!-- 3x3 key grid (white dots) -->
+    <line x1="9" y1="12" x2="9" y2="12"/>
+    <line x1="12" y1="12" x2="12" y2="12"/>
+    <line x1="15" y1="12" x2="15" y2="12"/>
+    <line x1="9" y1="14.5" x2="9" y2="14.5"/>
+    <line x1="12" y1="14.5" x2="12" y2="14.5"/>
+    <line x1="15" y1="14.5" x2="15" y2="14.5"/>
+    <line x1="9" y1="17" x2="9" y2="17"/>
+    <line x1="12" y1="17" x2="12" y2="17"/>
+    <line x1="15" y1="17" x2="15" y2="17"/>
+  </g>
+</svg>

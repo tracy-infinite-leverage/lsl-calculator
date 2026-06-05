@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate A — Monoline
+  Icon: ChevronDown (dropdowns, accordion, select trigger, UserMenu)
+  Stroke: 1.5px navy #48608a. The smallest icon in the surface — its role
+  is purely directional, so the simplest mark wins.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     fill="none" stroke="#48608a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     role="img" aria-label="Chevron down">
+  <polyline points="6 9.5 12 15.5 18 9.5"/>
+</svg>

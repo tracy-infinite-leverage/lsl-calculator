@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate C — Encircled Stamp preview board.
+  Same layout. Each icon is a navy disc with white-stroke glyph + selective
+  gold accents. On the navy field (bottom half) the disc is given a 1px
+  white outer ring so the stamp stays a discrete object — without the ring
+  the disc dissolves into the background. This is also the canonical
+  treatment for stamps placed onto a navy hero / PDF cover (the white ring
+  is the "punched-out" affordance).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760"
+     font-family="'Source Sans 3','Source Sans Pro','Helvetica Neue',Arial,sans-serif">
+  <rect width="1200" height="380" fill="#ffffff"/>
+  <rect y="380" width="1200" height="380" fill="#48608a"/>
+
+  <text x="40" y="36" font-size="22" font-weight="600" fill="#48608a">Candidate C — Encircled Stamp · on white</text>
+  <text x="40" y="416" font-size="22" font-weight="600" fill="#ffffff">Candidate C — Encircled Stamp · on navy (white ring)</text>
+
+  <g font-size="13" fill="#a0aec1">
+    <text x="120" y="64" text-anchor="middle">Users</text>
+    <text x="290" y="64" text-anchor="middle">Calculator</text>
+    <text x="460" y="64" text-anchor="middle">Bell · gold</text>
+    <text x="630" y="64" text-anchor="middle">CalendarRange · gold</text>
+    <text x="800" y="64" text-anchor="middle">Scale · gold</text>
+    <text x="970" y="64" text-anchor="middle">ChevronDown</text>
+  </g>
+  <g font-size="13" fill="#a0aec1">
+    <text x="120" y="444" text-anchor="middle">Users</text>
+    <text x="290" y="444" text-anchor="middle">Calculator</text>
+    <text x="460" y="444" text-anchor="middle">Bell · gold</text>
+    <text x="630" y="444" text-anchor="middle">CalendarRange · gold</text>
+    <text x="800" y="444" text-anchor="middle">Scale · gold</text>
+    <text x="970" y="444" text-anchor="middle">ChevronDown</text>
+  </g>
+
+  <g font-size="12" fill="#a0aec1" font-weight="600">
+    <text x="40" y="115">24</text><text x="40" y="195">32</text><text x="40" y="295">48</text>
+    <text x="40" y="495">24</text><text x="40" y="575">32</text><text x="40" y="675">48</text>
+  </g>
+
+  <!-- Reusable symbols for Candidate C — every icon is a 24×24 viewBox stamp -->
+  <defs>
+    <!-- Users: navy disc + white stroke -->
+    <symbol id="c-users" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10" cy="10.25" r="2.25"/>
+        <path d="M5.75 17 a4.25 4.25 0 0 1 8.5 0"/>
+        <path d="M14.75 8 a2 2 0 0 1 0 3.75"/>
+        <path d="M16 13.5 a3.5 3.5 0 0 1 2.5 4.5"/>
+      </g>
+    </symbol>
+    <symbol id="c-calc" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6.5" y="4.75" width="11" height="14.5" rx="1.5"/>
+        <rect x="8" y="6.5" width="8" height="3" rx="0.5"/>
+        <line x1="9" y1="12" x2="9" y2="12"/><line x1="12" y1="12" x2="12" y2="12"/><line x1="15" y1="12" x2="15" y2="12"/>
+        <line x1="9" y1="14.5" x2="9" y2="14.5"/><line x1="12" y1="14.5" x2="12" y2="14.5"/><line x1="15" y1="14.5" x2="15" y2="14.5"/>
+        <line x1="9" y1="17" x2="9" y2="17"/><line x1="12" y1="17" x2="12" y2="17"/><line x1="15" y1="17" x2="15" y2="17"/>
+      </g>
+    </symbol>
+    <symbol id="c-bell" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5.5 v1"/>
+        <path d="M7.5 16 V11.5 a4.5 4.5 0 0 1 9 0 V16"/>
+        <line x1="6.5" y1="16" x2="17.5" y2="16"/>
+        <path d="M10.5 18 a1.5 1.5 0 0 0 3 0"/>
+      </g>
+      <circle cx="16.5" cy="7.5" r="2" fill="#d9a428"/>
+    </symbol>
+    <symbol id="c-cal" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6" y="7.25" width="12" height="11" rx="1.25"/>
+        <line x1="6" y1="10.5" x2="18" y2="10.5"/>
+        <line x1="9" y1="5.5" x2="9" y2="8.5"/>
+        <line x1="15" y1="5.5" x2="15" y2="8.5"/>
+        <line x1="8.5" y1="14.25" x2="15.5" y2="14.25"/>
+      </g>
+      <rect x="10.75" y="13" width="2.5" height="2.5" rx="0.4" fill="#d9a428"/>
+    </symbol>
+    <symbol id="c-scale" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="6.5" x2="12" y2="18"/>
+        <line x1="9.5" y1="18" x2="14.5" y2="18"/>
+        <line x1="5.5" y1="9" x2="18.5" y2="9"/>
+        <line x1="7" y1="9" x2="6" y2="12"/><line x1="7" y1="9" x2="8" y2="12"/>
+        <line x1="17" y1="9" x2="16" y2="12"/><line x1="17" y1="9" x2="18" y2="12"/>
+        <path d="M5.5 12 a1.75 1.75 0 0 0 3 0"/>
+        <path d="M15.5 12 a1.75 1.75 0 0 0 3 0"/>
+      </g>
+      <circle cx="12" cy="6.5" r="1.2" fill="#d9a428"/>
+    </symbol>
+    <symbol id="c-chev" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a"/>
+      <polyline points="7 10 12 15 17 10" fill="none" stroke="#ffffff" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+
+    <!-- "On-navy" variants: same symbols but with a 1px white ring around the disc -->
+    <symbol id="c-users-on-navy" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a" stroke="#ffffff" stroke-width="0.8"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10" cy="10.25" r="2.25"/>
+        <path d="M5.75 17 a4.25 4.25 0 0 1 8.5 0"/>
+        <path d="M14.75 8 a2 2 0 0 1 0 3.75"/>
+        <path d="M16 13.5 a3.5 3.5 0 0 1 2.5 4.5"/>
+      </g>
+    </symbol>
+    <symbol id="c-calc-on-navy" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a" stroke="#ffffff" stroke-width="0.8"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6.5" y="4.75" width="11" height="14.5" rx="1.5"/>
+        <rect x="8" y="6.5" width="8" height="3" rx="0.5"/>
+        <line x1="9" y1="12" x2="9" y2="12"/><line x1="12" y1="12" x2="12" y2="12"/><line x1="15" y1="12" x2="15" y2="12"/>
+        <line x1="9" y1="14.5" x2="9" y2="14.5"/><line x1="12" y1="14.5" x2="12" y2="14.5"/><line x1="15" y1="14.5" x2="15" y2="14.5"/>
+        <line x1="9" y1="17" x2="9" y2="17"/><line x1="12" y1="17" x2="12" y2="17"/><line x1="15" y1="17" x2="15" y2="17"/>
+      </g>
+    </symbol>
+    <symbol id="c-bell-on-navy" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a" stroke="#ffffff" stroke-width="0.8"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5.5 v1"/>
+        <path d="M7.5 16 V11.5 a4.5 4.5 0 0 1 9 0 V16"/>
+        <line x1="6.5" y1="16" x2="17.5" y2="16"/>
+        <path d="M10.5 18 a1.5 1.5 0 0 0 3 0"/>
+      </g>
+      <circle cx="16.5" cy="7.5" r="2" fill="#d9a428"/>
+    </symbol>
+    <symbol id="c-cal-on-navy" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a" stroke="#ffffff" stroke-width="0.8"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6" y="7.25" width="12" height="11" rx="1.25"/>
+        <line x1="6" y1="10.5" x2="18" y2="10.5"/>
+        <line x1="9" y1="5.5" x2="9" y2="8.5"/>
+        <line x1="15" y1="5.5" x2="15" y2="8.5"/>
+        <line x1="8.5" y1="14.25" x2="15.5" y2="14.25"/>
+      </g>
+      <rect x="10.75" y="13" width="2.5" height="2.5" rx="0.4" fill="#d9a428"/>
+    </symbol>
+    <symbol id="c-scale-on-navy" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a" stroke="#ffffff" stroke-width="0.8"/>
+      <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="6.5" x2="12" y2="18"/>
+        <line x1="9.5" y1="18" x2="14.5" y2="18"/>
+        <line x1="5.5" y1="9" x2="18.5" y2="9"/>
+        <line x1="7" y1="9" x2="6" y2="12"/><line x1="7" y1="9" x2="8" y2="12"/>
+        <line x1="17" y1="9" x2="16" y2="12"/><line x1="17" y1="9" x2="18" y2="12"/>
+        <path d="M5.5 12 a1.75 1.75 0 0 0 3 0"/>
+        <path d="M15.5 12 a1.75 1.75 0 0 0 3 0"/>
+      </g>
+      <circle cx="12" cy="6.5" r="1.2" fill="#d9a428"/>
+    </symbol>
+    <symbol id="c-chev-on-navy" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="11" fill="#48608a" stroke="#ffffff" stroke-width="0.8"/>
+      <polyline points="7 10 12 15 17 10" fill="none" stroke="#ffffff" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+
+  <!-- TOP HALF: on white -->
+  <!-- Row 1: 24px -->
+  <use href="#c-users" x="108" y="98" width="24" height="24"/>
+  <use href="#c-calc"  x="278" y="98" width="24" height="24"/>
+  <use href="#c-bell"  x="448" y="98" width="24" height="24"/>
+  <use href="#c-cal"   x="618" y="98" width="24" height="24"/>
+  <use href="#c-scale" x="788" y="98" width="24" height="24"/>
+  <use href="#c-chev"  x="958" y="98" width="24" height="24"/>
+  <!-- Row 2: 32px -->
+  <use href="#c-users" x="104" y="174" width="32" height="32"/>
+  <use href="#c-calc"  x="274" y="174" width="32" height="32"/>
+  <use href="#c-bell"  x="444" y="174" width="32" height="32"/>
+  <use href="#c-cal"   x="614" y="174" width="32" height="32"/>
+  <use href="#c-scale" x="784" y="174" width="32" height="32"/>
+  <use href="#c-chev"  x="954" y="174" width="32" height="32"/>
+  <!-- Row 3: 48px -->
+  <use href="#c-users" x="96"  y="266" width="48" height="48"/>
+  <use href="#c-calc"  x="266" y="266" width="48" height="48"/>
+  <use href="#c-bell"  x="436" y="266" width="48" height="48"/>
+  <use href="#c-cal"   x="606" y="266" width="48" height="48"/>
+  <use href="#c-scale" x="776" y="266" width="48" height="48"/>
+  <use href="#c-chev"  x="946" y="266" width="48" height="48"/>
+
+  <!-- BOTTOM HALF: on navy, with white outer ring -->
+  <use href="#c-users-on-navy" x="108" y="478" width="24" height="24"/>
+  <use href="#c-calc-on-navy"  x="278" y="478" width="24" height="24"/>
+  <use href="#c-bell-on-navy"  x="448" y="478" width="24" height="24"/>
+  <use href="#c-cal-on-navy"   x="618" y="478" width="24" height="24"/>
+  <use href="#c-scale-on-navy" x="788" y="478" width="24" height="24"/>
+  <use href="#c-chev-on-navy"  x="958" y="478" width="24" height="24"/>
+
+  <use href="#c-users-on-navy" x="104" y="554" width="32" height="32"/>
+  <use href="#c-calc-on-navy"  x="274" y="554" width="32" height="32"/>
+  <use href="#c-bell-on-navy"  x="444" y="554" width="32" height="32"/>
+  <use href="#c-cal-on-navy"   x="614" y="554" width="32" height="32"/>
+  <use href="#c-scale-on-navy" x="784" y="554" width="32" height="32"/>
+  <use href="#c-chev-on-navy"  x="954" y="554" width="32" height="32"/>
+
+  <use href="#c-users-on-navy" x="96"  y="642" width="48" height="48"/>
+  <use href="#c-calc-on-navy"  x="266" y="642" width="48" height="48"/>
+  <use href="#c-bell-on-navy"  x="436" y="642" width="48" height="48"/>
+  <use href="#c-cal-on-navy"   x="606" y="642" width="48" height="48"/>
+  <use href="#c-scale-on-navy" x="776" y="642" width="48" height="48"/>
+  <use href="#c-chev-on-navy"  x="946" y="642" width="48" height="48"/>
+</svg>
