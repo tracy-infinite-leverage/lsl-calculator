@@ -146,7 +146,7 @@
 **AC:** AC-MAP-1.
 **Depends:** T2.2, T2.3, T2.4, T2.5.
 
-### T2.7 — Integration test: full Pass 1 against Virtus 3-sheet Excel · M
+### T2.7 — Integration test: full Pass 1 against Virtus 3-sheet Excel · M ✅ [x] (2026-06-05 — `__tests__/integration.test.ts` runs detectFileShape → detectColumns → detectValueNormalisations against the Virtus 3-sheet xlsx fixture via a pre-extracted JSON sidecar (avoids vulnerable npm xlsx runtime dep); asserts proposedSheet='Sheet3', 7 long-form states resolved, 12 distinct employment-type surface forms detected (5 resolved via seed + 7 needs_review per Pass-1 contract — Phase 3 LLM picks up the rest), Sheet3 has no pay-code column (correctly returns undefined payCode), OQ-ING-9 Sheet2 Cohort `VIC-TAS`/`NSW-QLD` cohort flags emit `crossJurisdictionFlag` + `hintedJurisdictions`; 7/7 integration tests pass)
 **Acceptance:** End-to-end Pass 1 invocation against `tests/fixtures/pay-code-mapping/virtus/3-sheet.xlsx` produces:
 - `proposedSheet = 'Sheet3'`
 - 7 long-form state values resolved
