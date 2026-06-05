@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate C — Encircled Stamp
+  Icon: Scale (sidebar Liability)
+  Container: navy #48608a filled disc.
+  Glyph: white #ffffff stroke, 1.5px.
+  Accent: gold #d9a428 dot at the top hook — visually anchors the
+  "calibration" reading and pairs with the calculated-tick gold dot
+  elsewhere in the family (consistent semantic: gold = "anchored value").
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     role="img" aria-label="Scale">
+  <circle cx="12" cy="12" r="11" fill="#48608a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.5"
+     stroke-linecap="round" stroke-linejoin="round">
+    <!-- Central post + fulcrum -->
+    <line x1="12" y1="6.5" x2="12" y2="18"/>
+    <line x1="9.5" y1="18" x2="14.5" y2="18"/>
+    <!-- Crossbar -->
+    <line x1="5.5" y1="9" x2="18.5" y2="9"/>
+    <!-- Cords -->
+    <line x1="7" y1="9" x2="6" y2="12"/>
+    <line x1="7" y1="9" x2="8" y2="12"/>
+    <line x1="17" y1="9" x2="16" y2="12"/>
+    <line x1="17" y1="9" x2="18" y2="12"/>
+    <!-- Pans -->
+    <path d="M5.5 12 a1.75 1.75 0 0 0 3 0"/>
+    <path d="M15.5 12 a1.75 1.75 0 0 0 3 0"/>
+  </g>
+  <!-- Gold anchor dot at the hook -->
+  <circle cx="12" cy="6.5" r="1.2" fill="#d9a428"/>
+</svg>

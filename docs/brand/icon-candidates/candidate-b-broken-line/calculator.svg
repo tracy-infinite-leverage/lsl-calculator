@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Candidate B — Broken-Line Detail
+  Icon: Calculator (sidebar Valuations, public-calc CTA)
+  Stroke: 1.5px navy #48608a body. Secondary "tape readout" trailing from
+  the calculator display rendered in dashed grey-blue — references printed
+  receipt tape (calculator/payroll continuity) without becoming literal.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     fill="none" stroke="#48608a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+     role="img" aria-label="Calculator">
+  <!-- Body -->
+  <rect x="4" y="2.5" width="16" height="19" rx="2"/>
+  <!-- Display -->
+  <rect x="6.5" y="5" width="11" height="4" rx="0.75"/>
+  <!-- Display digits (dashed grey-blue tape suggestion) -->
+  <line x1="8.25" y1="7" x2="15.75" y2="7"
+        stroke="#a0aec1" stroke-width="1" stroke-dasharray="2 2"/>
+  <!-- Keys: 3x3 grid -->
+  <line x1="7" y1="13" x2="7" y2="13"/>
+  <line x1="12" y1="13" x2="12" y2="13"/>
+  <line x1="17" y1="13" x2="17" y2="13"/>
+  <line x1="7" y1="16" x2="7" y2="16"/>
+  <line x1="12" y1="16" x2="12" y2="16"/>
+  <line x1="17" y1="16" x2="17" y2="16"/>
+  <line x1="7" y1="19" x2="7" y2="19"/>
+  <line x1="12" y1="19" x2="12" y2="19"/>
+  <line x1="17" y1="19" x2="17" y2="19"/>
+</svg>
