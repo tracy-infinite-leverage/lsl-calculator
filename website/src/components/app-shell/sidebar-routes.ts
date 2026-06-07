@@ -28,7 +28,7 @@
  * components, client components, tests, future server actions.
  */
 
-import type { LucideProps } from '@/components/brand/Icon';
+import type { LslIconProps } from '@/components/brand/Icon';
 import {
   Users,
   Tag,
@@ -47,7 +47,7 @@ export interface SidebarEntry {
   readonly slug: string;
   readonly label: string;
   readonly href: string;
-  readonly icon: React.ComponentType<LucideProps>;
+  readonly icon: React.ComponentType<LslIconProps>;
   /**
    * Env-var name that gates entry visibility. `null` = always visible.
    * Read at render time via the inline switch in `isVisible()` so the

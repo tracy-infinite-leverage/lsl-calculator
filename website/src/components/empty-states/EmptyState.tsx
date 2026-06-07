@@ -64,7 +64,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import type { LucideProps } from '@/components/brand/Icon';
+import type { LslIconProps } from '@/components/brand/Icon';
 
 /**
  * Props for the shared empty-state primitive.
@@ -86,7 +86,7 @@ export interface EmptyStateProps {
    * the wrapper for a real illustration; the icon prop becomes the alt
    * brand image at that point.
    */
-  illustrationIcon: React.ComponentType<LucideProps>;
+  illustrationIcon: React.ComponentType<LslIconProps>;
   /**
    * The primary call-to-action. Typically `<Button asChild><Link/></Button>`
    * from the consuming route page. Restricted to a single React node so

@@ -1,6 +1,6 @@
 # LSL Calculator — Production Icon Set (OQ-2 / Candidate C — Encircled Stamp)
 
-> **Status:** production assets — the artwork referenced by the `Icon.tsx` barrel swap (the load-bearing follow-up PR).
+> **Status:** **LIVE in production** — `Icon.tsx` was rewired by the E6.2+ barrel-swap PR to render this set from `/icons/sprite.svg` (built by `website/scripts/build-icon-sprite.mjs`). The "follow-up PR" referenced below has shipped; the production icon set is ON.
 > **Direction:** [Candidate C — Encircled Stamp](../icon-candidates/candidate-c-encircled-stamp/README.md), selected by the operator on **2026-06-05** in PR #149's 3-candidate concept round. Decision is recorded in [`../icon-candidates/README.md`](../icon-candidates/README.md) DECISION header.
 > **Brand source of truth:** [`../icon-direction.md`](../icon-direction.md). Where this README and the direction doc disagree, the direction doc wins.
 

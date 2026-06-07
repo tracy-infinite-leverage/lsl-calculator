@@ -34,10 +34,10 @@
  */
 
 import * as React from 'react';
-import { Loader2, type LucideProps } from '@/components/brand/Icon';
+import { Loader2, type LslIconProps } from '@/components/brand/Icon';
 import { cn } from '@/lib/utils';
 
-export interface SpinnerProps extends Omit<LucideProps, 'size'> {
+export interface SpinnerProps extends Omit<LslIconProps, 'size'> {
   /**
    * Glyph size in the icon-direction.md §5 scale.
    *   - `sm` →  16px (h-4 w-4) — inline button affordance
