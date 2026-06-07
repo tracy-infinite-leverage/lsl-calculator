@@ -22,29 +22,37 @@ const eslintConfig = defineConfig([
     // Local ESLint rule fixtures — intentionally lint-failing.
     "eslint-rules/__fixtures__/**",
   ]),
-  // E6.2 Task 2.5 — Lucide barrel enforcement (OQ-2).
+  // E6.2+ — Lucide barrel enforcement (OQ-2 production set ON).
   //
-  // Every icon in product code must flow through `@/components/brand/Icon` so
-  // the v1.1 custom-icon swap is a one-file change. Direct `lucide-react`
-  // imports outside the exempted set fail the lint.
+  // PR #151 shipped the in-house OQ-2 icon set. The barrel-swap PR (this
+  // commit) rewrote `src/components/brand/Icon.tsx` so it renders the local
+  // sprite from `/icons/sprite.svg` instead of re-exporting Lucide. The
+  // Icon.tsx exemption is therefore GONE — that file no longer needs
+  // (and no longer has) any `lucide-react` import. If a future change to
+  // Icon.tsx re-introduces a `lucide-react` import, this lint rule fails
+  // the build and forces the contributor to update the sprite + barrel
+  // instead.
   //
-  // Exempt files:
-  //   - `src/components/brand/Icon.tsx` — this IS the barrel.
-  //   - `src/components/ui/**` — shadcn primitives. Spec §7.2 mandates
-  //     "shadcn variant overrides, not replacements" — i.e. preserve the
-  //     shadcn upgrade path. `npx shadcn@latest add` re-writes these files
-  //     with direct `lucide-react` imports, so forcing the barrel here would
-  //     break the upgrade ergonomics. Effective surface for the rule is
-  //     every other component / page in `src/`.
+  // Exempt files (preserved):
+  //   - `src/components/ui/**` — shadcn primitives. Two load-bearing
+  //     reasons keep this exemption:
+  //       1. Spec §7.2 mandates "shadcn variant overrides, not
+  //          replacements" — `npx shadcn@latest add` re-writes these files
+  //          with direct `lucide-react` imports, so forcing the barrel
+  //          here would break the upgrade ergonomics.
+  //       2. `checkbox.tsx` uses `Minus` (the indeterminate-state glyph),
+  //          which is NOT in the 42-icon OQ-2 inventory. Until the
+  //          designer agent commissions a `Minus` stamp + the inventory
+  //          is updated, this exemption is the mechanism that keeps the
+  //          checkbox indeterminate state rendering. See PR body for the
+  //          cross-PR coordination note.
   //
-  // OQ-2 swap mechanism: when the custom icon set lands, replace
-  // `src/components/brand/Icon.tsx` AND the small number of `lucide-react`
-  // imports inside `src/components/ui/**` in a single PR. The audit is
-  // greppable: `grep -rE "from ['\"]lucide-react['\"]" website/src/`.
+  // `lucide-react` remains in `package.json` for a one-release burn-in
+  // (per `docs/brand/icons/README.md` §"Barrel swap strategy" roll-back
+  // posture). Drop the package after 7 days of clean prod.
   {
     files: ["src/**/*.{ts,tsx}"],
     ignores: [
-      "src/components/brand/Icon.tsx",
       "src/components/ui/**",
     ],
     rules: {
@@ -55,7 +63,7 @@ const eslintConfig = defineConfig([
             {
               name: "lucide-react",
               message:
-                "Import icons from '@/components/brand/Icon' instead. The barrel exists so the v1.1 custom-icon swap (OQ-2) is a one-file change. See icon-direction.md §5 and eslint.config.mjs.",
+                "Import icons from '@/components/brand/Icon' instead. The brand barrel now renders the OQ-2 production icon set from /icons/sprite.svg. See docs/brand/icons/README.md.",
             },
           ],
         },

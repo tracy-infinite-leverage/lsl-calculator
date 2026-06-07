@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/sync-brand-assets.mjs",
+    "prebuild": "node scripts/sync-brand-assets.mjs && node scripts/build-icon-sprite.mjs",
     "build": "next build",
     "postbuild": "node scripts/audit-bundle.mjs",
     "audit-bundle": "node scripts/audit-bundle.mjs",
@@ -15,10 +15,11 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "sync-brand-assets": "node scripts/sync-brand-assets.mjs",
+    "build-icon-sprite": "node scripts/build-icon-sprite.mjs",
     "spike:pdf": "tsx scripts/e6-pdf-spike.tsx",
-    "prestorybook": "node scripts/sync-brand-assets.mjs",
+    "prestorybook": "node scripts/sync-brand-assets.mjs && node scripts/build-icon-sprite.mjs",
     "storybook": "storybook dev -p 6006",
-    "prebuild-storybook": "node scripts/sync-brand-assets.mjs",
+    "prebuild-storybook": "node scripts/sync-brand-assets.mjs && node scripts/build-icon-sprite.mjs",
     "build-storybook": "storybook build"
   },
   "dependencies": {

@@ -1,131 +1,247 @@
 /**
- * Icon — single barrel for every Lucide icon used in the app
+ * Icon — single barrel for every brand icon used in the app.
  *
- * E6.2 Task 2.5 (OQ-2 mechanism). Lucide ships as the v1 placeholder icon
- * set per spec §5.1 / OQ-2; the custom set replaces Lucide "by the time E5.6
- * ships." The swap is a one-file change because nothing else in the codebase
- * imports from `lucide-react` directly — every icon use goes through this
- * barrel.
+ * E6.2+ OQ-2 production icon set (the load-bearing PR that flips Lucide OFF).
+ * Until this PR, the barrel re-exported names from `lucide-react`; now it
+ * renders the in-house "Encircled Stamp" set (Candidate C, selected
+ * 2026-06-05) from `docs/brand/icons/{default,active,disabled}/*.svg`.
  *
- * Implementation rules (impl-plan §1.1, icon-direction.md §5):
+ * Implementation strategy (per `docs/brand/icons/README.md` §"Barrel swap"):
  *
- *   1. Re-export only the icons the app actually uses. The 21 icons listed
- *      below cover every existing `lucide-react` import on `main` (audited
- *      2026-05-28) plus a small set named in icon-direction.md §5 that future
- *      tasks will reach for. New icons get added one at a time; the v1.1
- *      replacement audit then has a known, finite surface.
+ *   1. A single sprite at `/icons/sprite.svg` (built by
+ *      `scripts/build-icon-sprite.mjs`) contains 126 `<symbol>` definitions —
+ *      one per (state × icon) pair, keyed by `<state>--<kebab-name>`.
+ *   2. Each named export here is a thin `forwardRef` wrapper that renders
+ *      `<svg><use href="/icons/sprite.svg#<state>--<name>" /></svg>`.
+ *   3. The wrapper accepts `variant?: 'default' | 'active' | 'disabled'`
+ *      (default = `'default'`). Sizing comes from `className` (`h-4 w-4`,
+ *      `h-6 w-6`, …) — same convention every Lucide consumer already used.
+ *   4. `aria-hidden="true"` is the default when neither `aria-hidden` nor
+ *      `aria-label` is provided. Consumers that need an announced icon pass
+ *      `aria-label` explicitly (e.g. a standalone icon-only button).
  *
- *   2. Re-export under the same names as Lucide. This keeps the v1→v1.1
- *      swap a true one-file change — the custom set provides identical named
- *      exports (`Calculator`, `User`, etc.) with the same `LucideProps`
- *      contract. Callers don't notice the swap.
+ * Brand styling rules (`docs/brand/icon-direction.md` §3):
+ *   Each SVG ships with its own hex-coded fills and strokes. The wrapper
+ *   does NOT recolour at the consumer level — gold accents, navy stroke, and
+ *   disabled grey-blue are baked into the source SVGs because the design is
+ *   restraint-driven and `text-brand-*` Tailwind classes would let a careless
+ *   consumer override the design system. Consumers control SIZE (via
+ *   `className`) and STATE (via `variant`), not colour.
  *
- *   3. Also export the shared icon prop type. Future custom icons MUST
- *      satisfy `LucideProps` for the swap to be transparent.
+ * Lint rule (`website/eslint.config.mjs`):
+ *   Every file in `src/` (except shadcn primitives in `src/components/ui/**`)
+ *   must import icons from this barrel. Direct `lucide-react` imports fail
+ *   the build. The shadcn exemption is preserved because (a) shadcn upgrade
+ *   commands re-emit `lucide-react` imports and (b) one shadcn primitive
+ *   (`checkbox.tsx`) needs `Minus` which is NOT in the OQ-2 inventory —
+ *   surfacing that gap to the operator is the responsibility of this PR
+ *   (see PR body for the cross-PR coordination note).
  *
- *   4. Lint rule (enforced in `eslint.config.mjs` via the
- *      `no-restricted-imports` pattern added in this task): direct
- *      `lucide-react` imports anywhere outside this file fail the build.
- *
- * Brand styling rules (icon-direction.md §5):
- *   Default style is "navy stroke, restraint with gold." Components consuming
- *   icons apply colour via Tailwind utilities (`text-brand-navy`,
- *   `text-brand-gold`) and stroke-width as needed — the barrel does NOT
- *   pre-style icons. That decision keeps the consumer in control and matches
- *   the existing Lucide ergonomics.
+ * One-release burn-in posture:
+ *   `lucide-react` STAYS in `package.json` for at least one production
+ *   release after this PR. If a real consumer surface reveals a glyph that
+ *   needs to be redrawn, we can revert that one named export to Lucide
+ *   while we redraw. The lint exemption for shadcn primitives keeps that
+ *   path open mechanically. Drop the package after 7 days of clean prod.
  *
  * Usage:
  *   ```tsx
  *   import { Calculator, CheckCircle2 } from '@/components/brand/Icon';
  *
- *   <Calculator className="text-brand-navy" strokeWidth={2.5} />
- *   <CheckCircle2 className="text-brand-gold" />
+ *   <Calculator className="h-6 w-6" />
+ *   <CheckCircle2 variant="active" className="h-4 w-4" />
+ *   <Trash2 className="h-4 w-4" aria-label="Delete row" />
  *   ```
  */
 
-// Re-export the `LucideProps` type so consumers (and the future custom-icon
-// shim) share a single icon contract. This is the only `lucide-react` import
-// permitted in the codebase — every other file goes through the named-icon
-// re-exports below. ESLint exempts this file via `eslint.config.mjs`.
-export type { LucideProps } from 'lucide-react';
+import * as React from 'react';
+
+/**
+ * Sprite asset URL. Resolved against the public root — Next 16 serves
+ * `public/icons/sprite.svg` at `/icons/sprite.svg`.
+ *
+ * The leading slash is required for SSR — `<use href="/…">` resolves
+ * relative to the document origin both on the server (Next inlines an
+ * absolute reference) and in the browser (the request is made once and
+ * cached aggressively after the first paint).
+ */
+const SPRITE_HREF = '/icons/sprite.svg';
+
+/**
+ * Variant union. The three states are intrinsic to the brand stamp design
+ * (navy / gold / muted) and ship as separate symbols in the sprite — the
+ * wrapper does not transform colour on the fly.
+ */
+export type IconVariant = 'default' | 'active' | 'disabled';
+
+/**
+ * Props accepted by every brand icon component.
+ *
+ * Modelled after Lucide's `LucideProps` shape so the v1 swap was a pure
+ * type-name rename. The `Omit<…, 'size'>` pattern used by `Spinner`
+ * (see `src/components/ui/spinner.tsx`) keeps working because we expose the
+ * same `className` + ref-forwarding + SVG-attribute spread surface.
+ *
+ * Notably ABSENT from Lucide's `LucideProps` here: `size`, `color`,
+ * `strokeWidth`, `absoluteStrokeWidth`. The OQ-2 set is intentionally
+ * non-recolourable (per direction §3) and non-resizeable-via-prop (per
+ * shadcn ergonomics — size comes from Tailwind classes on `className`).
+ * That removes four overrides a consumer might reach for that have no
+ * runtime effect on the sprite — better to omit the props than silently
+ * ignore them.
+ */
+export interface LslIconProps
+  extends Omit<React.SVGAttributes<SVGSVGElement>, 'children'> {
+  /**
+   * State variant. Defaults to `'default'` (navy disc, white glyph).
+   *
+   *   - `'default'`  — canonical state (navy + white + selective gold)
+   *   - `'active'`   — selected / pressed (gold disc, navy glyph)
+   *   - `'disabled'` — feature-gated / no-permission (grey-blue + 60% opacity)
+   */
+  variant?: IconVariant;
+}
+
+/**
+ * Backwards compatibility shim for the `LucideProps` type name. Three
+ * consumers reference it (`Spinner`, `sidebar-routes`, `EmptyState`) and
+ * codemodding the import sites is part of this PR. The alias stays exported
+ * for a brief deprecation window so any downstream branch that imports
+ * `LucideProps` from the barrel does not break — `LslIconProps` is the
+ * preferred name going forward.
+ *
+ * @deprecated Use `LslIconProps`. Removed when `lucide-react` is removed
+ * from `package.json` (one release after this PR ships).
+ */
+export type LucideProps = LslIconProps;
+
+/**
+ * Factory for the named icon components. Each invocation returns a
+ * `forwardRef` component bound to a specific sprite symbol family
+ * (e.g. `"users"` → renders `default--users`, `active--users`, or
+ * `disabled--users` depending on the `variant` prop).
+ *
+ * Centralising the wrapper logic here (rather than duplicating it 42 times)
+ * keeps the per-export footprint to a single line at the bottom of this
+ * file and ensures the accessibility-default behaviour is identical across
+ * every icon.
+ */
+function createIcon(spriteName: string, displayName: string) {
+  const Component = React.forwardRef<SVGSVGElement, LslIconProps>(
+    function BrandIcon(
+      { variant = 'default', className, ...rest },
+      ref,
+    ) {
+      // Accessibility default: if the consumer supplied neither `aria-label`
+      // nor an explicit `aria-hidden`, treat the icon as decorative and hide
+      // it from assistive tech. Consumers that need announcement pass
+      // `aria-label="…"`; consumers that want to force visibility to a/t
+      // pass `aria-hidden={false}` explicitly.
+      const hasAriaLabel = typeof rest['aria-label'] === 'string';
+      const hasExplicitAriaHidden = 'aria-hidden' in rest;
+      const ariaHidden = hasExplicitAriaHidden
+        ? rest['aria-hidden']
+        : hasAriaLabel
+          ? undefined
+          : true;
+
+      return (
+        <svg
+          ref={ref}
+          className={className}
+          // viewBox + xmlns mirror the symbol's intrinsic 24×24 canvas.
+          // Without an explicit viewBox here, some user agents (notably
+          // Safari < 14 fallback paths) refuse to scale `<use>` references.
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          // fill="none" matches the source SVG quality bar — strokes carry
+          // the artwork. Overriding the wrapper's fill would break the
+          // brand stamp (the disc would lose its navy/gold fill).
+          fill="none"
+          {...rest}
+          aria-hidden={ariaHidden}
+        >
+          <use href={`${SPRITE_HREF}#${variant}--${spriteName}`} />
+        </svg>
+      );
+    },
+  );
+  Component.displayName = displayName;
+  return Component;
+}
 
 // ---------------------------------------------------------------------------
-// Icon re-exports — the v1 surface.
+// Icon exports — the 42 components in the OQ-2 production set.
 //
-// Each named import below corresponds to a Lucide identifier currently used
-// somewhere in `src/` OR explicitly named in icon-direction.md §5 as part of
-// the brand v1 minimum. Anything not in this list is intentionally absent —
-// add to the list when a feature lands, not preemptively.
+// Order mirrors `docs/brand/icons/production-inventory.md` so a reader can
+// scan top-to-bottom and trace each export back to its semantic + consumer
+// surface. Each `createIcon(...)` call pairs the sprite symbol name
+// (kebab-case, matches the source SVG filename) with the PascalCase
+// TypeScript export name (matches what every consumer already imports).
 //
-// Audit source: `grep -rEn "from ['\"]lucide-react['\"]" website/src/` on
-// 2026-05-28 — 17 files, 21 unique identifiers below + the brand-v1 minimum.
-//
-// Brand-v1 minimum (`docs/brand/icon-direction.md` §5): the 15 mandated icons
-// MUST all appear in this barrel even if no consumer imports them yet — that
-// is the OQ-2 one-file-swap contract. The 5 spec-mandated icons that have no
-// consumer on `main` today (`CalendarRange`, `DollarSign`, `Settings`,
-// `Search`, `Filter`) are exported below alongside the actively-used set so
-// the swap surface matches the documented v1 surface.
+// Adding a new icon: drop the three state SVGs into `docs/brand/icons/`,
+// run `node scripts/build-icon-sprite.mjs`, then add a line here.
 // ---------------------------------------------------------------------------
 
-export {
-  // Calculator / measurement
-  Calculator,
+// Calculator / measurement
+export const Calculator = createIcon('calculator', 'Calculator');
 
-  // People / tenancy
-  User,
-  Users,
-  Building2,
-  LogOut,
+// People / tenancy
+export const User = createIcon('user', 'User');
+export const Users = createIcon('users', 'Users');
+export const Building2 = createIcon('building-2', 'Building2');
+export const LogOut = createIcon('log-out', 'LogOut');
 
-  // Status / signals
-  CheckCircle2,
-  AlertCircle,
-  AlertTriangle,
-  Info,
-  HelpCircle,
-  FileWarning,
-  Lock,
-  Unlock,
-  Bell,
+// Status / signals
+export const CheckCircle2 = createIcon('check-circle-2', 'CheckCircle2');
+export const AlertCircle = createIcon('alert-circle', 'AlertCircle');
+export const AlertTriangle = createIcon('alert-triangle', 'AlertTriangle');
+export const Info = createIcon('info', 'Info');
+export const HelpCircle = createIcon('help-circle', 'HelpCircle');
+export const FileWarning = createIcon('file-warning', 'FileWarning');
+export const Lock = createIcon('lock', 'Lock');
+export const Unlock = createIcon('unlock', 'Unlock');
+export const Bell = createIcon('bell', 'Bell');
 
-  // Navigation / motion
-  ArrowRight,
-  ArrowUpDown,
-  ChevronDown,
-  ChevronRight,
-  RotateCcw,
-  Menu,
+// Navigation / motion
+export const ArrowRight = createIcon('arrow-right', 'ArrowRight');
+export const ArrowUpDown = createIcon('arrow-up-down', 'ArrowUpDown');
+export const ChevronDown = createIcon('chevron-down', 'ChevronDown');
+export const ChevronRight = createIcon('chevron-right', 'ChevronRight');
+export const RotateCcw = createIcon('rotate-ccw', 'RotateCcw');
+export const Menu = createIcon('menu', 'Menu');
 
-  // Editing / IO
-  Plus,
-  X,
-  Trash2,
-  Check,
-  Circle,
+// Editing / IO
+export const Plus = createIcon('plus', 'Plus');
+export const X = createIcon('x', 'X');
+export const Trash2 = createIcon('trash-2', 'Trash2');
+export const Check = createIcon('check', 'Check');
+export const Circle = createIcon('circle', 'Circle');
 
-  // Files / reports
-  FileText,
-  FileUp,
-  Download,
-  Upload,
-  BookOpen,
+// Files / reports
+export const FileText = createIcon('file-text', 'FileText');
+export const FileUp = createIcon('file-up', 'FileUp');
+export const Download = createIcon('download', 'Download');
+export const Upload = createIcon('upload', 'Upload');
+export const BookOpen = createIcon('book-open', 'BookOpen');
 
-  // Process
-  Play,
-  Loader2,
-  Scale,
-  TrendingDown,
-  TrendingUp,
-  GitCompareArrows,
+// Process
+export const Play = createIcon('play', 'Play');
+export const Loader2 = createIcon('loader-2', 'Loader2');
+export const Scale = createIcon('scale', 'Scale');
+export const TrendingDown = createIcon('trending-down', 'TrendingDown');
+export const TrendingUp = createIcon('trending-up', 'TrendingUp');
+export const GitCompareArrows = createIcon(
+  'git-compare-arrows',
+  'GitCompareArrows',
+);
 
-  // Taxonomy / categorisation
-  Tag,
+// Taxonomy / categorisation
+export const Tag = createIcon('tag', 'Tag');
 
-  // Brand-v1 §5 — no consumer on main yet, present for OQ-2 surface parity
-  CalendarRange,
-  DollarSign,
-  Settings,
-  Search,
-  Filter,
-} from 'lucide-react';
+// Brand-v1 §5 — present for OQ-2 surface parity
+export const CalendarRange = createIcon('calendar-range', 'CalendarRange');
+export const DollarSign = createIcon('dollar-sign', 'DollarSign');
+export const Settings = createIcon('settings', 'Settings');
+export const Search = createIcon('search', 'Search');
+export const Filter = createIcon('filter', 'Filter');
