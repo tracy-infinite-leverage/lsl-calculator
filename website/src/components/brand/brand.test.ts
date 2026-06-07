@@ -111,7 +111,8 @@ const BRAND_V1_ICONS = [
   'AlertTriangle',
 ] as const;
 
-// The 42-icon OQ-2 production set. Mirrors `docs/brand/icons/production-inventory.md`.
+// The 43-icon OQ-2 production set (42 original + Minus, added to close the
+// checkbox indeterminate-state gap). Mirrors `docs/brand/icons/production-inventory.md`.
 // `[exportName, kebab-spriteName]` pairs — keeping both forms means a future
 // rename in either dimension surfaces the drift here.
 const OQ2_ICONS: ReadonlyArray<readonly [string, string]> = [
@@ -136,6 +137,7 @@ const OQ2_ICONS: ReadonlyArray<readonly [string, string]> = [
   ['RotateCcw', 'rotate-ccw'],
   ['Menu', 'menu'],
   ['Plus', 'plus'],
+  ['Minus', 'minus'],
   ['X', 'x'],
   ['Trash2', 'trash-2'],
   ['Check', 'check'],
@@ -169,7 +171,7 @@ describe('Icon barrel', () => {
     }
   });
 
-  it('exports exactly the 42 components in the OQ-2 production inventory', () => {
+  it('exports exactly the 43 components in the OQ-2 production inventory', () => {
     // Cross-check: every name in the inventory exists as a barrel export,
     // and no extra export has slipped in unannounced. "Unannounced" matters
     // because the sprite has a finite symbol set — an extra export would
@@ -195,8 +197,11 @@ describe('Icon barrel', () => {
     // sprite-based render path replaces every Lucide identifier. The only
     // remaining importers are the shadcn primitives in `src/components/ui/`,
     // documented in `eslint.config.mjs` as the "shadcn upgrade-path"
-    // exemption (and load-bearing for the `Minus` icon used by checkbox's
-    // indeterminate state, which is NOT in the OQ-2 inventory).
+    // exemption. The Minus-icon gap that originally made the
+    // `ui/checkbox.tsx` exemption load-bearing was closed by the follow-up
+    // `design/oq-2-minus-icon` extension PR; the exemption stays only until
+    // the burn-in cleanup PR migrates `ui/checkbox.tsx` to the brand barrel
+    // and drops `lucide-react` from `package.json`.
     //
     // We re-use the eslint config's exempt set as the test's expected set.
     // If a new exempt path is added to eslint.config.mjs without updating
@@ -324,7 +329,7 @@ describe('Icon sprite render', () => {
     expect(markup).not.toContain('aria-hidden');
   });
 
-  it('sprite file at public/icons/sprite.svg contains all 126 expected symbol ids', () => {
+  it('sprite file at public/icons/sprite.svg contains all 129 expected symbol ids', () => {
     // Belt-and-braces: confirm the committed sprite asset matches the
     // inventory. If a contributor edits a source SVG and forgets to re-run
     // the sprite builder, this test fails — surfacing the drift before CI.
