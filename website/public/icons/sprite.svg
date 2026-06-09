@@ -218,6 +218,10 @@
     <line x1="6.5" y1="15.5" x2="17.5" y2="15.5"/>
     </g>
   </symbol>
+  <symbol id="default--minus" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="11" fill="#48608a"/>
+    <path d="M8 12 H16" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
   <symbol id="default--play" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="11" fill="#48608a"/>
     <path d="M9.5 7.5 L16.5 12 L9.5 16.5 Z" fill="#ffffff" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
@@ -548,6 +552,10 @@
     <line x1="6.5" y1="12" x2="17.5" y2="12"/>
     <line x1="6.5" y1="15.5" x2="17.5" y2="15.5"/>
     </g>
+  </symbol>
+  <symbol id="active--minus" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="11" fill="#d9a428"/>
+    <path d="M8 12 H16" fill="none" stroke="#48608a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </symbol>
   <symbol id="active--play" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="11" fill="#d9a428"/>
@@ -932,6 +940,12 @@
     <line x1="6.5" y1="12" x2="17.5" y2="12"/>
     <line x1="6.5" y1="15.5" x2="17.5" y2="15.5"/>
     </g>
+    </g>
+  </symbol>
+  <symbol id="disabled--minus" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="11" fill="#a0aec1"/>
+    <g opacity="0.6">
+    <path d="M8 12 H16" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
   </symbol>
   <symbol id="disabled--play" viewBox="0 0 24 24">
