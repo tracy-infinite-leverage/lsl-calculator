@@ -32,13 +32,10 @@
  *   Every file in `src/` (except shadcn primitives in `src/components/ui/**`)
  *   must import icons from this barrel. Direct `lucide-react` imports fail
  *   the build. The shadcn exemption is preserved because (a) shadcn upgrade
- *   commands re-emit `lucide-react` imports and (b) the burn-in window for
- *   the barrel swap is still open. The `Minus` icon was added in the
- *   follow-up extension PR (`design/oq-2-minus-icon`) so the indeterminate
- *   checkbox state has a brand-set glyph; the `ui/checkbox.tsx` migration
- *   to import `Minus` from this barrel is mechanical and lands with the
- *   cleanup PR that drops `lucide-react` from `package.json` and removes
- *   this exemption.
+ *   commands re-emit `lucide-react` imports and (b) one shadcn primitive
+ *   (`checkbox.tsx`) needs `Minus` which is NOT in the OQ-2 inventory —
+ *   surfacing that gap to the operator is the responsibility of this PR
+ *   (see PR body for the cross-PR coordination note).
  *
  * One-release burn-in posture:
  *   `lucide-react` STAYS in `package.json` for at least one production
@@ -124,7 +121,7 @@ export type LucideProps = LslIconProps;
  * (e.g. `"users"` → renders `default--users`, `active--users`, or
  * `disabled--users` depending on the `variant` prop).
  *
- * Centralising the wrapper logic here (rather than duplicating it 43 times)
+ * Centralising the wrapper logic here (rather than duplicating it 42 times)
  * keeps the per-export footprint to a single line at the bottom of this
  * file and ensures the accessibility-default behaviour is identical across
  * every icon.
@@ -174,8 +171,7 @@ function createIcon(spriteName: string, displayName: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Icon exports — the 43 components in the OQ-2 production set
-// (42 original + Minus, added to close the checkbox indeterminate-state gap).
+// Icon exports — the 42 components in the OQ-2 production set.
 //
 // Order mirrors `docs/brand/icons/production-inventory.md` so a reader can
 // scan top-to-bottom and trace each export back to its semantic + consumer
@@ -217,7 +213,6 @@ export const Menu = createIcon('menu', 'Menu');
 
 // Editing / IO
 export const Plus = createIcon('plus', 'Plus');
-export const Minus = createIcon('minus', 'Minus');
 export const X = createIcon('x', 'X');
 export const Trash2 = createIcon('trash-2', 'Trash2');
 export const Check = createIcon('check', 'Check');
