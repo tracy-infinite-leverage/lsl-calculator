@@ -254,6 +254,66 @@ _Dev findings: `.specify/features/006-ui-design-system/dev-findings.md` (0 HIGH,
 
 ---
 
+## E8 · Payroll Knowledge Assessment
+
+> **Status:** 📋 **v0.5 SPEC LOCKED — operator-signed-off 2026-06-10.** Phase-split into v0.5 (assessment lead-magnet — ships standalone now) + v1.0 (recommender layer — ships when ≥ 6 APA courses exist). Question bank locked (35 Qs × 6 categories). Nine v0.5 OQs operator-resolved; four OQs (OQ-KA-9/11/12/13) explicitly deferred to v1.0; two new OQs (OQ-KA-14/15) carried as non-blocking. Ready for developer planning on v0.5 only.
+
+**The problem (v0.5):** Payroll managers and team leads have nowhere to self-diagnose their own knowledge gaps across the load-bearing compliance domains — Fair Work, Super, Payroll Tax, Leave, Terminations, and end-of-year STP. The cost of not knowing isn't abstract: an SG-rate miss is an SG-charge plus interest; an LSL accrual error is the entire variance E5.6 is designed to surface; a wrongly-classified termination payment is a tax-office finding. Industry bodies publish general guidance and run paid workshops; neither produces a personalised "here's where you specifically are weak" diagnostic in 10 minutes for free. Adjacent to the respondent's problem is the operator's: the APA video-course catalogue does not yet exist as of 2026-06-10. There are six categories of payroll-compliance pain we *could* film a course for; we don't know which to film first. A diagnostic completed by hundreds of payroll managers tells us — directly, by category-level failure rates — which course will have the largest addressable market on day one. v0.5 is the diagnostic instrument *and* the market-research instrument; v0.5 itself produces the signal that unlocks v1.0.
+
+**The mechanism (v0.5 — what ships now):** A free, browser-based, stateless 35-question multiple-choice assessment on the public marketing surface at `lslcalculator.com.au/assessment`. Six categories of six (one of five) questions each, one question per screen, no back-tracking. Before scoring, the respondent picks a time-commitment bucket (≤ 1 hour / half-day 2–4h / 1 full day 6–8h / multi-day > 1 day) — collected but not yet acted on by a recommender, because there are no courses to recommend yet. At the end, an **email gate** reveals the results: per-category sub-scores with the weakest domain called out at the top ("Your biggest gap is Terminations — you got 2/6 correct"), citations on incorrect answers only, and a closing line — "Detailed course recommendations are coming soon — we'll email you when they're ready." That sentence is the consent hook for the v1.0 re-engagement broadcast. Underneath: the question bank lives in a Supabase `assessment_questions` table edited via a thin admin UI under `/app/admin/assessment` — versioned with in-flight session pinning, audit-logged, "Publish" action puts new versions live without breaking in-flight respondents. Five FY-dated items carry a `currency_year` field that hard-gates serving them after 1 July until the operator refreshes via the admin UI. Email capture writes the email + per-category sub-scores + weakest-category tag + time-bucket into the existing email-marketer pool — the weakest-category tag is the precision-targeting hook for v1.0's per-category re-engagement broadcast.
+
+**The mechanism (v1.0 — what ships later):** When ≥ 6 APA courses exist (one per category) with stable `course_id` / `title` / `duration_bucket` / `booking_url`, the recommender layer goes live on top of v0.5. The results page gains booking-link CTAs filtered by the respondent's declared time budget; the email-marketer pool fires a re-engagement broadcast to every v0.5 respondent targeted by weakest-category tag. v1.0 is purely additive — no v0.5 surface changes, no respondent migration, no schema reshape.
+
+**What it bundles (v0.5):**
+- **Question bank (locked).** 35 questions × 6 categories. Canonical source at `.specify/features/008-knowledge-assessment/question-bank.md`. Locked 2026-06-10.
+- **Surface — public only (OQ-KA-1 resolved).** Single surface at `lslcalculator.com.au/assessment`. No `/app/*` placement in v0.5 — that's a post-v1.0 revisit.
+- **Scoring rubric — per-category sub-scores with weakest-domain callouts (OQ-KA-2 resolved).** Six bars on the results page, one per category, weakest called out at top. No pass/fail. No Beginner/Competent/Expert bands.
+- **Email-gate position — end (OQ-KA-3 resolved).** Email captured immediately before the score is revealed; the 10-minute investment + the personalised gap analysis carrot maximises capture rate.
+- **Citation depth — incorrect answers only (OQ-KA-4 resolved).** Every wrong answer surfaces a one-line citation to Fair Work / ATO / state-revenue authority. Correct answers get a green tick without extra clutter.
+- **FY-rollover SLA — 1 July refresh + hard `currency_year` gate (OQ-KA-5 resolved).** Annual refresh task on 1 July; any FY-dated question without an updated `currency_year` is paused-until-published (returns `null` to the rendering layer rather than serving stale content). Admin UI exposes a `currency_review_due` filter that lists the five FY-dated items in one query.
+- **Re-take policy — unrestricted, options shuffled, no lockout (OQ-KA-6 resolved).** Same-email re-takes allowed without limit; option order is shuffled per attempt to disincentivise pure memorisation while preserving the legitimate "I want to share this with my whole team" and "I took the courses, let me re-test" use cases.
+- **Content-edit surface — Supabase + thin admin UI under `/app/admin/assessment` (OQ-KA-7 resolved — HR-1).** Operator edits a question, clicks "Publish", new sessions see the new version. Markdown bank stays as the human-readable source-of-record reference.
+- **Edit-propagation — versioned, in-flight pinned, "Publish" action (OQ-KA-8 resolved — HR-1).** Every response row stores the `version_id` it was scored against. Same versioning pattern E5.3 uses for pay-code mappings — implementation pattern already proven inside this codebase.
+- **Time-commitment buckets — four (OQ-KA-10 resolved).** `≤ 1 hour` / `half-day (2–4 hours)` / `1 full day (6–8 hours)` / `multi-day (>1 day)`. Stored as typed enum on the response row; bucket boundaries align with how APA already structures training so the v1.0 recommender's `duration_bucket` field maps one-to-one.
+- **Weakest-category tagging into the email-marketer pool (OQ-KA-15 PM recommendation, adopted by default for v0.5).** At completion time, write the email + per-category sub-scores + weakest-category tag + time-bucket as merge fields into the existing email-marketer pool. This is a no-op for v0.5 UI but is the load-bearing precision-targeting hook for the v1.0 re-engagement broadcast — collecting it now means v1.0 ships with historical segmentation data on every v0.5 respondent.
+- **"Coming soon" close on the results page.** Single closing sentence acknowledging the time-budget input ("we'll match you to courses that fit your time") + the consent hook for v1.0.
+
+**What it bundles (v1.0 — deferred until ≥ 6 APA courses exist):**
+- **Course catalogue ingestion** — Supabase / YAML / external CMS / APA-API decision waits on the actual catalogue existing (OQ-KA-9).
+- **Recommender layer** — intersects (gap profile × declared time bucket × catalogue), ranked by gap severity × priority weight × duration-ascending.
+- **Booking-link CTAs on the results page** — the closing "coming soon" sentence is replaced with a ranked list of recommended-course buttons.
+- **Re-engagement broadcast** — email-marketer fires a per-weakest-category broadcast to every v0.5 respondent ("based on your gap profile and the time budget you told us about, here's what we recommend").
+- **Recommender fallbacks (OQ-KA-11/12/13)** — mapping granularity, empty-recommendation (100% score), and zero-time-budget edge cases all resolved at v1.0 spec time against the real catalogue shape.
+
+**What success looks like (v0.5):**
+1. **≥ 300 completed responses in the first 90 days** — the statistical-significance floor below which the per-category failure histogram is noise. This is the load-bearing metric, because v0.5's purpose is dual: lead-magnet + market-research signal.
+2. **Completion rate ≥ 50%** on assessments started (industry benchmark for a 10-minute quiz-style lead magnet is 40–60%; we target the upper half because the audience is high-intent).
+3. **Completion-to-email-capture ≥ 60%** with end-gating; this gates the actual capture volume, not just intent.
+4. **Weakest-category histogram informs course-production decision by day 90** — the operator can point to one category and say "this is the course we're filming first" with statistical confidence. If all six cluster within ±5pp, that's also a useful answer — film the broadest course first.
+5. **No FY-dated question is wrong on 1 July of any FY** — annual-refresh SLA is a hard launch gate.
+6. **No question, option, or category-mapping change requires a code deploy** — HR-1 is a hard launch gate; the operator must be able to fix a production typo in under 5 minutes.
+
+**What success looks like (v1.0 — measurable only after v1.0 ships):**
+- **≥ 5% click-through to a recommended course's booking URL within 7 days** of receiving the re-engagement broadcast.
+
+**Why the phase split:** The original epic assumed a populated APA course catalogue. That assumption is dead as of 2026-06-10 — there are no APA video courses yet. Rather than block the whole feature on course production, v0.5 ships the lead-magnet now and treats v0.5 itself as the market-research instrument that tells the operator which course to film first. The phase split is *not* technical scope reduction — it's the only sequencing that respects the actual dependency graph (catalogue must exist before recommender can be specified; respondent data must exist before catalogue priorities can be ranked; v0.5 is the cheapest way to get respondent data). v1.0 is purely additive on top of v0.5 — no v0.5 surface changes, no respondent migration, no schema reshape.
+
+**Sequence (parallel-track to E5/E6 — not blocking, not blocked):**
+- v0.5 depends on **E6.4 (public re-skin tokens)** for visual coherence with the LSL Calculator brand on the public surface.
+- v0.5 depends on **E5.1 auth (already shipped)** because the admin UI lives under `/app/admin/assessment` (per OQ-KA-7) — the auth slice gates the admin surface, not the public assessment surface.
+- v0.5 does **not** depend on E5.2 / E5.3 / E5.4 / E5.5 / E5.6 — different data shape, different surface, no shared engine.
+- v0.5 build sequence: developer plans v0.5 only (`speckit-plan` + `speckit-tasks` scoped to v0.5 acceptance criteria) → implement the public assessment page + admin UI + Supabase tables + email-marketer wiring → ship → collect 90 days of respondent data → v1.0 spec work triggered the moment ≥ 6 APA courses exist.
+
+**Carried open questions (non-blocking for v0.5 dev kickoff):**
+- **OQ-KA-14 · paid-acquisition test vs organic-only.** ~$500 paid budget test (LinkedIn + Meta) to push enough volume through v0.5 inside 90 days to hit ≥ 300 completions, vs organic-only. Decision deferred until v0.5 is built and ready for traffic — current `lslcalculator.com.au` organic volume informs the choice.
+- **OQ-KA-15 · cohort tagging for v1.0 re-engagement.** PM recommendation: tag weakest-category at v0.5 completion-time into the email-marketer pool so v1.0 ships with precise targeting available. **Adopted by default in v0.5 — see "What it bundles (v0.5)" above.** Flagged here so the email-marketer agent designs the segmentation up front.
+
+_Spec: `.specify/features/008-knowledge-assessment/spec.md` **v0.5 SPEC LOCKED — operator-signed-off 2026-06-10**_
+_Question bank: `.specify/features/008-knowledge-assessment/question-bank.md` (locked 2026-06-10)_
+_Course mapping data shape: `.specify/features/008-knowledge-assessment/course-mapping.md` (held in placeholder until v1.0 — populate against real APA catalogue per OQ-KA-9)_
+
+---
+
 ## Sequence argument
 
 **Updated 2026-05-27.** The original sequence had E1 → E3 v1 (NSW audit) → E2 → E3 v2 → E4. E3 was retired in favour of E5 (2026-05-26); E6 was added in parallel with E5 (2026-05-27). The sequence as of today:
